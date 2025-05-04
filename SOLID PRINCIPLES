@@ -1,0 +1,176 @@
+S.O.L.I.D principles explained with examples:
+
+
+
+
+S  -------   Single responsibility :  A class should have one and only one reason to change.
+
+This keeps each class focused, improving maintainability.
+
+A user class should not have user profile
+user authentication
+user ...
+
+
+Instead it should have each class of this.
+
+
+
+
+
+O -------- open / closed principle :
+
+
+Inhertitance
+
+
+
+An object / entity  should be be to extension but closed to modification
+
+
+EG : A class can be inhertied, istead of making change to the class again and again(modification)
+
+
+
+Software entities should be open for extension, but closed for modification.
+
+❌ Bad: A ShapeCalculator class that requires modification every time a new shape is added.
+
+✅ Better: Use a Shape base class and extend it with subclasses (Rectangle, Triangle, etc.). Now, new shapes can be added without modifying existing code.
+
+
+
+
+
+
+L ------  Liskov substituion principle
+
+
+Overriding
+
+
+Objects of a superclass should be replaceable with objects of its subclasses.
+
+
+❌ Bad: A Bicycle class inheriting from Vehicle, but overriding a startEngine() method that makes no sense for bicycles.
+
+✅ Better: Use a more general start() method in Vehicle. 
+
+
+
+
+
+
+
+I --------   𝐈𝐧𝐭𝐞𝐫𝐟𝐚𝐜𝐞 𝐒𝐞𝐠𝐫𝐞𝐠𝐚𝐭𝐢𝐨𝐧 𝐏𝐫𝐢𝐧𝐜𝐢𝐩𝐥𝐞 (𝐈𝐒𝐏)
+
+
+
+Interface 
+
+
+- No client should be forced to depend on interfaces they don't use.
+
+
+❌ Bad: A MediaPlayer interface that requires all implementations to support both audio and video, even when unnecessary.
+
+✅ Better: Split into AudioPlayer and VideoPlayer interfaces. Now, classes implement only what they need, making the code more flexible.
+
+
+
+
+
+
+
+
+D ----------   Dependency Injection
+
+
+ High-level modules should not depend on low-level modules; both should depend on abstractions.
+
+❌ Bad: An EmailService class that directly depends on a GmailClient.  - Tight coupling
+
+
+
+✅ Better: Introduce an EmailClient interface. 
+Now, EmailService depends on the abstraction  EMail Interface , allowing support for multiple providers (GmailClient, OutlookClient, etc.) without code changes
+
+
+
+class GmailClient {
+    public void sendEmail(String to, String message) {
+        System.out.println("Sending Gmail to " + to + ": " + message);
+    }
+}
+
+
+❌
+class EmailService {
+    private GmailClient gmailClient;
+
+    public EmailService() {
+        this.gmailClient = new GmailClient();  // Direct dependency
+    }
+
+    public void send(String to, String message) {
+        gmailClient.sendEmail(to, message);
+    }
+}
+
+
+
+
+
+✅ 
+interface EmailClient {
+    void sendEmail(String to, String message);
+}
+
+
+
+
+
+class GmailClient implements EmailClient {
+    public void sendEmail(String to, String message) {
+        System.out.println("Gmail: " + to + " -> " + message);
+    }
+}
+
+class OutlookClient implements EmailClient {
+    public void sendEmail(String to, String message) {
+        System.out.println("Outlook: " + to + " -> " + message);
+    }
+}
+
+
+
+
+
+
+class EmailService {
+    private EmailClient emailClient;
+
+    // Dependency Injection via constructor
+    public EmailService(EmailClient emailClient) {
+        this.emailClient = emailClient;
+    }
+
+    public void send(String to, String message) {
+        emailClient.sendEmail(to, message);
+    }
+}
+
+
+
+
+public class Main {
+    public static void main(String[] args) {
+        EmailClient client = new GmailClient(); // or new OutlookClient()
+        EmailService service = new EmailService(client);
+        service.send("user@example.com", "Hello from DIP!");
+    }
+}
+
+
+
+
