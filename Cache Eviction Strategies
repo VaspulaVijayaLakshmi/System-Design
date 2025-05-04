@@ -1,0 +1,65 @@
+Cache Eviction Strategies:
+
+
+
+No single strategy is perfect—the right choice depends on:
+- Data access patterns (frequent reads? high writes?)
+
+
+Latency is definitely  a tradeoff
+Write heavy systems often needs major updates to cache everytime there's a write operation. (2-writes)
+
+Read heavy systems also may take a hit, if the cache miss ratio is higher. It needs to read from DB.
+
+
+
+Least Recently Used :
+
+Removes the least recently used item - maintainig time stamp kind of thing
+If the element is not used for quite some time, it may not b used in near future..
+
+- Works well when older data is less likely to be used again.
+- Example: Browsers use LRU to discard old pages from memory when opening new tabs.
+
+
+Least Frequently Used :
+
+Item which is not used frequently , hypothesis tht will not be used anytime soon
+ Prioritizes keeping frequently used items in cache.
+- Example: CDNs use LFU to keep trending videos in cache while removing rarely watched ones.
+
+
+
+
+
+Most Recently USed : 
+Opposite of LRU – evicts the most recently accessed item first.
+- Useful when recent data becomes obsolete quickly.
+- Example: In a music streaming app, the last played song is less likely to be played again, making MRU a better choice.
+
+
+
+
+Random EViction :
+
+Rankdomly evict some key
+
+
+
+
+First IN first out :
+
+The element placed first which is old will be removed
+
+- Simple to implement but may remove still-relevant data.
+- Example: Simple queue-based caching systems.
+
+
+
+
+
+
+Time to LIve : 
+
+ Items are evicted after a set time limit (expiry time).
+- Prevents stale data, useful in distributed systems.
