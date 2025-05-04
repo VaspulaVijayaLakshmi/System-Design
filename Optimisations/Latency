@@ -1,0 +1,31 @@
+Strategies to Reduce Latency of a System:
+
+
+Caching : 
+Server side 
+Client side
+
+
+Asynchronous Procssing - Handle non-critical tasks in the background to improve responsiveness.
+
+Persistent Connections: Reuse existing connections instead of creating new ones for each request.
+
+
+
+CDNs
+
+Load balancing - to prevent hot-spot servers 
+
+
+DB optimisations : 
+Indexing
+Sharding
+partitioning
+Denormalisations
+Materialized views
+query optimisations
+
+
+
+
+
