@@ -1,0 +1,195 @@
+Commonly asked Sys design Theory
+
+
+https://www.linkedin.com/feed/update/urn:li:activity:7277306194912763917/?updateEntityUrn=urn%3Ali%3Afs_updateV2%3A%28urn%3Ali%3Aactivity%3A7277306194912763917%2CFEED_DETAIL%2CEMPTY%2CDEFAULT%2Cfalse%29
+
+
+
+
+ 1. Handling Millions of Requests per Second 
+
+Interviewer: “Your system needs to handle millions of requests per second. What’s your approach?”
+
+
+
+First make sure my system is scaled horizontally 
+With replication strategies .
+
+Add a load balancer, to distribute the load  evenly among my severs
+
+Add reverse proxies to add routing intelligence.
+
+
+_______
+
+
+2. Server Failures and High Availability 
+
+Interviewer: “What happens if a server goes down?”
+
+
+Replicated onto other servers 
+
+My load balances / reverse process can handle the failures gracefully
+By sending the request to the next appropriate server
+
+Heart beat mechanisms to  detect the health of the server
+
+_____
+
+ 3. Scaling for Traffic Spikes 
+
+Interviewer: “What if traffic spikes overnight?”
+
+Horizontal scaling -  in cloud this is done automatically.
+
+Use cache like redis or memcached to  reduce load on my serves
+Like when there is an offer/ promotions ppl will be keen to checkout so I cache those to makes reads quicker   _____
+
+
+
+4. Storing Large Volumes of Data 
+
+Interviewer: “How would you store terabytes or petabytes of data?”
+
+DB sharding and distributing data among multiple shards 
+
+How would you ensure equal distribution 
+
+- Consistent hashing (with virtual nodes)
+
+Then comes all the db mechanisms like partitioning/ marrialzed views/ db caching, query optimisations
+
+-_____-
+
+
+
+5. Ensuring Data Durability 
+
+Interviewer: “How do you ensure no data is lost?”
+
+Replication strategies  - primary-secondary / primary primary / leaderless …strategies
+
+______
+
+
+
+Dealing with Write Performance Issues 
+
+Interviewer: “Won’t replication slow down writes?”
+
+
+That’s a part of Tradeooff we need to make right…
+To make our systems resilient to failure, we need to make this tradeoff
+
+ We can use caching mechanism
+Like read through/ write ahead/ write back……according to our app use case.
+
+Quorum no.of writes - if there r n servers, and we our replication count - x
+we can make y no.of replications only to acknowledge this write…and nt wait for all others to ack.
+
+
+
+With quorum - we need to make sure of strong consistency/evetual consistency 
+Because we need to be careful of not read, because read shouldn’t go to replica this nt updated..
+This is prblmin strong consistency system….
+
+If its eventual consistency, then the ser can get the updates with a little delay and this still fine
+
+
+It depends on whether we prioritize strong consistency or eventual consistency. 
+- For strong consistency, wait until writes propagate to all replicas before returning success. 
+- For high write throughput, go with eventual consistency like DynamoDB or Cassandra.
+ _______
+
+
+ Quorums for Read/Write Operations 
+Interviewer: “What’s a quorum, and when would you use it?”
+
+Ans as above
+
+ Write quorum ensures data is stored safely.  -  atleast in ‘x’ no.of servers
+- Read quorum ensures the most recent data is retrieved. - at least ‘x’ copies need to send the same ans…so tht we can agree upon why we r sending to users
+
+
+______
+
+
+Write-Heavy Use Cases
+Interviewer: “When would you use leaderless replication?”
+
+What is leaderless replication?   So we can have a leader-follower pattern
+So leader less 
+
+
+
+leader-follower pattern 
+
+A leader will be there and followers trynna keep up with the leader.
+Why if leader goes down
+One of the follower will be elected a leader - who would be tht
+The one will all uptodate with leader. 
+
+But why if leader is not down completely, it was facing some temp intermittent issues
+
+Then now when it comes up system will have 2 leader - 
+So we need to use versioning in this scenario
+
+
+So tht old leader will understand tht new leader has come up and joins as a follower
+
+
+
+
+Leaderless Pattern
+
+No biased responsibility, everyone has same set of responsibilities
+And they commnunicate with each other - Gossip protocol
+
+Each server will randomly communicate, with some k servers to take updates and health checks (like checking on each other)
+
+And if a server has failed, others will receive the updates, once the server comes up, they will
+Pass this info over  
+
+The servers actually write the information along with the real recipient of tht data, so when tht
+Server come sup, they know who’s data is this and sends to it
+
+
+Anti-Entropy.
+* When a previously failed server rejoins, it is missing updates that happened while it was down.
+* Other nodes detect this discrepancy and initiate a state synchronization.
+* The updates are gossiped back to the recovered node to bring it up to date.
+
+
+___________
+
+
+Conflict Resolution in Distributed Systems 
+
+Interviewer: “How do you handle conflicting writes in distributed databases?”
+
+Use techniques like vector clocks or timestamps to track versions of data.
+
+Vector clocks, versioning
+
+
+
+
+ 
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
