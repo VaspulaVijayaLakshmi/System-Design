@@ -1,0 +1,21 @@
+Using event-driven architecture (EDA) for decoupled systems means designing your system so that different parts (or components) 
+communicate by producing and responding to events, rather than calling each other directly (as in traditional, tightly coupled systems).
+
+In simple terms:
+Event: A record of something that happened (e.g., “OrderPlaced”, “UserSignedUp”).
+
+Event producer: The part of the system that emits the event.
+
+Event consumer: The part of the system that listens for and reacts to the event.
+
+
+
+What this means for decoupling:
+
+
+***     Components don't need to know about each other; they only need to know about the event.  *****
+
+For example, an “Order Service” can emit an “OrderPlaced” event without caring who processes it. 
+Separately, a “Shipping Service” can listen for that event and begin preparing the order.
+
+This reduces dependencies, making the system more scalable, maintainable, and flexible.
