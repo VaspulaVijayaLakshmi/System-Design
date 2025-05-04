@@ -1,1 +1,28 @@
 https://blog.algomaster.io/p/27c62e07-f25b-40ac-a397-101cc54f1f0a
+
+CDN - content delivery network
+
+Used in video streaming platforms/ online gaming where the latency should be minimal. 
+
+Because loading heavy videos with high qualties take so much of network bandwidth.
+And users would be frustrated with buffering ....
+
+
+
+Users in distant regions experience significant latency, slow load times, and frustrating buffering issue
+The farther they are from your server, the longer it takes for data to travel across the network, degrading their experience.
+
+
+
+ you need a way to bring your content physically closer to your users, reducing the distance data must travel.
+
+
+Thats exactly what CDNs are needed for
+they serve from the nearest geographic locations possible.
+
+
+CDN is a geograhically distributed network of servers working together to serve the static media to users from nearest location possible.
+
+
+
+
