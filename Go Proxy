@@ -1,0 +1,13 @@
+Go Proxy 
+
+
+When a server goes down, a Go proxy typically implements a mechanism to handle the failure and gracefully respond to client requests
+
+
+Retry mechanisms
+
+Load Balancing - sending the req to another server
+
+Health check - heartbeat mechanism
+
+Error handling 
