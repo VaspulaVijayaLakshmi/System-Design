@@ -24,5 +24,51 @@ they serve from the nearest geographic locations possible.
 CDN is a geograhically distributed network of servers working together to serve the static media to users from nearest location possible.
 
 
+Primary purpose high availability and performance
+
+
+USE CASES : 
+
+Accelerating Website Performance
+Video Streaming & OTT Platforms : CDNs optimize video content delivery by caching video files closer to users, minimizing buffering and latency.
+Online Gaming : Multiplayer online games require low-latency content delivery to ensure a smooth gaming expe
+News websitesrience.
+
+
+
+
+CDN leverages 3 components 
+
+
+Edge Servers –  these servers cache and deliver content closer to users.
+
+Origin Servers – The primary servers where the original content is stored.
+
+DNS (Domain Name System) – Direct user reuqets to the earest edge server
+
+
+
+
+
+
+Requests comes -> Browser queris the dns -> dns redirects the req to nearest edge server -> inseatd of original server
+
+CDN uses TTL - to refresh cache to keep the cache updated.
+
+
+
+
+Swiggy and zomato can also use for food purposes ..
+
+
+
+Global Reach: CDNs make it easier to deliver content to users worldwide, regardless of their location.
+
+Reduced server load
+Decreased latency
+increased performace
+high availability
+
+
 
 
