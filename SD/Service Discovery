@@ -1,0 +1,50 @@
+https://blog.algomaster.io/p/service-discovery-in-distributed-systems
+
+
+
+Today’s modern applications are far more complex, consisting of dozens 
+or even hundreds of services, each with multiple instances that scale up and down dynamically.
+
+This makes it harder for services to efficiently find and communicate with each other across networks.
+
+
+Service discovery is a mechanism that allows services in a distributed system to find and communicate with each other dynamically.
+
+ It allows services to communicate with each other without needing hardcoded IP addresses or specific server configurations. 
+Hardcoding may break the systems if the service has moved to new server....
+or is scaled u dynamically
+
+
+Service Registry:
+A central repository or directory that stores information about available services and their locations (e.g., IP addresses, ports)
+
+Client-Side Discovery:
+The client application directly queries the service registry to obtain the location of a service. 
+
+
+Server-Side Discovery:
+A proxy or load balancer handles the service discovery process, routing requests to the appropriate service instance. 
+
+
+EG record of service registry: 
+
+
+{
+"serviceName": "payment-service",
+"instances": [
+{
+"id": "payment-service-1",
+"ip": "192.168.1.10",
+"port": 8080,
+"status": "UP"
+},
+{
+"id": "payment-service-2",
+"ip": "192.168.1.11",
+"port": 8081,
+"status": "UP"
+}
+]
+}
+
+
