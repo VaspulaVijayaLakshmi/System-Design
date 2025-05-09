@@ -1,0 +1,109 @@
+https://blog.algomaster.io/p/what-is-an-api-gateway
+
+API Gateway:
+
+
+API gateway acts as a central server, between client and backend server.
+
+
+As microservices increases  - apis also increases, its hard to  manage these apis overtimes.
+
+Developers would need to manage authentication, rate limiting, and security for each service individually.
+
+
+
+Instead of clients interacting with multiple microservices, we have apigateway.
+
+
+Modern applications, especially those built using microservices architecture, have multiple backend services managing different functionalities.
+
+For example, in an e-commerce service:
+
+One service handles user accounts.
+
+Another handles payments.
+
+The gateway processes these requuests and enforces security and some other mechanisms and forwards it to the appropriate backend server
+
+
+
+1.Service DIscovery -  helps identify dynamically  , the appropriate back end service INSTANCE to forward the request.
+
+SInce mircoservices scale dynamically, 
+
+
+SERVICE DISCOVERY  - Refer Servcie discovery notes
+
+
+
+
+2.Caching - cache frequents reuqestees endpoints.... so as to improve latency.
+
+
+3.Circuit Breakers -  if it identiifes that a backend is down , it shops sendijg requetss to it , to help it recover.
+
+
+4.Rate LIMiting -  to limit requests to each backend servers ,  so as not overwhelm backend servers.
+
+
+5.Load Balancer  - can have load balancing capabilties - implementing algorithms like - round robin / weighted round robin / least connections - to distribute load across services
+                    Hearbeat mechanisms and all to identiify healty severs
+
+
+6.AUnthentication and authorization  - 
+
+
+This removes the  overhead of maintaining  - aunthentication at east server.
+
+
+
+
+7.Monitoring and LOgging - It has robust monitoring and logging capabilities  -  to log information about request/response/ errors/ .....
+
+
+
+
+
+
+
+
+
+
+
+
+Example 
+
+
+How Does an API Gateway Work?
+Imagine you're using a food delivery app to order dinner. When you tap "Place Order" your phone makes an API request.
+But instead of talking directly to various backend services, it communicates with an API Gateway first.
+
+
+
+Our application has to : 
+
+
+1.Request validation - to check if requests contains all the neccessary  headers and necessary params
+Requests format
+
+
+2. user aunthentication and authorzation - eg: subscribed users have some extra features and otehrs dont...
+
+
+
+Microservices :  REQUEST ROUTING 
+
+3. Take order (ORder sevrice)
+
+4. check invetory , if restaurant is serving that (Inventory service)
+
+
+5. Payment - Payement service
+
+6. Delivery - Delivery Service
+
+
+Meanwhile it chekcs for rate imiting / circuit breaker / Logging and montiring/ caching
+
+
+
