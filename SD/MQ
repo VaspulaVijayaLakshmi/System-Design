@@ -1,0 +1,72 @@
+https://blog.algomaster.io/p/message-queues
+
+Message queue allows systsem to communicate aynchroously.
+It acts as an intermediary b/w 2 systems communicating woth each other
+
+
+when the procucer of messages want sto produce indenpdenlty of the consumer consuming it.
+
+
+This leads to DECOUPLED SYSTEM
+
+
+Throttling: Message queues can help control the rate of message processing,
+preventing consumers from being overwhelmed.
+
+Less coupled ....
+
+Core Components of a Message Queue
+
+1. Producer/publisher - producing msgs wihtout bothering abt the consumer state
+2. COsumer
+3. Message - Queue - to store the messages prcused by producr which can be used by consumer indenpendently
+4. Message - A unit of data , (payload) along with some metadata
+
+
+5. Broker -  The software or service that manages the message queue, 
+handles the delivery of messages, and ensures that messages are routed
+correctly between producers and consumers.
+
+
+Acknowledgment: Once the consumer processes the message, 
+it may send an acknowledgment back to the broker, confirming that the 
+message has been successfully handled.
+
+Message Deletion: After acknowledgment, the broker removes the message from the queue 
+to prevent it from being processed again.
+
+We may not always delete the msgs in multi consumer enviroment, as these consumers may read data at
+their own pace, so  offfset comes into pic
+each comsumer has it won offset...
+once a sgs is sucessfully delivered, offset is increased .
+
+
+
+Types of Message Queues
+
+1. P2P  model, messages are sent from one producer to one consumer.
+Used when a message needs to be processed by a single consumer
+
+2. Pub/SUB - messages are published to a topic, and multiple consumers can subscribe to 
+that topic to receive messages.
+
+
+3. Dead Letter Queue (DLQ) : A special type of queue where messages that cannot be processed (due to errors or retries) are sent.
+Useful for troubleshooting and handling failed messages.
+
+
+This is used in banking system....WHere msgs are retried when there are temporary failkures, so as to not 
+make a double payment...
+
+
+
+4. Priority Queue
+
+
+
+
+
+
+
+
+
