@@ -1,0 +1,169 @@
+Batch Processing
+
+
+It involves:
+
+Collecting and storing data over a period of time (hours, days, or even weeks).
+
+Processing this data in bulk at scheduled intervals.
+
+Producing some output data.
+
+TYPEAHEAD PIPELINE - collectiing clickevent, search eevnts and prcissing everyday..
+
+
+
+
+
+Batch Processing Workflow
+
+1. Data Collection:
+Data is collected over time and stored in a buffer, 
+file system, database, or data warehouse. 
+This phase can last for hours, days, or even months.
+
+2. Pre-processing:
+Before the batch is processed, the system may perform a series of preparatory steps
+such as data validation, cleaning, filtering, or aggregating.
+
+3. Batch Execution:
+Once the data is ready, it is processed as a single unit.
+
+This can involve:
+
+* Running computations over the data.
+* Performing ETL (Extract, Transform, Load) operations.
+* Aggregating, summarizing, or transforming the data. Batch jobs are usually executed
+by a batch processing system or job scheduler that triggers the execution 
+at scheduled intervals.
+
+
+
+
+
+
+Typeahead pipeline- collecting  click stream events, search event, cartadd events everyday
+and then triggering the pipeline  to process thte data
+and write it to hive tables.
+
+
+
+
+
+Challenges in Batch Processing:
+
+1 Latency: The time it takes to collect data can be a bottleneck in 
+situations where timely insights are required.
+
+2 Storage: Batch systems require large amounts of storage to collect and hold data 
+before processing. Storing massive datasets over time can be costly.
+
+3 Resource Spikes: Batch processing jobs often consume significant system resources
+when they run, causing spikes in CPU, memory, and disk usage. This can slow
+down other system operations, especially during peak hours.
+
+4 Failure and Error Handling: If an error occurs during a batch process, 
+the entire batch may need to be reprocessed, leading to inefficiency and delays.
+
+we may threshold of fialures.....But if pieline failed, towards the end, we need to trigger
+the pipeline again.
+
+
+SInce typeahed was large pipeline, we wrote intermediate steps to hive tables
+and we can run the pipeline from these checkpoints  if they failed
+by maiing small changes in code.
+
+
+
+Framework : 
+
+Spark is a distributed computing system that supports batch processing through its RDD
+(Resilient Distributed Dataset) architecture. 
+Spark is more efficient  due to its in-memory processing capabilities.
+
+
+
+
+
+STREAM PROCESSING
+
+Stream processing is a more recent approach that has gained popularity with the rise of real-time
+data and the need for immediate insights.
+
+It involves processing data in real time or near real time as it arrives.
+
+
+Real-time processing: Data is processed as soon as it is received.
+
+Low latency: Stream processing systems are designed to provide low-latency responses,
+often within milliseconds or seconds.
+
+Event-driven: Processing is triggered by events, making it suitable for real-time applications.
+
+Infinite data streams: Stream processing systems work on continuous flows of data,
+as opposed to finite datasets in batch processing.
+
+
+
+
+Stream Processing Workflow
+
+The first step is the ingestion of a continuous flow of data from one or more sources.
+This data could come from:
+
+Message brokers like Apache Kafka
+
+
+
+Processing/Transformation:
+Once data is ingested, it is processed as it arrives. 
+Stream processing involves operations such as:
+
+Filtering: Removing unnecessary or irrelevant data.
+
+Aggregation: Summarizing data in real time (e.g., calculating running totals).
+
+
+KIbana logs
+Windowing: Grouping events within a specific time window (e.g., calculating metrics
+over the last 10 minutes).
+
+Enrichment: Joining the stream with external data sources to add more context to the event.
+
+State Management:
+
+
+O/P : to some O/p topic and then to some DB.
+
+
+
+
+State Stores:
+Kafka Streams provides state stores for stream processing applications to store and query
+data required for processing. 
+
+These stores can be either persistent (like RocksDB) or in-memory. 
+
+
+Changelog Topics:
+Each state store has a corresponding changelog topic that records all changes to the state. 
+This ensures that the state can be reconstructed in case of failures, 
+providing durability and fault tolerance. 
+
+
+
+
+
+
+
+
+Promo/offer ingestion 
+
+As new tcins ar addeds to promo or new promos are launched, this needs to be relfected instantly.
+It has a state store to store and perform intermediate reuskts(aggrations and all)
+
+
+
+
+
+
