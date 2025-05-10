@@ -1,0 +1,105 @@
+Stateful vs. Stateless Architecture
+
+
+When a client interacts with a server, there are two ways to handle it:
+
+Stateless applications treat each request as independent, while stateful applications maintain information between requests
+
+
+Stateless: The client includes all necessary data in each request, so the server doesn’t store any prior information.
+Stateful: The server retains some data from previous requests, making future interactions dependent on past state.
+
+Stateful applications maintain information about the user's session across multiple requests. (users session- means user activity)
+This allows for personalized experiences.
+
+Data Persistence:
+Stateful applications typically use databases or other persistent storage to store user data and session information. 
+
+
+
+
+Common Patterns in Stateful Architecture:
+
+1.Server stores the session details
+
+If you use in-memory session storage (i.e., each app server keeps its own sessions locally),
+but the disadvantge is : the subsequnt requests needs to be sent to tht server only, if the server goes down, then the sesssion data is lost .
+
+
+2.Centralized Session Store
+Global sessions torage
+
+ store session data in a centralized or distributed store (e.g., Redis).
+
+shared access: All servers can access and update session data for any user. Any server can handle any request,
+because the session data is not tied to a specific server’s memory.
+
+
+
+
+Examples:
+
+
+E-commerce Shopping Carts – Stores cart contents and user preferences across multiple interactions, 
+even if the user navigates away and returns.
+
+Video Streaming Services (Netflix, YouTube) – Remembers user watch progress, recommendations, 
+and session data for a seamless experience.
+
+Messaging Apps (WhatsApp, Slack) – Maintains active user sessions 
+
+online banking transactions, checkout processes)
+
+
+
+
+
+
+Stateless Architecture : 
+
+
+In a stateless architecture, the server does not preserve client-specific data between individual requests.
+Each request is treated as independent, with no memory of previous interactions.
+Every request must include all necessary information for processing.
+Once the server responds, it discards any temporary data used for that request.
+
+
+Use a stateless approach if your application:
+
+Handles a high volume of requests and needs to scale efficiently
+Doesn’t require storing client-specific data between requests
+
+
+
+
+
+Example: A weather API doesn’t need to remember previous requests.
+Each query includes the location, and the response is processed independently.
+
+
+
+
+
+
+
+
+
+
+Token-Based Authentication (JWT)
+A very popular way to implement statelessness is through tokens, particularly JWTs (JSON Web Tokens):
+
+Client Authenticates Once: The user logs in using credentials (username/password) for the first time,
+and the server issues a signed JWT.
+
+
+
+Subsequent Requests: The client includes JWT token in each request (e.g., Authorization: Bearer <token> header).
+
+Validation: The server validates the token’s signature and any embedded claims (e.g., user ID, expiry time).
+
+No Server-Side Storage: The server does not need to store session data; it just verifies the token on each request.
+
+Many APIs, including OAuth-based authentication systems, use JWTs to enable stateless, scalable authentication.
+
+
+
