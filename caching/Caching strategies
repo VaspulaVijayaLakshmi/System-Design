@@ -1,0 +1,8 @@
+Read-Through Cache: The application first checks the cache for data. If it's not there (a cache miss), it retrieves the data from the database and updates the cache.
+
+Write-Through Cache: Data is written to both the cache and the database simultaneously, ensuring consistency but potentially impacting write performance.
+
+Write-Back Cache: Data is written to the cache first and later synchronized with the database, improving write performance but risking data loss.
+
+Cache-Aside (Lazy Loading): The application is responsible for reading and writing from both the cache and the database.
+
