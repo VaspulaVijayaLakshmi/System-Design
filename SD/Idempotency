@@ -1,0 +1,109 @@
+Imagine you're making a purchase from an online store.
+You hit "pay" but the screen freezes, and you're unsure if the payment went through.
+So, you refresh the page and try again.
+
+Behind the scenes, how does the system ensure you aren’t accidentally charged twice?
+
+
+This scenario highlights a common problem in distributed systems: handling repeated operations gracefully.
+
+The solution to this problem lies in the concept of idempotency.
+
+
+
+IDEMPOTENCY : 
+
+In mathematics, an operation is idempotent if applying it multiple times produces the same result 
+as applying it once.
+
+Eg: the absolute value function is idempotent: ||-5|| = |-5| = 5.
+Eg:  setting a value is idempotent, while incrementing a value is not.
+
+
+
+
+Why Idempotency Matters ?
+
+
+Distributed systems often require fault tolerance to ensure high availability.
+When a network issue causes a timeout or an error, the client might retry the request.
+
+If the system handles retries without idempotency, every retry could change the 
+system’s state unpredictably.
+
+
+
+
+Strategies to Implement Idempotency:
+
+
+When a client makes a request, it generates a unique ID that the server uses to track the request.
+If the server receives a request with the same ID later, it knows it’s a duplicate and discards it.
+
+
+
+
+
+from flask import Flask, request, jsonify
+import sqlite3
+
+app Flask(__name__)
+# Initialize SQLite connection
+
+
+def get_db():
+conn sqlite3.connect('database.db')
+return conn
+
+
+
+@app.route('/process_payment', methods=['POST'])
+def process_payment();
+request_id request.headers.get("Request-ID")
+db get_db()
+cursor db.cursor()
+
+
+# Check if request_id already processed
+cursor.execute("SELECT 1 FROM processed_requests WHERE request_id = ?", (request_id,))
+if cursor.fetchone():
+return jsonify({"message": "Duplicate request ignored"}), 200
+
+
+# Process payment
+#Here you would include your payment processing logic
+print("Processing payment...")
+
+
+#Mark request as processed
+cursor.execute("INSERT INTO processed_requests (request_id) VALUES (?)", (request_id,)) db.commit()
+return jsonify({"message": "Payment processed successfully"}), 200
+
+
+if __name__ == '__main__':
+app.run (debug=True)
+
+
+
+
+
+
+
+
+
+DB Operatin : 
+
+Some database operations, such as inserting the same record multiple times,
+can lead to unintended duplicate entries.
+
+Achieving idempotency in these cases often requires redesigning 
+the database operations to be inherently idempotent.
+
+This can involve using upsert operations (which updates a record if it exists or inserts it otherwise)
+or applying unique constraints that prevent duplicates from being added in the first place.
+
+
+
+
+
+
