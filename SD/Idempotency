@@ -139,3 +139,6 @@ processedMessages.add(messageId);
 
 
 
+Use Locks or Versioning: Use locks, optimistic concurrency control, or version numbers to manage simultaneous requests safely.
+
+
