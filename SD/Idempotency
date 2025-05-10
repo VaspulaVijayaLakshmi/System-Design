@@ -42,8 +42,6 @@ If the server receives a request with the same ID later, it knows it’s a dupli
 
 
 
-
-
 from flask import Flask, request, jsonify
 import sqlite3
 
@@ -91,19 +89,53 @@ app.run (debug=True)
 
 
 
-DB Operatin : 
+DB Operation : 
 
 Some database operations, such as inserting the same record multiple times,
 can lead to unintended duplicate entries.
 
-Achieving idempotency in these cases often requires redesigning 
-the database operations to be inherently idempotent.
-
 This can involve using upsert operations (which updates a record if it exists or inserts it otherwise)
 or applying unique constraints that prevent duplicates from being added in the first place.
 
+DB INSERT Operation isnot idempotent..
 
 
+
+
+
+ Idempotency in HTTP Methods
+
+WHere as GET IS idempotent
+Put is also idempotent
+DELETE: Removes a resource from the server. 
+DELETE requests are idempotent because deleting a resource that’s already been deleted has no further effect
+
+ POST IS not idempotent
+
+
+
+
+
+Idempotency in Messaging Systems
+
+We maintain alog of processed requetss and and checking against it for every incoming message.
+
+
+import java.util.HashSet;
+import java.util.Set;
+public class MessageConsumer {
+private Set<String> processedMessages = new HashSet<>();
+public void processMessage(String messageId, String messageContent) {
+if (processedMessages.contains(messageId)) {
+System.out.println("Duplicate message ignored: + messageId); 11
+return;
+}
+// Process the message here
+System.out.println("Processing message: + messageContent); 11
+// Add messageId to processed set
+processedMessages.add(messageId);
+}
+}
 
 
 
