@@ -1,8 +1,19 @@
 Read-Through Cache: The application first checks the cache for data. If it's not there (a cache miss), it retrieves the data from the database and updates the cache.
 
+
+
 Write-Through Cache: Data is written to both the cache and the database simultaneously, ensuring consistency but potentially impacting write performance.
+The biggest advantage of Write Through is that it ensures strong data consistency between the cache and the database.
+
+
+
 
 Write-Back Cache: Data is written to the cache first and later synchronized with the database, improving write performance but risking data loss.
 
 Cache-Aside (Lazy Loading): The application is responsible for reading and writing from both the cache and the database.
+
+
+
+Write Around is a caching strategy where data is written directly to the database, bypassing the cache.
+The cache is only updated when the data is requested later during a read operation, at which point the Cache Aside strategy is used to load the data into the cache.
 
