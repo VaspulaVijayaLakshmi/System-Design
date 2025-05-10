@@ -1,0 +1,10 @@
+Exponential backoff is a strategy where, after a network request fails, the client waits for an increasing amount of time before retrying the request. This waiting time increases exponentially with each failed retry attempt. The purpose is to avoid overwhelming a server with repeated requests when it's experiencing temporary issues and to allow the system to recover from transient failures. 
+Here's a more detailed explanation:
+Transient Failures:
+Many network issues are temporary, like server overload or network congestion. Exponential backoff recognizes this and uses repeated retries with increasing delays to give the server time to recover. 
+Preventing Overload:
+If a client constantly retries a failed request immediately, it could overwhelm the server and worsen the problem. Exponential backoff prevents this by introducing delays between retries. 
+Algorithm:
+The client typically starts with a small delay, like a few seconds. 
+If the request fails again, the delay is doubled or increased by a certain factor. 
+This process continues until the request succeeds or a maximum number of retries is reached
