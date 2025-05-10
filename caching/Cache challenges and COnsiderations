@@ -1,0 +1,14 @@
+
+
+Challenges and Considerations: 
+
+
+Cache Coherence: Ensuring that data in the cache remains consistent with the source of truth (e.g., the database).
+
+Cache Invalidation: Determining when and how to update or remove stale data from the cache.
+
+Cold Start: Handling scenarios when the cache is empty, such as after a system restart.
+
+Cache Eviction Policies: Deciding which items to remove when the cache reaches capacity (e.g., Least Recently Used, Least Frequently Used).
+
+Cache Penetration: Preventing malicious attempts to repeatedly query for non-existent data, potentially overwhelming the backend.
