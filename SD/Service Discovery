@@ -18,12 +18,84 @@ or is scaled u dynamically
 Service Registry:
 A central repository or directory that stores information about available services and their locations (e.g., IP addresses, ports)
 
+
+
+Service Registration : 
+
+Service registration is the process where a service announces its availability to a service registry, 
+making it discoverable by other services.
+
+
+1. Manual Registration : 
+service details are added to the registry manually by a developer or operator. 
+This approach is simple but not suitable for dynamic systems where services scale or move frequently.
+
+
+
+2. Self-Registration : Service itself has a logic to conenct tonservice registry ad register iteself
+
+  when an instance starts it fetches its own info..and sends it to self registry for registration
+  and it keeps sending hearbeat sugnals to update abt its health info.
+
+
+3. Automatic Registration by Orchestrators - orchestrators manages the entire life cycle of services
+   as they start and stop and scale. 
+
+The orchestrator (e.g., Kubernetes) detects when a service or container is deployed.
+It assigns the service an IP address and port.
+It registers the service automatically with its built-in service discovery mechanism
+
+
+
+
+ Types of Service Discovery : 
+
+
 Client-Side Discovery:
 The client application directly queries the service registry to obtain the location of a service. 
+
+The client (microservice)  queries the service registry to know the locatio of the service
+
+The registry responds with a list of available instances, including their IP addresses and ports.
+
+Client Routes the Request: Based on the information retrieved, the client selects one of the service 
+instances (often using a load balancing algorithm) and connects directly to it.
+
+
+Disadvantages:
+Consumers need to implement discovery logic.
+
+Changes in the registry protocol require changes in clients.
+
+
+
+
+
 
 
 Server-Side Discovery:
 A proxy or load balancer handles the service discovery process, routing requests to the appropriate service instance. 
+
+Client Sends Request: The client sends a request to a load balancer or API gateway,
+specifying the service it wants to communicate with (e.g., payment-service).
+
+The client does not query the service registry or know the specific location of the service instances.
+
+ The load balancer or gateway queries the service registry to find available instances of the requested service.
+
+Routing: The load balancer selects a suitable service instance 
+(based on factors like load, proximity, or health) and routes the client’s request to that instance.
+
+Response: The service instance processes the request and sends the response back to the client via the load balancer or gateway.
+
+
+
+
+
+
+
+
+
 
 
 EG record of service registry: 
@@ -47,4 +119,4 @@ EG record of service registry:
 ]
 }
 
-
+The service registry keeps track of all service instances, their IP addresses, ports, and metadata.
