@@ -1,7 +1,78 @@
-Go Proxy 
+Proxy 
 
 
-When a server goes down, a Go proxy typically implements a mechanism to handle the failure and gracefully respond to client requests
+Proxies and reverse proxies are servers that sit between clients and servers to 
+improve security, privacy and performance.
+
+
+A Proxy server (sometimes called a Forward proxy) acts on behalf of clients,
+while a Reverse Proxy acts on behalf of servers.
+
+
+
+Forward Proxy :
+
+Think of proxy server as a middleman that sits between a private network(user/client) and the public internet.
+
+user makes req - proxy intercepts it -> fowards it to target server..->retur response
+
+Privacy and Anonymity: Proxy servers hide your IP address by using their own, 
+so the destination server cannot know your real location or identity.
+
+Access Control: Organizations use proxies to enforce content restrictions, monitor internet usage.
+Target Laptop - u cant visit few sites.
+
+
+Security: Proxies can filter out malicious content and block suspicious sites, 
+providing an additional layer of security.
+
+Improved Performance: Proxies cache frequently accessed content, reducing latency 
+and improving load times for websites.
+
+
+
+
+
+
+
+
+
+
+What is a Reverse Proxy?
+
+It sits in front of servers, intercepts client requests and forwards them to backend servers 
+
+
+Think of a reverse proxy as a gatekeeper. Instead of hiding clients from the 
+server, it hides servers from clients.
+
+Allowing direct access to servers can pose security risks, exposing them to threats like hackers and DDoS attacks.
+
+A reverse proxy mitigates these risks by creating a single, controlled point of entry that filters and 
+regulates incoming traffic all while keeping server IP addresses hidden.
+
+
+Cloudflare’s reverse proxy is widely used by global websites and applications to boost speed, 
+security, and reliability.
+
+
+
+Key Benefits of Reverse Proxy
+Enhanced Security: 
+
+Load Balancing:  
+
+Caching Static Content: Reverse proxies can cache static assets like images, CSS, and JavaScript, 
+reducing the need to fetch these files from the backend repeatedly.
+
+SSL Termination: Reverse proxies can handle SSL encryption, offloading this work from backend servers.
+
+
+
+
+
+When a server goes down, a  proxy typically implements a mechanism 
+to handle the failure and gracefully respond to client requests
 
 
 Retry mechanisms
@@ -11,3 +82,17 @@ Load Balancing - sending the req to another server
 Health check - heartbeat mechanism
 
 Error handling 
+
+
+
+
+
+
+
+
+
+
+
+Is a VPN the same as a Proxy?
+No. While both hide your IP, a VPN encrypts all your internet traffic, making it more secure. 
+A proxy only forwards specific requests without necessarily encrypting them.
