@@ -81,6 +81,7 @@ Each query includes the location, and the response is processed independently.
 
 
 
+__________________________________________________________________
 
 
 
@@ -91,15 +92,136 @@ A very popular way to implement statelessness is through tokens, particularly JW
 Client Authenticates Once: The user logs in using credentials (username/password) for the first time,
 and the server issues a signed JWT.
 
-
-
 Subsequent Requests: The client includes JWT token in each request (e.g., Authorization: Bearer <token> header).
 
 Validation: The server validates the token’s signature and any embedded claims (e.g., user ID, expiry time).
 
 No Server-Side Storage: The server does not need to store session data; it just verifies the token on each request.
 
-Many APIs, including OAuth-based authentication systems, use JWTs to enable stateless, scalable authentication.
+The app fetches any needed data (e.g., preferences, cart, suggestions) from the database or cache, NO session store.
+
+
+Personalized Data via Persistent Storage or APIs
+Once the user is identified (via JWT), the backend queries:
+
+Database for user profile, history, preferences
+
+Recommendation engine or personalization API
+
+Product browsing history from an analytics system (optional)
 
 
 
+
+
+1. User Login
+
+[Browser] -----------------------> [Server]
+           POST /login (credentials)
+
+                        [Server]
+             - Verify credentials
+             - Create JWT: { user_id: 123, role: "user", exp: <timestamp> }
+             - Sign JWT with secret key
+
+[Browser] <----------------------- [Server]
+           Response: JWT Token
+
+
+2. Access Protected Route
+
+[Browser] -----------------------> [Server]
+           GET /dashboard
+           Headers: Authorization: Bearer <JWT>
+
+                        [Server]
+             - Decode & verify JWT signature
+             - Check expiration (exp)
+             - Extract user_id = 123
+             - Fetch user data from database
+             - Build personalized response
+
+[Browser] <----------------------- [Server]
+           Response: Personalized Dashboard
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+STATEFUL :   SESSION STORE
+
+
+Redis for Session Storage
+
+
+Redis is an in-memory data store that's extremely fast. It’s often used to store session data because:
+
+It's fast (low latency)
+
+It supports key expiration (great for session timeouts)
+
+
+
+
+
+1. The user sends a login request with credentials.
+
+Server verifies the credentials (e.g., against a database).
+
+If correct:
+A unique session ID is generated.
+
+A session object (e.g., {user_id: 123, role: "admin"}) is stored in Redis with the session ID as the key.
+
+The session ID is sent to the user's browser in a cookie.
+
+
+
+
+
+2. Subsequent Requests
+Each time the user makes a request:
+
+The session ID (from the cookie) is sent along.
+
+The server fetches the session data from Redis using that session ID.
+  
+The server uses the session data to identify the user and process the request.   --------SO this is the only step extra...(we use session data as well, along with perosnalised n all)
+
+
+
+3. Session Expiration / Logout
+Sessions in Redis can have a TTL (Time-To-Live).
+
+After the TTL expires, Redis automatically deletes the session.
+
+On logout, the server can also manually remove the session from Redis.
+
+
+SO session data is temporary, and it expires...for personalisation and all, we still use persistent storage only.
+
+
+
+Diagram:
+
+Browser ---> [Login Request] ---> App Server ---> [Validate User] ---> Database
+             <--- Set-Cookie: session_id=abc123 ---<
+
+Browser ---> [Request with session_id cookie] ---> App Server
+        ---> [Fetch session from Redis: sess:abc123] ---> Use session data
