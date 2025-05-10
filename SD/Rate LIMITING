@@ -1,0 +1,62 @@
+Rate limiting helps protects services from being overwhelmed by too many requests
+from a single user or client.
+
+
+Token Bucket
+
+Every start of the time interval we fill he bucket will tokens(max token in time interval - capcity), 
+if tokens are there we process the reuqetss
+else discard.
+
+Tokens are added to the bucket at a fixed rate (e.g., 10 tokens per second).
+
+When a request arrives, it must obtain a token from the bucket to proceed.
+
+
+
+
+Leaky Bucket : 
+
+The buckets has max capacity, it  fills at regular intervals with requests 
+and if its filled, we drop new requests.
+
+1.Imagine a bucket with a small hole in the bottom.
+
+2.Requests enter the bucket from the top.
+
+3.The bucket processes ("leaks") requests at a constant rate through the hole.
+
+4.If the bucket is full, new requests are discarded.
+
+
+
+Fixed Window : 
+
+Theres are fixed time  windows 
+SO in tht window the users can max requests k requests...
+
+
+
+so lets say the interval is 100 req for 5sec
+we may not gt requests regulary at the edge of 4sec we may get 100res at once
+and next window starting we mayget 100 req...
+
+the system will be overwhlemend like this....
+
+
+this is known as Burst at edges.....
+
+
+
+
+
+Sliding WIndow : 
+
+
+The window slides , at each window there should be at max,  10 reqs.
+SO we slide and the window consisys of 5sec, on 6th sec, we slide the window and go to next  5 mins, laving the 1min
+
+...in this way not busts happens.
+
+
+
