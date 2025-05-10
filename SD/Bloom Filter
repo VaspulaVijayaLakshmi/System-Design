@@ -1,0 +1,198 @@
+https://blog.algomaster.io/p/bloom-filters
+
+
+Have you ever wondered how Netflix knows which shows you've already watched?  
+How Amazon avoids showing you products you've already purchased?
+
+Using a traditional data structure like a hash table for these checks could consume significant amount of memory,
+especially with millions of users and items.
+
+Instead, many systems rely on a more efficient data structure—a Bloom Filter
+
+
+
+BLOOM FILTER : BLOOM filter is a probabilistic DS, which tell if the elemeent mabne present in set.
+
+Its useful when we need fastlookups,  and less memory , and occasinal 
+FALSE POSITIVES are managable.
+
+
+
+
+
+
+
+KEY COMPONENTS  :
+
+1. Bit Array :  bit array of a fixed size, initialized to all zeros. 
+This array represents whether certain elements are in the set.
+
+
+2.Hash Function : Set of has functions, each of which are responsible for a part of array.
+                  These map each element  to array indices.      
+
+
+
+
+
+How Does a Bloom Filter Work?
+
+
+1. Initlaization : Array of size m
+                multiple hash funtion - k 
+                each hashfun is responsible for  indices i-j 
+
+
+2. Inserting an Element:
+To insert an element into the Bloom filter, you pass it through each of the k hash functions 
+to get k positions in the bit array.
+
+The bits at these positions are set to 1.
+
+
+
+
+
+3. Checking for membership :  now we take the element and pass through the k hash funtion
+if all the bits(array indices) are set, then element MAYBE present.
+else no.
+
+
+If any bit at these positions is 0, the element is definitely not in the set.
+
+
+
+
+
+Using a Bloom Filter for URL Checking:
+
+Step 1: Set Up the Bloom Filter
+Initialize a Bit Array: Let’s assume our Bloom Filter uses a bit array of size 10, 
+initially all set to 0.
+
+
+Choose Hash Functions: We’ll use two hash functions in this example. 
+These hash functions take an input (like a URL) and output an index in the bit array.
+
+
+
+public class BloomFilter {
+private final BitSet bitArray;
+private final int size;
+
+
+private final Function<String, Integer> [] hashFunctions;
+
+
+public BloomFilter (int size, Function<String, Integer>... hashFunctions) {
+this.size = size;
+this.bitArray = new BitSet(size);
+this.hashFunctions = hashFunctions;
+}
+
+
+// Method to add an element to the Bloom Filter
+public void add (String item) {
+for (Function<String, Integer> hashFunction: hashFunctions) {
+int index = Math.abs(hashFunction.apply(item) % size);
+bitArray.set(index);
+}
+}
+
+
+
+// Method to check if an element is possibly in the Bloom Filter
+public boolean mightContain(String item) {
+for (Function<String, Integer> hashFunction hashFunctions) {
+int index = Math.abs(hashFunction.apply(item) % size);
+if (!bitArray.get(index)) {
+return false; // If any bit is 0, the item is definitely not in the
+set
+}
+}
+return true; // All bits are 1, so the item is probably in the set
+}
+}
+
+
+
+
+Web Caching : 
+
+1. USED FOR CACHE SEARCH
+
+Problem: Web servers often cache frequently accessed pages or resources to improve response times.
+However, checking the cache for every resource could become costly and slow as the cache grows.
+
+Solution: A Bloom Filter can be used to quickly check if a URL might be in the cache. 
+When a request arrives, the Bloom Filter is checked first. If the Bloom Filter indicates the URL
+is “probably in the cache,” a cache lookup is performed.
+
+If it indicates the URL is “definitely not in the cache,” the server skips the cache lookup and
+fetches the resource from the primary storage, saving time and resources.
+
+
+
+2. Spam Filtering in Email Systems
+
+ Email systems need to filter out spam emails without constantly 
+checking large spam databases.
+
+ Bloom Filter can store hashes of known spam email addresses. 
+When a new email arrives, the Bloom Filter checks if the sender's address might be in the spam list.
+
+This allows the email system to quickly determine whether an email is likely to be spam or legitimate.
+
+
+
+
+
+3.NETFLIX : Not recomending watched mocies/series again
+
+4.AMAZON : notrecommneding same products  again
+
+5. Social Network Friend Recommendations : Dont show frnds who are already frnds..so the ones we said not to reccomend
+
+6.DATABASES : Databases, especially distributed ones, often need to check if a key exists before accessing or 
+modifying data. Performing these checks for every key directly in the database can be slow.
+
+Many databases, such as Cassandra, HBase, and Redis, use Bloom Filters to avoid unnecessary disk lookups for non-existent keys.
+The Bloom Filter quickly checks if a key might be present. If the Bloom Filter indicates “not present,” 
+it can skip the database lookup.
+
+
+
+
+
+Limitations of Bloom Filters
+
+1. False Positives : Over time there could be hash collisions, and it increases the chances
+             of false posiitves
+
+Consider a scenario where a non-existent key is checked against a Bloom Filter.
+If all the hash functions map to bits that are already set to 1, the filter falsely 
+signals the presence of the key.
+
+This may lead to unneccsary processing.
+
+For instance, in a database system, this might trigger unnecessary cache lookups 
+or wasted attempts to fetch data that doesn’t actually exist.
+
+
+2.  Not Suitable for Exact Set Membership
+
+3.Vulnerable to Hash Collisions
+
+4. No Support for Deletions
+Standard Bloom Filters do not support element deletions. Once a bit is set to 1 by adding an element,
+it cannot be unset because other elements may also rely on that bit.
+
+This limitation makes Bloom Filters unsuitable for dynamic sets where elements are frequently added and
+removed.
+
+
+
+
+                     
+
+         
