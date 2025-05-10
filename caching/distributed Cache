@@ -1,1 +1,73 @@
+Distributed caching is a technique where cache data is stored across multiple nodes (servers) instead of being confined to a single machine.
+
+This allows the cache to scale horizontally and accommodate the needs of large-scale applications.
+
+
+1. Scalability
+Distributed caching allows applications to scale horizontally by adding more cache nodes.
+This helps manage more traffic without a significant drop in performance.
+
+
+
+2. Fault Tolerance
+Since data is spread across multiple nodes, the failure of a single node doesn’t result in the loss of the entire cache.
+Remaining nodes can continue to serve requests allowing the system to recover gracefully.
+
+
+3. Load Balancing
+By distributing the cache across several nodes, the load is spread evenly.
+This helps prevent any single node becoming a bottleneck.
+
+
+
+
+
+
+
+1. Cache Nodes: These are the individual servers where the cache data is stored. Each node is a part of the overall cache cluster.
+
+2. Client Library/Cache Client: Applications use a client library to talk to the distributed cache. 
+This library handles the logic of connecting to cache nodes, distributing data, and retrieving cached data.
+
+3. Consistent Hashing: This method spreads data evenly across cache nodes. 
+It ensures that adding or removing nodes has minimal impact on the system.
+
+4. Replication: To make the system more reliable, some distributed caches replicate data across multiple nodes. 
+If one node goes down, the data is still available on another.
+
+5. Sharding: Data is split into shards, and each shard is stored on a different cache node. 
+It helps distribute the data evenly and allows the cache to scale horizontally.
+
+6. Eviction Policies: Caches implement eviction policies like LRU (Least Recently Used), 
+LFU (Least Frequently Used), or TTL (Time to Live) to get rid of old or less-used data and make space for new data.
+
+
+7. Coordination and Synchronization: Coordination mechanisms like distributed locks or consensus protocols ensure that cache nodes remain synchronized, 
+especially when multiple nodes try to change the same data at the same time.
+
+
+
+8. Cache Invalidation: To keep the cache data in sync with the primary data source, it needs to be invalidated or updated periodically. 
+Cache systems implement strategies like time-based expiration or event-based expiration for cache invalidation.
+
+
+
+
+
+
+
+How Does Distributed Caching Work?
+
+
+1. Data Distribution: When data is cached, the client library typically hashes the key associated with the data to determine which cache node will store it.
+
+2. Data Retrieval: To get data from the cache, application provides the key to the client library.
+The client library uses this key to find and query the node which has the data. If the data is present (a cache hit), 
+it’s returned to the application. If not (a cache miss), the data is fetched from the primary data store (e.g., a database), and it can be cached for future use.
+
+
+
+
+
+
 
