@@ -1,0 +1,55 @@
+Load Balancer is a system that spreads incoming network traffic across multiple backend 
+servers (often called “worker nodes” or “application servers”).
+
+
+Types of Load Balancers
+
+Software Load Balancer: Runs on standard servers or virtual machines 
+(e.g., Nginx, HAProxy, Envoy). 
+
+
+
+Layer 4 (Transport Layer): Distributes traffic based on network information like IP 
+address and port. It doesn’t inspect the application-layer data (HTTP, HTTPS headers)
+
+Layer 7 (Application Layer): Can make distribution decisions based on HTTP headers, 
+cookies, URL path, etc. 
+
+
+
+Load Balancing Algorithms:
+
+1. Round Robin: Requests are distributed sequentially to each server in a loop.
+
+2. Weighted Round Robin: Each server is assigned a weight (priority). 
+Servers with higher weights receive proportionally more requests.
+
+3. Least Connections: The request goes to the server with the fewest active connections.
+
+4. IP Hash: The load balancer uses a hash of the client’s IP to always route them to the
+same server (useful for sticky sessions).
+
+5. Random: Select a server randomly (sometimes used for quick prototypes or specialized cases).
+
+
+
+
+
+
+
+Server Health Checks
+Load balancers usually have an internal mechanism to periodically check if servers are alive 
+(e.g., by sending a heartbeat request like an HTTP GET /health).
+
+If a server doesn’t respond within a certain threshold, it’s marked as unhealthy and 
+no longer receives traffic.
+
+When it recovers, the load balancer can automatically reintroduce it into the rotation.
+
+
+
+
+
+
+
+
