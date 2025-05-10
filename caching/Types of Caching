@@ -1,0 +1,28 @@
+In-Memory Cache:
+
+In-memory caches store data in the main memory (RAM) for extremely fast access.
+These caches are typically used for session management, storing frequently accessed objects, and as a front for databases.
+Examples: Redis and Memcached.
+
+
+
+Database Cache:
+Database caching involves storing frequently queried database results in a cache.
+This reduces the number of queries made to the database, improving performance and scalability.
+
+
+
+Content Delivery Network (CDN)
+CDN is used to store copies of content on servers distributed across different geographical locations.
+This reduces latency by serving content from a server closer to the user.
+
+
+
+Client-Side Cache
+Client-side caching involves storing data on the client device, typically in the form of cookies, local storage, or application-specific caches.
+This is commonly used in web browsers to cache static assets like images, scripts, and stylesheets.
+
+
+
+Distributed Cache:
+
