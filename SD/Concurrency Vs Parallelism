@@ -1,0 +1,79 @@
+https://blog.algomaster.io/p/concurrency-vs-parallelism
+
+One is about managing multiple tasks simultaneously - Concurrency
+while the other is about executing multiple tasks at the same time -  Parralelism
+
+
+
+Concurrency gives the illusion of managing multiple tasks by context switching.
+
+While a single CPU can work on only one task at a time, it achieves concurrency by rapidly switching
+between tasks.
+
+For example, consider playing music while writing code. The CPU alternates between these tasks so quickly 
+that, to the user, it feels like both are happening at the same time.
+
+
+
+The primary objective of concurrency is to maximize CPU utilization by minimizing idle time.
+
+
+Concurrency is primarily achieved using threads, which are the smallest units of execution .
+
+The CPU switches between threads to handle multiple tasks concurrently,
+ensuring the system remains responsive.
+
+
+
+
+
+
+
+
+How Does Concurrency Works?
+
+Concurrency in a CPU is achieved through context switching.
+
+Here’s how it works:
+
+Context Saving: When the CPU switches from one task to another,
+it saves the current task's state (e.g., program counter, registers) in memory.
+
+Context Loading: The CPU then loads the context of the next task and continues executing it.
+
+Rapid Switching: The CPU repeats this process, switching between tasks so quickly
+that it seems like they are running simultaneously.
+
+
+
+
+The Cost of Context Switching
+While context switching enables concurrency, it also introduces overhead:
+
+Every switch requires saving and restoring task states, which consumes both time and resources.
+Excessive context switching can degrade performance by increasing CPU overhead.
+
+
+
+
+
+
+
+
+
+
+Parallelism :
+
+
+To achieve parallelism, an application divides its tasks into smaller, 
+independent subtasks. These subtasks are distributed across multiple CPUs,
+CPU cores, allowing them to be processed in parallel.
+
+Each core can independently execute a task.
+
+
+
+We can have concurrency and parallelle together as well.
+
+
+
