@@ -41,8 +41,8 @@ TradeOffs : https://blog.algomaster.io/p/system-design-top-15-trade-offs
 
 Books : 
 
-Designing Data Intensive Application
-Amazon : Dynamo DB paper
-Data Structures  behing DataBases
-Grokking System Design Interview
+1. Designing Data Intensive Application
+2. Amazon : Dynamo DB paper
+3. Data Structures  behing DataBases
+4. Grokking System Design Interview
 
