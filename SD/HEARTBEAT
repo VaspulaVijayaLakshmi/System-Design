@@ -1,0 +1,72 @@
+In distributed systems, a heartbeat is a periodic message sent from one component to another to monitor each other's health and status.
+
+Without a heartbeat mechanism, it's hard to quickly detect failures in a distributed system, leading to:
+
+Delayed fault detection and recovery
+
+Increased downtime and errors
+
+
+
+
+Heartbeats can help with:
+
+Monitoring: Heartbeat messages help in monitoring the health and status of different parts of a distributed system.
+
+Detecting Failures: Heartbeats enable a system to identify when a component becomes unresponsive. 
+If a node misses several expected heartbeats, it's a sign that something might be wrong.
+
+
+Triggering Recovery Actions: Heartbeats allow the system to take corrective actions.
+This could mean moving tasks to a healthy node, restarting a failed component, 
+
+
+
+
+Load Balancing: By monitoring the heartbeats of different nodes, 
+a load balancer can distribute tasks more effectively across the network based on the responsiveness and health of each node.
+
+
+
+
+
+
+The heartbeat mechanism involves two primary components:
+
+Heartbeat sender (Node): This is the node that sends periodic heartbeat signals.
+
+Heartbeat receiver (Monitor): This component receives and monitors the heartbeat signals.
+
+
+
+
+
+
+
+
+
+
+Frequency: How often should heartbeats be sent? There needs to be a balance. 
+If they're sent too often, they'll use up too much network resources.
+If they're sent too infrequently, it might take longer to detect problems.
+
+
+
+Timeout: How long should a node wait before it considers another node 'dead'?
+This depends on expected network latency and application needs. 
+If it's too quick, it might mistake a live node for a dead one, 
+and if it's too slow, it might take longer to recover from problems.
+
+
+
+SOmetims the node may not be down, it migt be little overwhelmed and may respond slowly.
+
+
+
+
+
+Payload: Heartbeats usually just contain a little bit of information like a timestamp or sequence number.
+But, they can also carry additional data like how much load a node is currently handling, health metrics, or version information.
+
+
+This enables the loadbalcner or api gateway to take more intelligent routing decisions
