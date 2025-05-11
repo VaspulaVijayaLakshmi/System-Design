@@ -69,4 +69,19 @@ Payload: Heartbeats usually just contain a little bit of information like a time
 But, they can also carry additional data like how much load a node is currently handling, health metrics, or version information.
 
 
-This enables the loadbalcner or api gateway to take more intelligent routing decisions
+This enables the loadbalcner or api gateway to take more intelligent routing decisions.
+
+
+
+
+
+
+
+
+
+Types of Heartbeats
+There are two primary types of heartbeats:
+
+Push heartbeats: Nodes actively send heartbeat signals to the monitor.
+
+Pull heartbeats: The monitor periodically queries nodes for their status
