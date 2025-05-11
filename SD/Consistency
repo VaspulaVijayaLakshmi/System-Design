@@ -1,0 +1,51 @@
+Consistency in distributed systems refers to the guarantee that all nodes in the system will have the same data at the same time.
+
+
+
+Strong Consistency :
+
+Strong consistency ensures that any read operation returns the most recent write for a given piece of data. 
+This means that once a write is acknowledged, all subsequent reads will reflect that write.
+
+Synchornous replication : : Data is replicated to all nodes before the write is considered complete.
+
+
+
+USE CASE:
+Financial Systems: Where accurate and up-to-date information is crucial.
+
+Inventory Management: Where real-time stock levels must be maintained to avoid overselling.
+
+Booking Systems: Such as airline reservations where double-booking must be prevented.
+
+
+
+
+
+Eventual Consistency : The sebsequent write after the read may or may not be the lastest updated value.
+It gives nodes  liberty , to get updates eventually..
+
+
+This model is often used in distributed systems where high availability and partition tolerance are prioritized over immediate consistency.
+
+
+Asynchronous Replication: Writes are propagated to other nodes asynchronously.
+
+Temporary Inconsistency: Reads may return stale data until all nodes are updated.
+
+Conflict Resolution: Mechanisms are needed to handle conflicts that arise from concurrent writes.
+
+
+
+
+
+
+USE CASE : 
+
+Social Media: Where real-time updates are less critical, and the system prioritizes availability and partition tolerance.
+
+Content Delivery Networks (CDNs): Where low latency is crucial, and eventual consistency is acceptable.
+
+E-commerce: For non-critical data like product recommendations and user reviews.
+
+
