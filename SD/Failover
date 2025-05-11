@@ -1,0 +1,32 @@
+Failover is the ability to switch automatically and seamlessly to a reliable backup system. When a component or primary system fails,
+either a standby operational mode or redundancy should achieve failover .
+
+
+Failover automation in servers includes pulse or heartbeat conditions. That is, heartbeat cables connect two servers or
+multiple servers in a network with the primary server always active. As long as the heartbeat continues or it perceives the pulse, the secondary server merely rests.
+
+However, should the secondary server perceive any change in the pulse from the primary failover server, it will initiate its instances and
+take over the primary server’s operation.
+
+
+
+Active-active and active-passive y are the most common configurations for high availability (HA).
+
+
+ACTIVE - ACTIVE :
+
+Typically, at least two nodes actively working simultaneously 
+
+The active-active cluster distributes workloads across all the nodes more evenly, preventing any single node from overloading and achieving load balancing. 
+And because more nodes remain available, throughput and response times improve. To ensure the HA cluster operates seamlessly and achieves redundancy,
+
+
+
+
+ACTIVE PASSIVE :
+
+ active-passive cluster, although there must be at least two nodes, not all of them are active. 
+In a two node system with the first node active, the second node will remain passive or on standby as the failover server.
+In this standby operational mode, it can remain ready should the active, primary server stop functioning to serve as a backup. 
+
+However, unless there is a failure, clients only connect to the active server.
