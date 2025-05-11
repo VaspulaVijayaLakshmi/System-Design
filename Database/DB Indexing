@@ -1,0 +1,79 @@
+A database index is a super-efficient lookup table that allows a database to find data much faster.
+
+
+ (key)                                         (value)
+It holds the indexed column values  - along with pointers to the corresponding rows in the table.
+
+
+
+
+. How do Database Indexes Work?
+
+
+1. Index Creation: The database administrator creates an index on a specific column or set of columns.
+
+2. Index Building: The database management system builds the index by scanning the table and storing the values of the indexed 
+column(s) along with a pointer to the corresponding data.
+
+3. Query Execution: When a query is executed, the database engine checks if an index exists for the requested column(s).
+
+4. Index Search: If an index exists, the database searches the index for the requested data, using the pointers to quickly locate the data.
+
+5. Data Retrieval: The database retrieves the requested data, using the pointers from the index.
+
+
+EG: 
+CREATE INDEX idx_last_name ON employees (last_name);
+CREATE INDEX idx_full_name ON employees (first_name, last_name);  - composite index
+
+
+
+Advantages :  
+Faster Query Performance , faster data retrieval 
+
+
+
+How to use Database Indexes Smartly?
+
+
+1. Identify Query Patterns: Analyze the most frequent and critical queries executed against your database to determine which 
+columns to index and which type of index to use.
+
+2. Index Frequently Used Columns: Consider indexing columns that are frequently used in WHERE, JOIN, and ORDER BY clauses
+
+
+
+
+3. Consider Composite Indexes: For queries involving multiple columns, consider creating composite indexes that encompass all relevant columns.
+This reduces the need for multiple single-column indexes and improves query performance..
+
+
+
+
+5. Avoid Over-Indexing: Avoid creating too many indexes, as this can lead to increased storage requirements and slower write performance.
+
+Indexes take up extra disk space since they're additional data structures that need to be stored alongside your tables.
+Every time you insert, update, or delete data in a table with an index, the index needs to update too. This can slightly slow down write operations.
+
+
+
+
+Datastructures Behind out Databases:
+
+
+B tree
+SS tables - sorted string
+
+hash tables..
+
+
+
+
+
+
+
+
+
+
+
+
