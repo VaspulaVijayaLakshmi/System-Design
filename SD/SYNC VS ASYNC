@@ -1,0 +1,67 @@
+Synchronous Communications:
+
+
+In synchronous communication, the sender waits for the receiver to acknowledge or respond to the message before proceeding.
+
+
+When a client (such as a user’s web browser or a service in a microservices architecture) makes a synchronous request, it waits until the response is received.
+
+The workflow remains blocked during this waiting period, unable to perform other tasks.
+
+
+
+
+Key Characteristics of Synchronous Communication
+
+Blocking: The client cannot continue until a response is received. 
+This blocking behavior can create delays in user-facing applications, especially if the server response time is unpredictable.
+
+Immediate Feedback: The client receives feedback about success or failure right away.
+For example, when logging in, a user gets immediate confirmation if their credentials are correct or incorrect.
+
+Tight Coupling: Since the client and server must remain connected during the entire request-response cycle, 
+they are often tightly coupled. This can simplify development but may reduce flexibility.
+
+
+But high consistent : Data consistency is easier to manage because updates are processed in order.
+
+This is needed in tanscations - where the operation sttaus is necessary to move forward.
+
+
+
+
+
+
+
+
+
+Asynchronous Communications :
+
+
+Asynchronous communication is a communication pattern where the sender does not wait for the receiver to process 
+the message and can continue with other tasks. The receiver processes the message when it becomes available.
+
+
+
+Non-Blocking: The sender does not block and can continue executing other tasks after sending the message, reducing resource waste and improving system performance.
+
+
+
+Loosely coupled
+
+Sender and reciever process at their own pace
+
+Resilience: Failures in one part of the system do not necessarily cripple the entire operation.
+
+
+
+Use Coroutines and Aync and suspend functions to implemnt them
+
+
+
+
+
+
+
+
+
