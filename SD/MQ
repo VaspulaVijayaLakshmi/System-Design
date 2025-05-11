@@ -65,6 +65,9 @@ make a double payment...
 
 
 
+In microsrvice architectue its services can communicate via MQ. 
+It allows services to communicate async without blocking other operations.
+
 
 
 
