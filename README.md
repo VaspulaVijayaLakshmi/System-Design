@@ -37,3 +37,12 @@
 
 
 TradeOffs : https://blog.algomaster.io/p/system-design-top-15-trade-offs
+
+
+Books : 
+
+Designing Data Intensive Application
+Amazon : Dynamo DB paper
+Data Structures  behing DataBases
+Grokking System Design Interview
+
