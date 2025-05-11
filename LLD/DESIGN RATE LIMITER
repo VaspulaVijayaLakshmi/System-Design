@@ -1,1 +1,3 @@
-
+ - How would you design a Rate Limiter?
+ - How would you scale this system to include a credit-based model, where unused requests are carried over as credits?
+ - How would you implement and manage this system in a multithreaded environment?
