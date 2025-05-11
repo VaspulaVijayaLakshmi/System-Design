@@ -1,0 +1,49 @@
+
+
+Problem Statement:
+Design an in-memory Twitter for ~100 users and ~10,000 tweets, supporting:
+Post & delete tweets
+Follow & unfollow users
+View any user’s profile (user_id, followers, following, tweets)
+Retrieve a personalized feed, sortable by different criteria
+
+Key Discussion Points:
+
+✅ Functional Requirements
+User management: create accounts
+Tweet operations: post & delete
+Social graph: follow & unfollow
+Profile fetch: user info + tweet history
+Feed retrieval: sorted by timestamp, popularity, etc.
+
+✅ API Design
+POST /users → create user
+POST /tweets → post tweet
+DELETE /tweets/{id} → delete tweet
+POST /users/{uid}/follow → follow user
+POST /users/{uid}/unfollow → unfollow user
+GET /users/{uid} → fetch profile & tweets
+GET /feeds/{uid}?sortBy={criteria} → fetch sorted feed
+
+✅ Core Data Structures
+User: { id, Set<userId> followers, Set<userId> following }
+Tweet: { id, userId, content, timestamp }
+In-memory stores:
+Map<userId, User>
+Map<tweetId, Tweet>
+Map<userId, List<Tweet>> (each user’s own timeline)
+
+✅ Feed Generation Logic
+Use min-heap (priority queue) to merge the latest K tweets from each followee
+Comparator injected to support different sort criteria (e.g., newest-first, most-liked)
+Achieves O(N log K) where N is total tweets fetched, K is number of followees.
+
+✅ Non-Functional Requirements & Trade-Offs
+
+Low latency for follow/unfollow: O(1) with hash-based sets
+Memory footprint acceptable at this scale; would shard or cache for millions of users
+
+Scalability path:
+Sharding user & tweet maps by user-ID range
+Distributed cache (e.g., Redis) for hot timelines
+Async fan-out to precompute feeds for heavy-hitter users
