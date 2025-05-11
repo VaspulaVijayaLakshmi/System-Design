@@ -1,0 +1,30 @@
+
+The process of using a checksum for error detection is straightforward:
+
+Calculation: Before sending or storing data, the original data is processed through a specific algorithm to produce a checksum value.
+
+Transmission/Storage: The checksum is appended to the data and sent over the network or saved in storage.
+
+Verification: Upon retrieval or reception, the checksum is recalculated using the same algorithm on the received data. This newly calculated checksum is compared with the original checksum.
+
+Error Detection: If the two checksum values match, the data is considered intact. If they do not match, it indicates that
+the data has been altered or corrupted during transmission or storage.
+
+
+
+
+
+ENcryption ALgorithms : 
+
+
+SHA, MD5 encryption algos
+
+
+
+
+
+File downloads: Checksums verify that downloaded files are complete and uncorrupted.
+
+Data backups: Checksums ensure that backed-up data is accurate and trustworthy.
+
+Network communication: Checksums guarantee that data packets are transmitted correctly, preventing errors and corruption.
