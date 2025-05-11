@@ -1,0 +1,63 @@
+Push Architecture:
+
+
+In a push architecture, data or updates are sent from a central server or source to clients as soon as they become available.
+
+The server initiates the communication, pushing information to clients without waiting for a specific request.
+
+Examples
+1. Notifications Systems: Mobile push notifications that alert users to new messages, updates, or events.
+
+2. Live Feeds: Real-time data feeds like stock market tickers or social media updates.
+
+
+Advantages
+1. Timely Updates: Ensures clients receive the latest information immediately, which is critical for real-time applications.
+
+2. Reduced Latency: Minimizes the delay between data availability and client reception.
+
+3. Efficient Resource Utilization: Reduces unnecessary network traffic and server load caused by frequent polling.
+
+
+
+
+PULL Architecture:
+
+
+In a pull architecture, clients request data or updates from the server as needed.
+
+The client initiates the communication, pulling information from the server when it requires specific data.
+
+Client Control: Clients have more control over when and what data they receive, reducing unnecessary data transfers.
+
+
+
+WHen to use what?'
+
+
+
+Choose push architecture:
+
+Building real-time or near-real-time systems (e.g., live dashboards, instant messaging)
+
+Dealing with time-sensitive data (e.g., stock prices, emergency alerts)
+
+
+
+
+
+Choose Pull Architecture When:
+
+
+Building systems that can tolerate some delay in data updates
+
+Working with stable, predictable data sources
+
+Implementing systems where receivers need to control their data intake.
+
+
+
+
+
+
+
