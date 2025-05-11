@@ -32,3 +32,8 @@
 28. Proxy vs Reverse Proxy: https://lnkd.in/gMTtidBq
 29. Batch vs Stream Processing: https://lnkd.in/gKtj_qWh
 30. Stateful vs Stateless Architecture: https://lnkd.in/gz_ccK-Y
+
+
+
+
+TradeOffs : https://blog.algomaster.io/p/system-design-top-15-trade-offs
