@@ -1,0 +1,566 @@
+1.) Is Java a pure Object Oriented Programming Language?
+
+No,java is not pure Object Oriented Programming Language.because of it's support for primitive data types
+Pure Object Oriented Language  are Fully Object Oriented Language 
+which supports or have features which treats everything inside program as objects. 
+It doesn’t support primitive datatype(like int, char, float, bool, etc.). 
+
+
+
+There are seven qualities to be satisfied for a programming language to be pure Object Oriented. They are:
+
+Encapsulation/Data Hiding
+Inheritance
+Polymorphism
+Abstraction
+All predefined types are objects
+All user defined types are objects
+All operations performed on objects must be only through methods exposed at the objects.
+
+Java supports property 1, 2, 3, 4 and 6 but fails to support property 5 and 7
+
+
+________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+
+2. What is the difference between .equals() method and == operator?
+
+Both equals() method and the == operator are used to compare two objects in Java.
+== is an operator and equals() is method.
+
+But == operator compares reference or memory location of objects , whether they point to the same location or not.
+Whenever we create an object using the operator new, it will create a new memory location for that object. 
+So we use the == operator to check memory location or address of two objects are the same or not.
+
+In general, both equals() and “==” operators in Java are used to compare objects to check equality, 
+but here are some of the differences between the two: 
+
+The main difference between the .equals() method and == operator is that one is a method, and the other is the operator.
+We can use == operators for reference comparison (address comparison) and .equals() method for content comparison. 
+
+
+________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+
+3. Will the program run if I write static public void main instead of public static void main?
+
+
+Yes, we can change the order of public static void main() to static public void main() in Java,
+the compiler doesn't throw any compile-time or runtime error.
+
+
+
+________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+
+4.) Why is the main method static in java?
+
+In Java programs, the point from where the program starts its execution or simply the entry point of Java programs is the main() method.
+
+The Java compiler or JVM looks for the main method when it starts executing a Java program. 
+The signature of the main method needs to be in a specific way for the JVM to recognize that method as its entry point. 
+If we change the signature of the method, the program compiles but does not execute.
+(here signature means return type and parameters ,the order doesn't matter as explained in above ques ).
+
+
+
+1. Public 
+
+It is an Access modifier, which specifies from where and who can access the method. 
+Making the main() method public makes it globally available. 
+It is made public so that JVM can invoke it from outside the class as it is not present in the current class.
+
+
+2. Static
+
+ 
+The main() method is static so that JVM can invoke it without instantiating the class. 
+This also saves the unnecessary wastage of memory which would have been used by the object declared only for calling the main() method by the JVM.
+
+
+3. Void 
+
+It is a keyword and is used to specify that a method doesn’t return anything. 
+As the main() method doesn’t return anything, its return type is void.
+
+You can write the main method in your program with return type other than void, the program gets compiled without compilation errors. 
+But, at the time of execution JVM does not consider this new method (with return type other than void) as the entry point of the program.
+JVM needs standard signature(public static void main).
+
+
+
+eg:
+class GeeksforGeeks {
+ 
+   public static int main(String[] args) {
+ 
+       System.out.println("GeeksforGeeks");
+ 
+       return 0;
+   }
+ 
+}
+
+Error: Main method must return a value of type void in class GeeksforGeeks, please  define the main method as:
+
+public static void main(String[] args)
+
+//so here jvm will not be able to find the entry point intot he program,sice signature method is not provided
+
+
+
+4. main 
+
+It is the name of the Java main method. 
+It is the identifier that the JVM looks for as the starting point of the java program. 
+It’s not a keyword.
+
+
+5. String[] args 
+
+It stores Java command-line arguments and is an array of type java.lang.String class.
+Here, the name of the String array is args but it is not fixed and the user can use any name in place of it. 
+________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+5. What happens when the main method isn’t declared as static?
+
+
+
+You can write the main method in your program without the static modifier, 
+the program gets compiled without compilation errors. But, at the time of execution 
+JVM does not consider this new method (without static) as the entry point of the program. ... 
+If such a method is not found, a run time error is generated.
+
+
+
+________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+
+6. What if the main method is declared as private?
+
+It's pretty obvious that the entry point of your program should be visible.
+It compiles successfully without any errors but at the runtime, it says that the main method is not public.
+
+Error: Main method not found in class PrivateMainMethod, please define the main method as:
+
+public static void main(String[] args)
+
+
+
+______________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+
+
+7.what is overloading and overriding?
+
+Method Overloading is a Compile time polymorphism. 
+In method overloading, more than one method shares the same method name with a different signature in the class.
+
+
+Method Overriding is a Run time polymorphism. 
+In method overriding, the derived class provides the specific implementation of the method that is 
+already provided by the base class or parent class.The method signature must be same both in base class 
+as well as in derived class.
+
+private methods cannot be derived(sice they are not inherited).
+
+
+
+
+The differences between Method Overloading and Method Overriding in Java are:
+
+
+
+1.	Method overloading is a compile-time polymorphism 
+Method overriding is a run-time polymorphism.
+
+
+2.	It occurs within the class.
+It is performed in two classes with inheritance relationships.
+
+3.	Method overloading may or may not require inheritance.	
+Method overriding always needs inheritance.
+
+4.	In method overloading, methods must have the same name and different signatures. 
+In method overriding, methods must have the same name and same signature.
+
+
+
+
+
+________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+
+
+
+8.  Can we Overload or Override static methods in java? What happens if we try to override the static method?
+
+
+
+8.1 Can we overload static methods? 
+
+The answer is ‘Yes’. 
+We can have two or more static methods with the same name, but differences in input parameters.
+
+eg:
+
+public class Test {
+
+	public static void foo() {
+		System.out.println("Test.foo() called ");
+	}
+  
+	public static void foo(int a) {
+		System.out.println("Test.foo(int) called ");
+	}
+  
+	public static void main(String args[])
+	{
+		Test.foo();
+		Test.foo(10);
+	}
+}
+
+
+Output
+Test.foo() called 
+Test.foo(int) called 
+
+
+________________________________________________________
+________________________________________________________
+
+
+8.2 Can we override static methods? 
+
+We can declare static methods with the same signature in the subclass, 
+but it is not considered overriding as there won’t be any run-time polymorphism. 
+Hence the answer is ‘No’. 
+
+
+
+If a derived class defines a static method with the same signature as a static method in the base class, 
+the method in the derived class is hidden by the method in the base class. 
+
+
+
+
+
+/* Java program to show that if static method is redefined by
+a derived class, then it is not overriding. */
+
+// Superclass
+class Base {
+	
+	// Static method in base class 
+  
+	public static void display() {
+		System.out.println("Static or class method from Base");
+	}
+  
+  
+	
+	// Non-static method which will be overridden in derived class
+	public void print() {
+		System.out.println("Non-static or Instance method from Base");
+	}
+}
+
+
+
+
+// Subclass
+class Derived extends Base {
+	
+	// This method is hidden by display() in Base
+  
+	public static void display() {
+		System.out.println("Static or class method from Derived");
+	}
+	
+  
+	// This method overrides print() in Base
+	public void print() {
+		System.out.println("Non-static or Instance method from Derived");
+}
+}
+
+
+
+
+// Driver class
+public class Test {
+	public static void main(String args[ ]) {
+	Base obj1 = new Derived();
+		
+	// As per overriding rules this should call to class Derive's static
+	// overridden method. Since static method can not be overridden, it
+	// calls Base's display()
+	obj1.display();
+		
+	// Here overriding works and Derive's print() is called
+	obj1.print();	
+	}
+}
+
+
+Output
+Static or class method from Base
+Non-static or Instance method from Derived
+
+
+
+________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+
+
+9. What is the difference between StringBuffer and StringBuilder?
+
+Strings in Java are the objects.  Strings are immutable.
+Whenever a change to a String is made, an entirely new String is created. 
+However, java provides multiple classes through which strings can be used. 
+Two such classes are StringBuffer and StringBuilder. 
+
+StringBuffer represents growable and writable character sequences. 
+StringBuilder in Java represents a mutable sequence of characters
+
+
+---> Conversion from StringBuffer to StringBuilder
+
+The StringBuffer cannot be directly converted to StringBuilder.
+We first need to convert the String
+
+Buffer to a String object by using the inbuilt method toString().
+(same for vice-versa)
+
+
+
+
+
+StringBuffer is synchronized. This means that multiple threads cannot call the methods of StringBuffer simultaneously.	
+StringBuilder is asynchronized. This means that multiple threads can call the methods of StringBuilder simultaneously.
+
+
+
+Due to synchronization, StringBuffer is called a thread safe class.	
+Due to its asynchronous nature, StringBuilder is not a thread safe class.
+
+
+Due to synchronization, StringBuffer is lot slower than StringBuilder.	
+Since there is no preliminary check for multiple threads, StringBuilder is a lot faster than StringBuffer.
+
+
+________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+ 
+ 
+ 10. What should be preferred when there are a lot of updates required to be done in the data? String or StringBuffer.
+ 
+ It is recommended to use StringBuilder whenever possible because it is faster than StringBuffer. 
+ However, if the thread safety is necessary, the best option is StringBuffer objects.
+ 
+ 
+________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+ 
+ 
+ 11.  Are String thread-safe in java?
+ 
+ 
+ Every immutable object in Java is thread safe ,
+ that implies String is also thread safe . String can not be used by two threads simultaneously.
+ 
+ 
+_________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+
+
+
+12. Why are Strings immutable in Java?
+
+In object-oriented programming, the immutable string or objects that cannot 
+be modified once it is created. But we can only change the reference to the object.
+
+The String is immutable in Java because of the security, synchronization and concurrency, caching.
+The String objects are cached in the String pool
+
+Security : String is made immutable to help increase security. 
+Sensitive data like username, password can be stored as the Strings can’t be modified once created.
+
+String objects are stored in string pool and it is possible that multiple references are referring to the same object. 
+So if we make it mutable then change in value done by any one reference will also affect the value referred by other references.
+
+
+
+The cached String literals are accessed by multiple clients. So, there is always a risk, 
+where action performs by one client affects all other clients. 
+For example, if one client performs an action and changes the string value from Pressure to PRESSURE, 
+all remaining clients will also read that value. 
+For the performance reason, caching of String objects was important, so to remove that risk, we have to make the String Immutable.
+
+
+eg 1:
+
+import java.util.*;  
+class ImmutableString{    
+    public static void main(String args[]){    
+        String NewString = "Hello";    
+        NewString.concat("World");  
+        System.out.println(NewString);    
+    }    
+}   
+
+
+o/p:hello
+
+
+In the string constant pool, the Hello remains unchanged, and a new string object is created with HelloWorld. 
+It shows that the strings are immutable.
+The reference variable points to the Hello not to the HelloWorld.
+
+
+
+
+If we want that it refers to the HelloWorld, we have to explicitly assign it to that variable. For example:
+
+import java.util.*;  
+class ImmutableString{    
+    public static void main(String args[]){    
+        String NewString = "Hello";    
+        NewString = NewString.concat("World");  
+        System.out.println(NewString);    
+    }    
+} 
+
+
+o/p:hello world
+
+
+
+_________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+
+13. How many objects will be created for the following code?
+String str1 = "ashay"
+String str2 = "ashay"
+
+
+When you write String str1 = “Ashay” java checks for this value in the string pool.
+If it doesn’t find the value “Ashay” in the pool then it creates a new object with the value “Ashay” 
+in the string pool which will be referred by ‘str1’. Now again, when you write String str2 = “Ashay”, 
+it checks the value in the pool, this time it 
+will find the value so it will not create another object. Instead, ‘str2’ will refer to the same object to which ‘str1’ was referring
+
+String pool saves the memory as java avoids the creation of two string objects having the same value.
+
+String pool is a part of heap memory only.
+It’s just we have given a section of heap memory dedicated to string objects only.
+
+
+
+
+
+_________________________________________________________________________________________________________________________________________
+________________________________________________________________________________________________________________________________________
+
+
+14. How many objects will be created for the following code?
+
+
+
+
+Integer obj1 = new Integer(2);
+Integer obj2 = new Integer(2);
+
+Q. How many objects get created in the above code?
+
+Ans: Two objects. Obviously. The “new” keyword creates an object. 
+We are using the “new” keyword in lines one and two. So, two objects get created in heap memory.
+
+
+
+
+Q. What if I write String str = new String(“ABC”) instead of String str = “ABC”? How is this different?
+
+Ans: When you use the “new” keyword then it should create an object on the heap memory. 
+So it does. It creates the string object on the heap memory. However, in the case of String, 
+it also creates an object in the string pool with the value “ABC”. So two objects get created.
+One in heap memory and the other in string pool. 
+‘str’ will refer to the object of heap memory only. No one will refer to string pool object.
+
+
+
+
+Q:
+
+String str1 = "Ashay"
+String str2 = new String("Ashay")
+
+
+
+Conclusion:
+
+String str = “Ashay” will create one object in the string pool and that too only when “Ashay” is not present in the string pool.
+String str = new String(“Ashay”) will create two objects. One in heap memory and the other in string pool.
+If the string pool already contains 
+“Ashay” then it will not create the object in the string pool. 
+
+so only 2 objects will be created
+
+
+
+
+
+Q. How many objects get created in the given java code? - Interview Question
+String str1 = new String("PQR");
+String str2 = new String("PQR); 
+
+
+Ans: Three objects. Got it? Let me explain it. 
+The first line will create two objects, one in heap memory and the other in the string pool. 
+The second line will create one object i.e. in heap only. 
+It will go for creating a second object in the string pool but it will find that “PQR” is already present in the string pool.
+
+
+
+
+
+
+Q: How many objects will be created for the following code?
+String str1 = "Ashay"
+String str2 = new String("Ashay")
+
+Ans: Two objects. The first line creates one string object in the string pool. 
+The second line will create one string object in heap memory and one in string pool but in the string pool,
+an object with the value “Ashay” is already present so the second line will not create an object in the string pool. So total objects created are two.
+
+
+
+
+
+Q.) How many objects will be created for the following code?
+String str1 = "abc"
+String str2 = "abc"
+Ans: Only one object is created. String str1 will create a new object in the string pool, while String str2 will create a reference to the String str1.
