@@ -1,0 +1,137 @@
+This is the list of interview questions…
+
+1.) What is garbage collection in Java?
+2.) Can we run the garbage collector? If yes, then how?
+3.) What is finalize() in Java?
+4.) How many objects are eligible for garbage collection? - One of the most asked interview questions. You will be given the java code snippet and you need to find all the eligible objects for garbage collection.
+5.) What is the algorithm of garbage collection in Java? or How is garbage collection done in java?
+
+_________________________________________________________________________________________________________________________________________
+_________________________________________________________________________________________________________________________________________
+
+
+Before we move to the interview questions, 
+let’s understand the story of the Garbage Collection in java. 
+You will be able to answer interview questions by yourself.
+
+
+
+******** All objects in java get stored in heap memory. This heap memory is limited.  **********
+
+If any object is no longer in use then we should remove that object from heap memory. 
+The process of removing unused objects from heap memory is known as Garbage collection. 
+If we don’t remove the unused objects then very soon heap memory gets full. 
+Thus sufficient memory may not be available to create new objects and you will get an OutOfMemory error.
+
+
+In C and C++, the developer explicitly writes the code to delete the unused object from the memory but in java, 
+unused objects get deleted automatically. Garbage Collector does this job for developers.
+
+
+
+
+As discussed above, the garbage collector destroys unused objects but how does it decide which object is unused?
+
+
+When there is no reference to an object exists, that object becomes an unreachable object. 
+It is assumed that unreachable objects are no longer needed (i.e. unused objects) and we can destroy them. 
+So garbage collector looks for the unreachable objects and removes them from the heap memory. Remember this.
+Below are the ways which make objects unreachable which eventually makes objects eligible for garbage collection:
+
+
+_
+There are some other cases when an object become eligible for garbage collection:
+
+If the reference of that object is explicitly set to null.
+The object also becomes eligible if it is created inside a block and the reference goes out of the scope once control exit from the block.
+________________________________________________________________________________________________________________________________________
+_________________________________________________________________________________________________________________________________________
+
+1. Nullifying the reference variable
+
+
+Employee emp = new Employee(); // line 1
+emp = null; // line 2
+
+
+In line 1, the employee object gets created and emp is referring to that object. 
+In line 2, emp is set to null which means emp is not referring to the employee object created in line 1 anymore.
+Is there any way we can access that employee object? No, as emp was the only way and after setting it to null, 
+that employee object is not referenced by anyone 
+which means it becomes an unreachable object so it is assumed that object is no longer needed and it will be garbage collected.
+
+
+
+
+
+
+2. Re-assigning the reference variable
+
+
+Employee emp1 = new Employee(); // line 1
+Employee emp2 = new Employee(); // line 2
+emp1 = emp2; // line 3
+emp2 = null; // line 4
+
+
+
+Q. How many objects are eligible for garbage collection? Let’s see.
+
+
+Two employee objects get created. emp1 and emp2 are referring to the corresponding objects.
+In line 3, emp1 starts referring to the employee object to which emp2 is referring. 
+So after line 3, the employee object created in line 1 is not referenced by anyone.
+So object created in line 1 becomes unreachable and is eligible for garbage collection. 
+Now, line 4. Here, emp2 is set to null then most of you must be thinking that the employee object 
+created in line 2 also becomes eligible for garbage collection. Really? No, because the object created in line 2 is referred by emp1 and emp2 
+both and on setting emp2 to null,
+that object is still reachable as emp1 is still referring to that object.
+
+
+Ans: Only one object will be eligible for garbage collection.
+
+
+
+
+
+
+
+4. Object created inside method, constructor, static block and block
+public void fun(){ // line 1
+   Employee obj = new Employee(); // line 2
+}
+// line 4
+Here, obj is eligible for garbage collection at line 4 because objects created inside the method become unreachable after method execution.
+
+
+
+
+
+
+_________________________________________________________________________________________________________________________________________
+_________________________________________________________________________________________________________________________________________
+
+Java programmer are free from memory management. We cannot force the garbage collector to collect the garbage, it depends on the JVM.
+JVM controls the garbage collector. JVM decides when to perform the garbage collection.
+
+
+
+
+Garbage collector runs automatically at the backend and destroys the unused object. 
+It is not possible to predict the time when the garbage collector will run. 
+However, there are two ways to call a garbage collector explicitly.
+
+System.gc()
+Runtime.gc()
+
+Any of the above two methods can be used but they provide no guarantee that the garbage collector will run.
+Sometimes, calling these methods may not call a garbage collector. It is like requesting a garbage collector to run.
+
+
+
+
+There are multiple algorithms but the Mark-Sweep algorithm is the most common garbage collection algorithm. If the interviewer asks the algorithm then 
+you can talk about the Mark-Sweep algorithm. However, it is not a widely asked interview question.
+
+Mark-Sweep algorithm — It has two phases i.e. Mark phase and Sweep phase. In the Mark phase, 
+it marks every reachable object by setting the bit to 1. In the Sweep phase, it crawls over the heap and removes every unmarked object (bit = 0).
