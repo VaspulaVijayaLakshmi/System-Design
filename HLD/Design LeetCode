@@ -1,0 +1,142 @@
+Design LeetCode
+
+
+https://systemdesignschool.io/problems/leetcode/solution
+
+
+
+There is a question bank that stores thousands of programming questions. For each question, users can write, compile and submit code against test cases and get results.
+User submitted code needs to be persisted. 
+Every week, there is a contest where people compete to solve questions as quickly as possible.
+Users will be ranked based on their accuracy and speed. 
+We’ll need a leaderboard that shows rankings in real time
+
+
+
+Core Requirements
+View Problems: Users should be able to view problem descriptions, examples, constraints, and browse a list of problems.
+
+Submit Solution: Users should be able to solve coding questions by submitting their solution code and running it against built-in test cases to get results.
+
+Coding Contest: User can participate in coding contest. The contest is a timed event with a fixed duration of 2 hours consisting of four questions. 
+The score is calculated based on the number of questions solved and the time taken to solve them. 
+The results will be displayed in real time. The leaderboard will show the top 50 users with their usernames and scores.
+
+
+
+
+
+GET /problems/{problem_id}
+Get problem details, including description, constraints, examples, and starter code.
+
+Response Body:
+
+{
+  id: string
+  title: string
+  difficulty: string
+  description: string
+  constraints: string
+  examples: [{
+    input: string
+    output: string
+  }]
+  starter_code: {
+    language: string
+    code: string
+  }
+}
+
+
+
+
+
+
+
+POST /problems/{problem_id}/submission
+Submit code for a problem and get results.
+
+Response Body:
+
+{
+  status: success | fail
+  test_cases: [
+    { status: success | fail | timeout }
+  ]
+}
+
+
+
+
+GET /contests/{contest_id}/leaderboard
+Get leaderboard for a contest.
+
+Response Body:
+
+{
+  ranking: [
+    { user_id: string, score: number }
+  ]
+}
+
+
+
+
+
+Users should be able to view problem descriptions, examples, constraints, and browse a list of problems.
+
+
+
+
+Submit Solution
+Users should be able to solve coding questions by submitting their solution code and running it against built-in test cases to get results.
+
+To design the code evaluation flow for our LeetCode-like platform, we need to consider the high concurrency requirement of 10,000 users participating
+in contests simultaneously, each submitting solutions about 20 times on average.
+
+
+
+
+
+
+
+
+We use a Code Evaluation Service as the entry point for code submissions. This service will be responsible for receiving code from users and initiating the evaluation process. However, to handle the high volume of submissions efficiently and securely, 
+we introduce a Message Queue as a buffer between
+the submission process and the actual code execution.
+
+
+
+
+When a user submits a solution, the Code Evaluation Service pushes a message containing the submission details (user ID, problem ID, and code) to the Message Queue.
+This decouples the submission process from the execution process, allowing us to handle traffic spikes more effectively.
+
+
+
+
+
+
+
+
+
+
+
+Coding Contest
+User can participate in coding contest. The contest is a timed event with a fixed duration of 2 hours consisting of four questions. 
+The score is calculated based on the number of questions solved and the time taken to solve them. The results will be displayed in real time. 
+The leaderboard will show the top 50 users with their usernames and scores.
+
+A contest itself is bascially four problems with a time window. Running the contest itself is straightforward. We can use a centralized service to manage the contest,
+Contest Service. After a user submits a solution, it's graded by the Code Evaluation Service as described in the previous section. The results are then sent to the 
+Contest Service to record the user's score in the database.
+
+The key decision here is where to store the contest data, user's score, and the leaderboard. We need real time updates for the leaderboard and data changes 
+frequently. We can use an in-memory database like Redis to store the leaderboard. Redis is a fast, in-memory database that is well suited for high performance, 
+real time data processing
+
+
+
+
+
+
+Redis SOrted SET
