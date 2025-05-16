@@ -1,0 +1,79 @@
+https://systemdesignschool.io/problems/google-doc/solution
+
+
+Single-user CRUD Operations in the Browser: Users can create, read, update, and delete documents directly in their web browser.
+
+
+In a typical cloud storage system, the URL structure is like this:
+
+https://s3.amazonaws.com/bucket-name/user-id/document-id
+
+
+
+
+
+However, in our collaborative editing system, we do not want a hierarchical URL structure because
+
+Since the file is meant to be shared with others, we do not want to expose the folder structure to the users.
+
+
+Therefore, we should use a flat structure. For example:
+
+Google Docs: https://docs.google.com/document/d/1Ss4s93AGpdksZp1X3Gjzy717LCv8xY49G_PewUwmZ5A
+
+
+
+
+Globally Unique: The ID should be unique across the entire system. No two documents should have the same ID ever.
+
+
+
+
+How to Store Documents?
+
+
+For an document, we need to store the document metadata and the document content.
+
+Document Metadata
+The document metadata includes:
+
+Document title, author, permissions, creation and last modified timestamps.
+Access control data (e.g., roles like owner, editor, viewer).
+Versioning pointers, references to document snapshots, and other attributes.
+
+
+
+
+
+
+Fast queries and filter: For example, we want to query all documents created by a specific user or retrieving documents the user has permission to edit.
+
+Transactional Consistency: Operations like adding or updating metadata (e.g., changing permissions or titles) should be atomic.
+                          It either succeeds completely, committing all changes, or fails completely,
+
+
+
+
+
+
+Based above requirements, we should use a relational database to store the document metadata because:
+
+Atomicity in ACID 
+DATa interigrity
+
+
+
+
+
+
+
+Document content tends to be larger and less structured than metadata, especially for text documents, images, and other rich media. 
+Additionally, the system may need to store multiple snapshots or versions of the content for version history, which increases storage needs over time.
+
+Cloud storage services (e.g., AWS S3, Google Cloud Storage) are designed to handle massive amounts of unstructured data
+
+
+
+
+
+
