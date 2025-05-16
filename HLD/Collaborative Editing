@@ -76,4 +76,71 @@ Cloud storage services (e.g., AWS S3, Google Cloud Storage) are designed to hand
 
 
 
+Synchronizing Document State
+To support multi-user collaborative editing, we need to solve the following problems:
+
+How to synchronize the document state for different users?
+How to handle conflicts when multiple users edit the same document?
+First, let's assume there is no conflict in editing between different users. 
+Imagine different users are editing different parts of the document independently, 
+
+
+
+
+WEBSOCKETS for real time editing.
+
+Client 1 Sends Edit: Client 1 sends an edit to the WebSocket Service over its WebSocket connection.
+WebSocket Service Adds Edit to Queue: The WebSocket Service places the edit in the message broker queue (e.g., Kafka, RabbitMQ, or Redis Pub/Sub). This decoupling allows the WebSocket Service to quickly move on to handling other incoming messages.
+Document Service Consumes Edit: The Document Service, acting as a consumer, reads the edit from the queue.
+Document Service Processes and Persists Edit: The Document Service validates, processes, and persists the edit in the database.
+Notify WebSocket Service: After updating the database, the Document Service can either:
+Notify the WebSocket Service (possibly through the queue) that the update is complete.
+Optionally, send the updated document state to the WebSocket Service for broadcasting.
+WebSocket Service Broadcasts Update: Upon receiving the update or confirmation, the WebSocket Service broadcasts the updated state to all connected clients, including Client 1, Client 2.
+
+
+
+
+Handling conflicts
+Last-Write-Wins
+
+
+
+How to implement document version history?
+Document version history can be implemented using several strategies:
+
+1. Snapshot-Based Versioning
+
+
+How to prevent server overload from frequent edits?
+Several strategies can be employed to manage server load:
+
+1. Client-Side Batching
+Instead of sending each edit to the server immediately, the client can batch the edits and send them to the server in a batch.
+
+2. Rate Limiting
+
+3. Caching - freq accessed doc
+
+
+
+
+
+How to handle offline editing?
+
+
+
+Sync Process: 
+
+
+Detect online status
+Upload pending changes
+Fetch remote changes
+Resolve conflicts
+Update local state
+
+
+
+
+
 
