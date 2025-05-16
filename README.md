@@ -38,6 +38,8 @@
 
 TradeOffs : https://blog.algomaster.io/p/system-design-top-15-trade-offs
 
+Desig Problems and template : https://systemdesignschool.io/primer#master-template
+
 
 Books : 
 
