@@ -1,0 +1,38 @@
+File STorage  vs Object Storage 
+
+https://www.youtube.com/watch?v=AV4Ei1qW89o
+
+
+File storage divides the file into fixed sized blocks and these are written to disk.
+
+Managing unstructured data or big data can be hard to handle with this storage
+ALso limited metadata: this only stores, the timestamp and user owner.....
+
+
+
+Object STorage:
+
+This stores Data in the as objects ina FLAT structure.
+
+[Data : binary Data]
+[object Id : string]
+[metadata : {key val pairs}]
+
+
+
+
+
+[object Id : 1sdj]
+[object Id : 2edf4]
+[object Id : ddfr]
+
+Object are stored like this to make the retrival easier instead of complex HHigharchy document struture.
+
+
+Highly scalable
+Rich metadata
+Big Data
+
+
+
+Usage : Netflic and utube media content.
