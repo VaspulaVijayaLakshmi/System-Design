@@ -1,0 +1,158 @@
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
+// Define the Notification interface
+interface Notification {
+    void send(String message);
+}
+
+// Implement concrete notification classes
+
+class EmailNotification implements Notification {
+    private String to;
+    private String subject;
+    private String body;
+
+    public EmailNotification(String to, String subject, String body) {
+        this.to = to;
+        this.subject = subject;
+        this.body = body;
+    }
+
+    @Override
+    public void send(String message) {
+        System.out.println("Sending email to " + to + " with subject " + subject + " and body: " + body);
+    }
+}
+
+
+
+
+
+
+class SMSNotification implements Notification {
+    private String phoneNumber;
+    private String carrier;
+
+    public SMSNotification(String phoneNumber, String carrier) {
+        this.phoneNumber = phoneNumber;
+        this.carrier = carrier;
+    }
+
+    @Override
+    public void send(String message) {
+        System.out.println("Sending SMS to " + phoneNumber + " via " + carrier + ": " + message);
+    }
+}
+
+
+
+
+
+
+class SlackNotification implements Notification {
+    private String channel;
+    private String username;
+
+    public SlackNotification(String channel, String username) {
+        this.channel = channel;
+        this.username = username;
+    }
+
+    @Override
+    public void send(String message) {
+        System.out.println("Sending Slack message to channel " + channel + " as " + username + ": " + message);
+    }
+}
+
+
+class WhatsAppNotification implements Notification {
+    private String phoneNumber;
+    private String displayName;
+
+    public WhatsAppNotification(String phoneNumber, String displayName) {
+        this.phoneNumber = phoneNumber;
+        this.displayName = displayName;
+    }
+
+    @Override
+    public void send(String message) {
+        System.out.println("Sending WhatsApp message to " + phoneNumber + " (" + displayName + "): " + message);
+    }
+}
+
+
+
+
+
+
+
+
+// NotificationFactory using a registry map
+class NotificationFactory {
+    private static final Map<String, Supplier<Notification>> registry = new HashMap<>();
+
+    // Register default types
+    static {
+        registry.put("email", () -> new EmailNotification("default@example.com", "Hello", "This is a test email."));
+        registry.put("sms", () -> new SMSNotification("1234567890", "Verizon"));
+        registry.put("slack", () -> new SlackNotification("#general", "NotifierBot"));
+        registry.put("whatsapp", () -> new WhatsAppNotification("9876543210", "John Doe"));
+    }
+
+
+
+
+
+
+    // Register a new notification type
+    public static void register(String type, Supplier<Notification> creator) {
+        registry.put(type.toLowerCase(), creator);
+    }
+
+
+
+
+
+    // Create a notification based on type
+    public static Notification create(String type) {
+        Supplier<Notification> creator = registry.get(type.toLowerCase());
+        if (creator == null) {
+            throw new IllegalArgumentException("Unknown notification type: " + type);
+        }
+        return creator.get(); 
+    }
+}
+
+
+
+
+// Example usage
+public class NotificationService {
+    public static void main(String[] args) {
+        Notification emailNotification = NotificationFactory.create("email");
+        emailNotification.send("Hello, this is an email notification.");
+
+        Notification smsNotification = NotificationFactory.create("sms");
+        smsNotification.send("Hello, this is an SMS notification.");
+
+        Notification slackNotification = NotificationFactory.create("slack");
+        slackNotification.send("Hello, this is a Slack notification.");
+
+        Notification whatsappNotification = NotificationFactory.create("whatsapp");
+        whatsappNotification.send("Hello, this is a WhatsApp notification.");
+
+        // Register and use a new type of notification
+        NotificationFactory.register("custom", () -> new Notification() {
+            @Override
+            public void send(String message) {
+                System.out.println("Sending a custom notification: " + message);
+            }
+        });
+
+        Notification customNotification = NotificationFactory.create("custom");
+        customNotification.send("Hello, this is a custom notification.");
+    }
+}
+
