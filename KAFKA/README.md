@@ -5,6 +5,9 @@ No explicit "ack" from the consumer to Kafka.
 Instead, Kafka uses consumer offsets to keep track of what messages have been "consumed."
 
 
+
+
+
 How it works:
 Each consumer periodically commits an offset (either automatically or manually).
 
@@ -16,14 +19,14 @@ This means Kafka gives at-least-once delivery by default.
 
 
 
-Kafka stores consumer offsets in a special internal topic called:
 
-->  __consumer_offsets
-
-
+________
 
 
 Why store offsets in Kafka itself?
+
+
+Kafka stores consumer offsets in a special internal topic called  ->   __consumer_offsets
 
 
 ✅ Scalable: Multiple consumers and brokers can handle offsets efficiently.
@@ -82,12 +85,30 @@ ________
 
 CONSUMER GROUP :
 
-Producer --> Kafka Topic (3 partitions)
-                      |
-        Consumer Group G1
-          ├── Consumer A (partition 0)
-          ├── Consumer B (partition 1)
-          └── Consumer C (partition 2)
+               +----------------+
+               |    Producer    |
+               +--------+-------+
+                        |
+                        v
+            +-----------------------+
+            |    Kafka Topic: orders|
+            |   (3 Partitions)      |
+            +--------+--------+-----+
+                     |        |
+           +---------+--------+----------+
+           |         |        |          |
+     Partition 0  Partition 1  Partition 2
+           |         |              |
+           |         |              |
+           v         v              v
++----------------+ +----------------+ +----------------+
+| Consumer Group G1 (Group ID: G1)                      |
+|                                                      |
+|  ├── Consumer A (reads from Partition 0)             |
+|  ├── Consumer B (reads from Partition 1)             |
+|  └── Consumer C (reads from Partition 2)             |
++------------------------------------------------------+
+
 
 
 
