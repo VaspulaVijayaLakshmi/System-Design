@@ -100,14 +100,7 @@ CONSUMER GROUP :
      Partition 0  Partition 1  Partition 2
            |         |              |
            |         |              |
-           v         v              v
-+----------------+ +----------------+ +----------------+
-| Consumer Group G1 (Group ID: G1)                      |
-|                                                      |
-|  ├── Consumer A (reads from Partition 0)             |
-|  ├── Consumer B (reads from Partition 1)             |
-|  └── Consumer C (reads from Partition 2)             |
-+------------------------------------------------------+
+           A         B              C
 
 
 
