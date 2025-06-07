@@ -57,3 +57,14 @@ https://github.com/karanpratapsingh/system-design
 HLD : https://blog.algomaster.io/archive?sort=top
 
 
+KAFKA : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/KAFKA/README.md
+
+
+
+
+HLD : REVISION BOOK
+
+
+
+
+
