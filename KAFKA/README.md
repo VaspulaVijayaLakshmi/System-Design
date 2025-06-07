@@ -246,9 +246,21 @@ _____
 
 
 
-Dead Letter Queue
+Dead Letter Queue:
 
 
+What is a Dead Letter Queue (DLQ)?
+A DLQ is a special topic where problematic messages are sent if they cannot be processed successfully after retries.
+
+Consumer detects a problematic message:
+The message causes processing errors (e.g., data format issues, validation failures).
+
+The consumer retries a configured number of times.
+
+2. On failure after retries:
+The consumer publishes the problematic message to a separate Kafka topic (the DLQ topic).
+
+Logs the error or alerts for manual inspection or automated reprocessing.
 
 
 
