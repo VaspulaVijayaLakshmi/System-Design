@@ -1,0 +1,47 @@
+IN websockets we have the connections open but we still haave mesage queue why?
+Because msgs are send istantly
+
+but what if recipient is offline?
+
+
+Even with persistent WebSocket connections, you still need a message queue to handle things WebSockets don’t solve:
+
+
+1. Reliability and Persistence
+WebSocket alone is ephemeral — if the server restarts or crashes, any messages not yet sent to clients are lost.
+
+Message Queues persist messages until they're processed, ensuring nothing gets dropped.
+
+Example: A chat message is sent to a server, but the recipient is briefly disconnected. If the message was only in WebSocket memory — poof! 
+With a queue (e.g., Kafka), it’s buffered and safely delivered when possible.
+
+
+
+
+2. Asynchronous Processing & Decoupling
+Message producers (e.g., a user sending a chat) shouldn’t care who’s connected.
+
+Queues allow decoupling:
+→ One service sends messages to the queue.
+→ Another service (e.g., WebSocket server) pulls and pushes it to connected clients.
+
+
+
+3. Backpressure Handling
+If too many messages come in too fast, WebSocket connections may get overwhelmed.
+
+A queue acts as a buffer that allows the system to catch up gracefully.
+
+
+4. Replay & History
+Queues like Kafka can retain messages for hours/days.
+
+You can replay missed messages (e.g., user opens the app and syncs recent messages from the last 24 hours).
+
+
+
+5. Fan-out / Pub-Sub Use Case
+One user sends a message → should go to multiple recipients.
+
+Queue makes it easy to implement fan-out (send to N subscribers).
+
