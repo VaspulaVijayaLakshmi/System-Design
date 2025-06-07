@@ -1,0 +1,121 @@
+https://blog.algomaster.io/p/websocket-use-cases-system-design
+
+Real-time features are everywhere—chat apps, live dashboards, collaborative editors, multiplayer games. 
+Behind the scenes, one technology powers these seamless interactions: WebSockets.
+
+WebSockets enable full-duplex, low-latency communication over a single persistent connection. 
+This makes them the ideal choice when both the client and server need to exchange data continuously and without delay.
+
+
+
+In real-time chat applications, users expect instant updates—whether it's new messages, typing indicators, delivery receipts, or presence status.
+
+
+
+But delivering this seamless experience at scale is challenging, especially with millions of users and thousands of concurrent group chats.
+
+
+COMPONENTS :
+
+WebSocket Chat Servers: Maintains persistent connections with clients, handles incoming events and messages, and delivers real-time updates to users.
+
+Connection Registry: Keeps track of active WebSocket sessions and maps users to their current connections.
+
+Message Queue: Temporarily buffers incoming messages for asynchronous processing, enabling system decoupling and ensuring reliable persistence.
+
+Message Storage Service: Consumes messages from the queue, attaches relevant metadata, and stores them in the message database.
+
+Message Store: A durable and scalable database that holds all messages, metadata, and conversation history.
+
+
+
+
+1. Client Establishes WebSocket Connection
+When a user opens the app:
+
+The client authenticates with the backend using a JWT or session token
+
+Then establishes a WebSocket connection to a chat server:
+
+This connection remains open for the entire session
+
+
+
+
+
+Sending Messages
+When the user sends a message:
+
+The client sends it over the WebSocket connection:
+
+The chat server:
+
+Validates the message
+
+Pushes it to a message queue
+
+
+
+
+Receiving Messages
+For each recipient:
+
+The chat server checks the Connection Registry to find active WebSocket sessions
+
+If the user is online, the message is pushed instantly:
+
+If the user is offline:
+The message is stored for delivery upon reconnect
+Or sent as a push notification
+
+
+
+
+
+The same WebSocket connection used for messaging can also be leveraged to send ephemeral events like typing indicators and presence status.
+
+When a user begins typing in a conversation:
+
+The client sends a lightweight event over the open WebSocket connection:
+
+The server receives the event and checks the Connection Registry to determine if the recipient(s) are currently online.
+
+If they are online, the typing event is immediately pushed to their active WebSocket sessions.
+
+If they are offline, the event is discarded (not stored), since it's ephemeral and has no long-term value.
+
+
+
+
+
+
+
+
+
+
+
+MULTIPLAYER
+
+
+
+
+WebSockets allow game clients and servers to send frequent updates (player positions, moves, game events) in both directions. This keeps all players’ views in sync during gameplay.
+
+In-Memory Game State: Holds the live, up-to-date snapshot of all game entities (e.g., players, objects, projectiles) for a specific match, updated on every game tick.
+
+
+
+
+Real-Time Social Media Feeds
+
+
+WebSockets enable servers to push these updates instantaneously to connected clients, creating a live feed experience.
+
+
+
+
+
+
+
+
+
