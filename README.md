@@ -52,3 +52,8 @@ Books :
 https://github.com/karanpratapsingh/system-design
 
 
+
+
+HLD : https://blog.algomaster.io/archive?sort=top
+
+
