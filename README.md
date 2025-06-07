@@ -63,6 +63,8 @@ KAFKA : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/KAFKA/RE
 
 
 HLD : REVISION BOOK
+https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/Algomasterio_System_Design_Interview_Handbook.pdf
+
 
 
 
