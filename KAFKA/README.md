@@ -1,11 +1,37 @@
-Kafka Acknowledgment Model (Consumer Side)
+Producer Acknowledgments (acks setting) : 
+
+
+
+This setting controls how many Kafka brokers must acknowledge a write before it's considered successful.
+Kafka responds asynchronously, so the producer doesn’t block unless explicitly waited upon.
+
+
+
+
+What if the ack fails?
+The producer gets a TimeoutException, RetriableException, or RecordTooLargeException, etc.
+Kafka producer can be configured to retry automatically (retries, retry.backoff.ms).
+
+
+
+
+| **Yes** — Kafka **does support producer-side acknowledgments**      |
+| ------------------------------------------------------------------- |
+| Use `acks=all` for maximum durability (replication-safe)            |
+| Use `acks=1` for a good balance of speed and safety                 |
+| Use `acks=0` only if you’re OK losing some messages for low latency |
+
+
+
+________
+
+
+
+
+Kafka Acknowledgment Model (Consumer Side) :
 
 No explicit "ack" from the consumer to Kafka.
-
 Instead, Kafka uses consumer offsets to keep track of what messages have been "consumed."
-
-
-
 
 
 How it works:
@@ -19,8 +45,8 @@ This means Kafka gives at-least-once delivery by default.
 
 
 
+__________
 
-________
 
 
 Why store offsets in Kafka itself?
