@@ -24,6 +24,8 @@ Kafka stores consumer offsets in a special internal topic called:
 
 
 Why store offsets in Kafka itself?
+
+
 ✅ Scalable: Multiple consumers and brokers can handle offsets efficiently.
 
 ✅ Fault-tolerant: Replicated like other topics — won’t lose offsets if a broker fails.
@@ -65,8 +67,9 @@ ______
 
 CONSUMER :
 
+
 Producer --> Kafka Topic (3 partitions)
-                      |
+                     |
                  Consumer A
 
 
