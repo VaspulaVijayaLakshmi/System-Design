@@ -176,15 +176,49 @@ __________
 
 
 
-How to ensure the messages ae not duplicated
+How to ensure the messages are not duplicated?
+How to make sure we are not losing data packets?
+How to retry failed messages?
+
+
+
+1. Replication : 
+Each Kafka topic partition is replicated across multiple brokers.
+
+There is one leader and multiple followers.
+If Broker 1 crashes, Kafka promotes one of the followers to be the new leader.
+
+
+
+2. Retention Policy
+Messages are retained even after they're read (unless deleted).
 
 
 
 
-How to make sure we are not losing data packets
+3. Consumer Offset Management
+Consumers track read position using offsets.
+
+Kafka stores this in __consumer_offsets topic.
+
+If a consumer crashes, it can resume from the last committed offset.
 
 
-how to retry failed msgs
+
+
+4.Durable Log on Disk
+Kafka writes all data to disk before acknowledging it.
+
+Durable, append-only ordered storage of messages for streaming and replay
+
+Messages are appended to disk in orde
+
+_____
+
+
+
+
+
 
 
 
