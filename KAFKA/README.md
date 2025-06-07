@@ -177,10 +177,16 @@ __________
 
 
 How to ensure the messages are not duplicated?
+
 How to make sure we are not losing data packets?
+
 How to retry failed messages?
 
 
+TECHNIQUES : 
+
+
+_____
 
 1. Replication : 
 Each Kafka topic partition is replicated across multiple brokers.
@@ -188,12 +194,12 @@ Each Kafka topic partition is replicated across multiple brokers.
 There is one leader and multiple followers.
 If Broker 1 crashes, Kafka promotes one of the followers to be the new leader.
 
-
+_____
 
 2. Retention Policy
 Messages are retained even after they're read (unless deleted).
 
-
+_____
 
 
 3. Consumer Offset Management
@@ -203,7 +209,7 @@ Kafka stores this in __consumer_offsets topic.
 
 If a consumer crashes, it can resume from the last committed offset.
 
-
+____
 
 
 4.Durable Log on Disk
@@ -215,6 +221,24 @@ Messages are appended to disk in orde
 
 _____
 
+
+5. Idempotent Producer
+
+Idempotent producer in Kafka does NOT generate a UUID per message. Instead, it relies on a combination of producer ID and sequence numbers to achieve idempotence.
+
+
+
+When you enable enable.idempotence=true, Kafka assigns your producer a unique Producer ID (PID) when it connects to the broker.
+For each partition the producer writes to, it maintains a monotonically increasing sequence number for every message sent.
+The broker tracks (Producer ID, Partition, Sequence Number) pairs.
+If a message with the same PID + sequence number is received again (due to retries), the broker deduplicates it and does not write a duplicate to the log.
+
+
+
+Benefit - 	Prevents duplicates on retries without extra message overhead
+
+
+_____
 
 
 
