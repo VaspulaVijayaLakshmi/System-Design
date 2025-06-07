@@ -55,6 +55,7 @@ https://github.com/karanpratapsingh/system-design
 
 
 HLD : https://blog.algomaster.io/archive?sort=top
+LLD : https://algomaster.io/learn/lld
 
 
 KAFKA : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/KAFKA/README.md
