@@ -261,12 +261,15 @@ A DLQ is a special topic where problematic messages are sent if they cannot be p
 Consumer detects a problematic message:
 The message causes processing errors (e.g., data format issues, validation failures).
 
-The consumer retries a configured number of times.
+1. The consumer retries a configured number of times.
 
 2. On failure after retries:
 The consumer publishes the problematic message to a separate Kafka topic (the DLQ topic).
 
 Logs the error or alerts for manual inspection or automated reprocessing.
+
+
+__________________
 
 
 
@@ -286,7 +289,7 @@ Now how does he syste recongnise UUID since it not in db
 4. Now, if the client retries... 💥 The server can’t find the UUID in DB to detect a duplicate.
 
 
-
+----
 
 
 Idempotency Key Cache (Short-Term Memory)
@@ -297,7 +300,7 @@ Store the UUID in a temporary in-memory cache (Redis, Memcached, etc.) with a TT
 On retry, check cache to see if this UUID was already processed.
 
 
-
+----
 
 
 Deduplicating Message Brokers
@@ -310,7 +313,7 @@ Brokers (or consumers) keep a log of processed IDs.
 If a retry happens, they discard the duplicate.
 
 
-
+----
 
  Write-Ahead Log (WAL) / Event Log First
 Instead of writing to DB first, write the request or outcome to an append-only durable log first:
