@@ -1,1 +1,16 @@
-ability to protect your data even in the face of unexpected failures
+Ability to protect your data even in the face of unexpected failures.
+
+
+Durability : 
+
+1. Write-Ahead Logging (WAL)
+2. Checkpointing
+3. Replication
+
+
+https://blog.algomaster.io/p/how-databases-guarantee-durability
+
+
+
+
+
