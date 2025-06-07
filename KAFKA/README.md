@@ -60,6 +60,7 @@ DIfference between conusmer and COnsumer group
 
 
 
+______
 
 
 CONSUMER :
@@ -112,6 +113,26 @@ ________
 
 
 
+
+KAFKA VS RABBIT MQ
+
+
+
+| Feature              | **RabbitMQ**                                           | **Kafka**                                        |
+| -------------------- | ------------------------------------------------------ | ------------------------------------------------ |
+| **Message Delivery** | Delivered to a consumer and **removed** from the queue | Messages are **retained** and can be re-read     |
+| **Ordering**         | Preserved per queue                                    | Preserved per **partition**                      |
+| **Consumers**        | Competes for messages (one message per consumer)       | Multiple consumers can read **independently**    |
+| **Acks**             | Required for successful processing                     | Offset-based, consumers track their own progress |
+
+
+
+
+__________
+
+
+
+
 How to ensure the messages ae not duplicated
 
 
@@ -135,19 +156,3 @@ Dead Letter Queue
 
 
 
-
-
-_____________
-
-
-
-KAFKA VS RABBIT MQ
-
-
-
-| Feature              | **RabbitMQ**                                           | **Kafka**                                        |
-| -------------------- | ------------------------------------------------------ | ------------------------------------------------ |
-| **Message Delivery** | Delivered to a consumer and **removed** from the queue | Messages are **retained** and can be re-read     |
-| **Ordering**         | Preserved per queue                                    | Preserved per **partition**                      |
-| **Consumers**        | Competes for messages (one message per consumer)       | Multiple consumers can read **independently**    |
-| **Acks**             | Required for successful processing                     | Offset-based, consumers track their own progress |
