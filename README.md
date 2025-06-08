@@ -48,23 +48,26 @@ Books :
 3. Data Structures  behing DataBases
 4. Grokking System Design Interview
 
-
-https://github.com/karanpratapsingh/system-design
+HLD : REVISION BOOK
+https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/Algomasterio_System_Design_Interview_Handbook.pdf
 
 
 
 
 HLD : https://blog.algomaster.io/archive?sort=top
+      https://github.com/karanpratapsingh/system-design
+      
 LLD : https://algomaster.io/learn/lld
 
 
+
+
 KAFKA : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/KAFKA/README.md
+REDIS : https://blog.algomaster.io/p/why-is-redis-so-fast-and-efficient
 
 
 
 
-HLD : REVISION BOOK
-https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/Algomasterio_System_Design_Interview_Handbook.pdf
 
 
 
