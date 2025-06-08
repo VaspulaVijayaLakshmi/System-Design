@@ -1,0 +1,13 @@
+Write-Ahead Logging (WAL)
+
+Checkpointing
+
+Replication
+
+
+Durability : 
+Whether the database server crashes, restarts, or there’s a sudden power outage, you can trust that your committed data won’t simply disappear.
+
+
+Write-Ahead Logging (WAL):
+It gives the database a persistent, chronological record of every change, which can later be replayed to recover the exact state after a crash.
