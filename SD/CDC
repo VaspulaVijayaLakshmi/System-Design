@@ -1,0 +1,103 @@
+https://blog.algomaster.io/p/change-data-capture-cdc
+
+CDC - CHange Dat Capture
+
+Change Data Capture (CDC) is a design pattern used to track and capture changes in a database (inserts, updates, deletes) and stream those changes in real time to downstream systems.
+
+At a high level, CDC works by continuously monitoring a database for data changes (insertions, updates, and deletions).
+When a change occurs, CDC captures the change event and makes the information available for processing.
+
+Maybe these can be processed using kafka/msg queue
+
+
+The process typically involves:
+
+Monitoring: Detecting changes from source systems. This can be achieved through database triggers, reading transaction logs, or using specialized CDC tools.
+
+Capturing: Extracting details about the change event (such as before and after values) along with metadata (e.g., timestamp, changed table).
+
+Delivering: Transmitting the change event to consumers, which might include message queues, data pipelines, or real-time analytics systems.
+
+
+
+
+This helps in achieving event-driven architectures where applications respond to data changes as they happen.
+
+
+
+
+
+Timestamp-Based CDC
+This approach relies on adding a last_updated or last_modified column to your database tables.
+Every time a row is inserted or modified, this column is updated with the current timestamp. Applications then query the table for rows where the last_updated time is later than the last sync time.
+
+Example Query:
+SELECT * FROM orders WHERE last_updated > '2024-02-15 12:00:00';
+
+
+Incomplete Capture: This method may not capture deleted records since the timestamp is typically updated on existing rows.
+Performance Overhead: As your data grows, frequent querying based on timestamps can impact performance, especially if indexing is not optimally configured.
+
+
+
+
+
+
+
+Trigger Based CDC:
+
+Trigger-Based CDC involves setting up database triggers that automatically log changes to a separate audit table whenever an insert, update, or delete operation occurs.
+This audit table then serves as a reliable source of change records, which can be pushed to other systems as needed.
+
+
+
+
+Log-Based CDC
+Log-Based CDC reads changes directly from the database’s write-ahead log (WAL).
+ Enabling  to capture every change made to the database.
+
+
+
+
+
+
+
+
+
+Real-World Use Cases of CDC
+
+
+In a microservices architecture, individual services often need to communicate and share state changes without being tightly coupled.
+Eg : order Service ->inventory service, SHippin Service.
+With CDC in place, the change is captured and propagated via a messaging system (such as Kafka) so that each microservice can stay updated on the relevant changes in other services'
+databases without needing direct service-to-service calls.
+
+
+EVEVNT SOURCING
+
+
+Consider a financial application that logs every transaction. 
+Instead of simply updating an account’s balance, every deposit, withdrawal, or transfer is recorded as an event. 
+CDC captures these events and builds a detailed log of all state changes. This audit trail can later be used to reconstruct any account’s history or to debug issues.
+
+
+
+Caches are used to improve application performance by storing frequently accessed data. However, stale cache data can cause issues, 
+leading to outdated or incorrect information being displayed.
+
+CDC can trigger cache updates automatically whenever the underlying data changes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
