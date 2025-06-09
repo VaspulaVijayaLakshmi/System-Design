@@ -52,8 +52,6 @@ HLD : REVISION BOOK
 https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/Algomasterio_System_Design_Interview_Handbook.pdf
 
 
-
-
 HLD : https://blog.algomaster.io/archive?sort=top
       https://github.com/karanpratapsingh/system-design
       
@@ -61,12 +59,11 @@ LLD : https://algomaster.io/learn/lld
 
 
 
-
 KAFKA : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/KAFKA/README.md
 
 REDIS : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/Why%20is%20Redis%20so%20Fast%20and%20Efficient%3F
 
-
+GRAPHQL : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/GraphQL.md
 
 
 
