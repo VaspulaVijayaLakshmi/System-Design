@@ -234,9 +234,12 @@ GraphQL Injection :
 
 
 1. Prevent deep recursion attacks by limiting query depth.
+
 2. Restrict overly complex queries to prevent DoS attacks.
+
 3.Enforce RateLimiting
-Disable GQL introspection
+
+4.Disable GQL introspection
 
 
 
