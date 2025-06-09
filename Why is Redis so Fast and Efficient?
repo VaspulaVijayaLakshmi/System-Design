@@ -1,0 +1,208 @@
+https://blog.algomaster.io/p/why-is-redis-so-fast-and-efficient
+
+
+SUMMARY :
+
+Redis (Remote Dictionary Server) is a fast, open-source, in-memory key-value store.
+
+Redis is single threaded.
+
+1. In-Memory Storage
+All data in Redis lives in RAM.
+
+
+Redis offers key eviction policies like:
+
+1.Least Recently Used (LRU)
+2.Least Frequently Used (LFU)
+3.Random
+4.TTL-based eviction
+
+You can also shard your dataset across a Redis Cluster.
+
+______
+
+Redis can persist data to disk 
+Redis is often used as an in-memory cache, but it can also act as a durable data store depending on the persistence mode(2 modes - RDB and AOF) you choose.
+
+
+1. RDB (Redis Database Snapshot)
+
+Takes point-in-time snapshots of your data
+Runs in a forked child process, so the main thread keeps serving traffic
+Good for backups or systems that can tolerate some data loss.
+
+
+2.AOF (Append-Only File)
+Logs every write operation to disk
+
+These persistence methods are designed to run asynchronously, so the main thread never blocks.
+
+
+__________
+
+
+SINGLE THREADED :
+
+Why Single-Threaded Works So Well
+By sticking to a single-threaded execution model, Redis avoids the typical overhead that comes with multithreaded systems:
+
+No context switching
+No thread scheduling
+No locks, mutexes, or semaphores
+No race conditions or deadlocks
+
+This means Redis spends almost all its CPU time doing actual work rather than wasting cycles coordinating between threads.
+
+
+
+Operations are inherently atomic:
+
+No two clients can update the same key at the same time
+You don’t need locks to ensure safety
+You don’t get partial updates due to concurrency bugs
+
+
+
+_________
+
+
+But How Does One Thread Handle Thousands of Clients?
+
+Redis’s event-driven I/O model, powered by I/O multiplexing.
+
+
+I/O Multiplexing allows a single thread to monitor multiple I/O channels (like network sockets, pipes, files) simultaneously.
+Instead of spinning up a new thread for each client, Redis tells the OS:
+
+"Watch these client sockets for me and let me know when any of them have data to read or are ready to write."
+
+
+Each Client = One Socket
+
+Each client connection to Redis is one TCP socket.
+You can send many requests over a single socket — not limited to one request per socket!
+With pipelining, you can even send multiple commands before waiting for replies.
+
+
+
+
+
+Redis uses a single-threaded event loop to:
+
+Accept new connections (sockets),
+Read commands (via I/O multiplexing like epoll),
+Process one command at a time (yes, sequentially),
+Write responses back.
+
+So yes: Redis executes commands one after another, in the order they’re received.
+
+
+
+
+
+
+__________
+
+
+While Redis has traditionally used a single thread for both command execution and I/O, 
+Redis introduced optional I/O threads to further improve performance—especially.
+
+When enabled, I/O threads handle:
+
+Reading client requests from sockets
+Writing responses back to clients
+
+
+
+Command execution still happens on the main thread, preserving Redis’s atomicity and simplicity.
+
+
+This hybrid model brings the best of both worlds:
+Multi-core network processing
+Single-threaded command execution
+
+
+___________
+
+
+
+Persistent Connections: Avoiding the Handshake Overhead
+Redis client libraries typically use persistent TCP connections, which means:
+
+No repeated handshakes or reconnects
+Lower latency for every command
+More predictable performance under load
+Persistent connections also reduce CPU and memory usage on the server, since Redis doesn’t have to reallocate resources for new connections frequently.
+
+
+
+
+__________
+
+
+Command Pipelining:
+
+One of Redis’s most effective I/O optimization features is command pipelining.
+
+Normally, a client sends one command, waits for a response, then sends the next. This is fine for a few requests but inefficient when thousands of commands are involved.
+With pipelining, the client sends multiple commands in a single request without waiting for intermediate responses.
+
+1. Fewer round-trips → reduced latency
+2. Less back-and-forth → higher throughput
+3. Less context switching → lower CPU overhead
+
+
+
+PYTHON :
+
+import redis
+
+r = redis.Redis()
+
+pipe = r.pipeline()
+pipe.set('a', 1)
+pipe.set('b', 2)
+pipe.set('c', 3)
+pipe.execute()  # Sends all 3 at once
+
+
+___________
+
+
+I/O Efficiency :
+
+
+Redis isn’t just fast at executing commands, it’s also extremely efficient at handling network I/O.
+
+Redis uses a custom protocol called RESP (REdis Serialization Protocol), which is:
+
+Text-based but easy to parse
+Extremely lightweight (much simpler than HTTP or SQL)
+Designed for high-speed communication
+
+This structure allows Redis to read and parse commands with minimal CPU cycles, unlike parsing full SQL queries or nested JSON structures.
+
+
+EG: 
+-> GET hello
+It asks Redis to retrieve the value associated with the key "hello".
+
+-> SET name "Alice"
+
+
+
+__________
+
+
+REDIS has Optimized Data structures
+
+
+
+____________
+
+
+
+
+
+
