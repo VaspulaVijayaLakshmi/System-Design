@@ -197,8 +197,15 @@ __________
 
 REDIS has Optimized Data structures
 
+Sorted Sets
+Backed by a hybrid of a skiplist and a hashtable, allowing fast score-based queries and O(log N) operations
 
 
+HASH
+
+SET
+
+LIST
 ____________
 
 
