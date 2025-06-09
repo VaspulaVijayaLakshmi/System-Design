@@ -80,7 +80,7 @@ graphql.graphiql.enabled=true
 
 
 
-
+![image](https://github.com/user-attachments/assets/d8d5bdc9-4f46-4dc8-a243-ff1af78afab7)
 
 
 
@@ -104,6 +104,10 @@ To mitigate this, GraphQL APIs require strict query rate limiting, depth restric
 class DepthLimitingInstrumentation : MaxQueryDepthInstrumentation(MAX_QUERY_DEPTH)
 
 
+![image](https://github.com/user-attachments/assets/ca758a41-2e9e-4bad-b37f-c8d86d59a37c)
+
+
+
 _______
 
 
@@ -114,6 +118,7 @@ _______
 @Singleton
 class ComplexityLimitingInstrumentation : MaxQueryComplexityInstrumentation(MAX_QUERY_COMPLEXITY)
 
+![image](https://github.com/user-attachments/assets/1e08e0f3-c596-41c2-80d7-d0d6987a85fb)
 
 
 
@@ -137,22 +142,34 @@ This reduces payload size, improves caching.
 }
 
 
+![image](https://github.com/user-attachments/assets/26aad707-8846-4f39-9113-46b62058ac8a)
+
+
+
+___________
+
+
 The server stores the query and maps it to "getBookById".
 
 
 
 -> Persistent HashMap : 
+
    "getBookById" to "query GetBookDetails(\$id: String!) { getBookById(id: \$id) { name author { firstName lastName } } }"
 
 
-
+___________
 
 -> Subsequent Query :
+
 
 {
   "id": "getBookById",
   "variables": { "id": book-1 }
 } 
+
+
+![image](https://github.com/user-attachments/assets/d6e15662-9389-44c7-becd-2f13a8811ab7)
 
 
 
@@ -173,6 +190,7 @@ Add this config in src/main/resources/application.properties
 GRAPHQL_INTROSPECTION=true
 
 
+![image](https://github.com/user-attachments/assets/4c11f6bb-79f4-4cd8-80f1-f5a1ddafc779)
 
 
 
@@ -199,6 +217,7 @@ GraphQL responses always contain an errors field if something goes wrong.
 Example response for a partial failure:
 
 
+![image](https://github.com/user-attachments/assets/e2f64701-a7f5-4d00-ba7e-c402edcbc975)
 
 
 
