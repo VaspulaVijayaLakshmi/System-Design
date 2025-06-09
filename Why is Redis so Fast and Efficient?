@@ -195,17 +195,55 @@ It asks Redis to retrieve the value associated with the key "hello".
 __________
 
 
-REDIS has Optimized Data structures
+REDIS has Optimized Data structures :  
+
+
+
+HASH
+SET
+LIST
+
 
 Sorted Sets
 Backed by a hybrid of a skiplist and a hashtable, allowing fast score-based queries and O(log N) operations
 
 
-HASH
+Sorted Set Internals
+Internally, the sorted set is implemented as a hash map and a skip list. The hash map stores the mapping between the user IDs and the scores. The skip list keeps the scores in ascending order. Skip list is not a common data structure, so it's worth explaining it here.
 
-SET
+Skip list: A skip list is a probabilistic data structure that allows for fast search, insert, and delete operations. It's a series of linked lists with additional pointers to intermediate nodes, allowing for efficient traversal and search operations. Functionally, it's similar to a balanced binary search tree, but it's implemented using linked lists and randomization. The time complexity of search, insert, and delete operations is O(log n) on average. The randomization is used to ensure that the skip list is balanced, so the performance is good even if the list is not balanced. This is similar to how binary search trees need to be balanced by rotating nodes. Finally, the skip list can return top N in O(N(log M)) time where N is the number of elements to return and M is the number of elements in the list.
+Here's an example of a skip list:
 
-LIST
+Level 3:  [ 1 ]-------------------------------------> [ 20 ]
+            |                                           |
+Level 2:  [ 1 ]-----------------> [ 7 ]-------------> [ 20 ]
+            |                       |                   |
+Level 1:  [ 1 ]-----> [ 3 ]-----> [ 7 ]------> [ 15 ]-[ 20 ]
+            |           |           |             |     |
+Level 0:  [ 1 ] [ 2 ] [ 3 ] [ 5 ] [ 7 ] [ 10 ] [ 15 ] [ 20 ] [ 25 ]
+Levels: Higher levels have fewer elements, allowing "skips" to speed up searching. For example, level 3 can directly skip from node 1 to 20, avoiding unnecessary steps.
+Nodes: Each node holds a value (e.g., 1, 3, 7, etc.). At level 0, every node is linked like a standard linked list.
+Links: Vertical links connect nodes across different levels, while horizontal links connect nodes at the same level.
+The search works by starting at the highest level and moving down as needed:
+
+Start at the highest level (e.g., Level 3).
+Move right until the next node’s value is greater than or equal to the target.
+Move down a level if the next value is too large.
+Repeat this process at each level, moving right as far as possible, then down, until the target is found or confirmed absent.
+Example: Searching for 15
+
+Start at node 1 on Level 3, drop down since 20 > 15.
+On Level 2, move from 1 to 7, then drop down again.
+On Level 1, move to 15 and stop.
+This approach gives an average O(log n) time complexity by efficiently skipping unnecessary nodes.
+
+The skip list is a series of linked lists with additional pointers to intermediate nodes, allowing for efficient traversal and search operations
+
+
+
+
+
+
 ____________
 
 
