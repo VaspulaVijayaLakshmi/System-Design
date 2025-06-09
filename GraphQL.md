@@ -1,7 +1,7 @@
 GraphQL,  query language ,  allows clients to request exactly the data they need in a single request.
 
 
-
+![image](https://github.com/user-attachments/assets/c4509243-24b5-47ed-8b58-203661ecdb46)
 
 
                                                                                
