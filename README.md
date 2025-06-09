@@ -64,7 +64,7 @@ LLD : https://algomaster.io/learn/lld
 
 KAFKA : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/KAFKA/README.md
 
-REDIS : https://blog.algomaster.io/p/why-is-redis-so-fast-and-efficient
+REDIS : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/Why%20is%20Redis%20so%20Fast%20and%20Efficient%3F
 
 
 
