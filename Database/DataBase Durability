@@ -1,8 +1,10 @@
-Write-Ahead Logging (WAL)
+https://blog.algomaster.io/p/how-databases-guarantee-durability
 
-Checkpointing
 
-Replication
+
+1. Write-Ahead Logging (WAL)
+2. Checkpointing
+3. Replication
 
 
 Durability : 
@@ -11,3 +13,109 @@ Whether the database server crashes, restarts, or there’s a sudden power outag
 
 Write-Ahead Logging (WAL):
 It gives the database a persistent, chronological record of every change, which can later be replayed to recover the exact state after a crash.
+
+A checkpoint is a point-in-time snapshot 
+
+This creates a save point in the system, so that if a crash happens, the database can start recovery from the latest checkpoint instead of from the very beginning.
+
+
+Checkpointing solves two major problems:
+
+It reduces crash recovery time by limiting the amount of WAL that needs to be replayed after a failure.
+It keeps WAL file size manageable by allowing the system to delete or archive old, unnecessary logs.
+
+Without checkpoints, a database would continuously accumulate WAL data, leading to slow recovery and excessive storage usage.
+
+
+
+
+_______________
+
+
+WAL doesn’t just make databases more durable, it also boosts performance.
+Sequential writes, which simply append to a log file, are much faster than random writes scattered across different data files.
+
+
+_____________________
+
+
+
+1. Flush Dirty Pages
+All modified (dirty) pages that are currently in memory are flushed to disk.
+
+2. Record a Special Checkpoint Marker
+The database writes a checkpoint record into the WAL, marking:
+This marker serves as a recovery reference point in case of a crash.
+
+
+3. Reuse or Archive Old WAL Segments
+After completing a checkpoint, the database can safely recycle.
+These older WAL records are no longer needed for crash recovery.
+
+
+
+
+
+
+
+How WAL Ensures Durability (Step-by-Step)
+
+
+
+
+1. Log the Change
+Whenever the database needs to perform a change, such as an INSERT, UPDATE, or DELETE, 
+it first creates a detailed record in a sequential append-only log file called the WAL (or sometimes a commit/redo log).
+This write is typically done in memory first, making it fast and efficient.
+
+
+1. LSN (Log Sequence Number) uniquely identifies the position of the record in the WAL.
+2. Record Type describes the operation (in this case, an INSERT).
+3. Other details specify exactly what changed, where it changed, and under which transaction.
+
+
+
+
+2. Flush the Log to Disk
+After creating the WAL record in memory, the database flushes it to durable disk storage.
+Only after the WAL record is safely written to disk does the database consider the change durable.
+
+
+3.
+Once the WAL record is durably stored on disk, the database sends a "Success" response back to the client.
+
+At this point:
+The transaction is officially considered committed and durable.
+The client can safely move on, confident that the change will not be lost.
+The main data files (such as tables or indexes) may not have been updated yet,
+but that is acceptable because the WAL contains everything needed to recover the change.
+
+
+
+4. Update in-memory Data Pages
+After acknowledging the commit, the database may also update in-memory versions of the affected data pages.
+These updated pages, held in buffers, reflect the latest state of the database.
+
+
+
+5. Apply Changes to Data Files (Later)
+Writing the actual updated pages to the database’s main data files happens later, typically through background processes like:
+
+->Checkpointing
+-> Lazy background flushes
+
+This deferred approach provides important performance benefits:
+
+Multiple updates to the same page can be combined, reducing redundant writes.
+Disk writes becomes more sequential and efficient.
+Meanwhile, if a crash occurs before the background processes complete, the WAL still contains all the information needed to restore the
+database to a consistent state.
+
+
+6.
+If the database crashes at any point, here's what happens during restart:
+The database reads the WAL starting from the last known checkpoint.
+It replays any committed transactions that were recorded in the WAL but not yet fully applied to the data files.
+It restores the database to a consistent, committed state it was in just before the crash.
+
+
