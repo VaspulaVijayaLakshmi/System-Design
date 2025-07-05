@@ -1,0 +1,97 @@
+https://algomaster.io/learn/design-patterns/java/iterator
+
+
+ Developers often write custom for loops or expose the underlying data structures (like ArrayList or LinkedList) directly
+
+But this approach makes the client tightly coupled to the collection’s internal structure, and it violates encapsulation.
+If the internal storage changes, the client code breaks
+
+
+
+
+Iterator : 
+
+Access elements of a collection sequentially without exposing its internal structure.
+Decouple traversal logic from collection structure
+
+
+
+
+
+What We Really Need
+
+Traverse collection without  exposing the internal collection - Abstract the iteration logic from the data structure itself
+Allow different traversal styles (forward, reverse, shuffle)
+Preserve encapsulation and allow the playlist to change internally without affecting client code.
+
+
+
+interface Interator<T> {
+bool hasNext()
+  T   next()  
+}
+
+
+_____
+
+public class Playlist implements IterableCollection<String> {
+    private final List<String> songs = new ArrayList<>();
+
+    public void addSong(String song) {
+        songs.add(song);
+    }
+
+    public String getSongAt(int index) {
+        return songs.get(index);
+    }
+
+    public int getSize() {
+        return songs.size();
+    }
+
+}
+
+_________
+
+public class PlaylistIterator implements Iterator<String> {
+    private final Playlist playlist;
+    private int index = 0;
+
+    public PlaylistIterator(Playlist playlist) {
+        this.playlist = playlist;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return index < playlist.getSize();
+    }
+
+    @Override
+    public String next() {
+        return playlist.getSongAt(index++);
+    }
+}
+
+
+
+_____
+
+public class MusicPlayer {
+    public static void main(String[] args) {
+        Playlist playlist = new Playlist();
+        playlist.addSong("Shape of You");
+        playlist.addSong("Bohemian Rhapsody");
+        playlist.addSong("Blinding Lights");
+
+
+*******This is the difference we have from what is implemented in the link ABOVE. But this is not right, becuase the client has access to iterator class, which we dot want
+we  dont want give control to the client for this, so we write this in iterator class.
+
+        ***Iterator<String> iterator = PlaylistIterator(playList)***
+
+        System.out.println("Now Playing:");
+        while (iterator.hasNext()) {
+            System.out.println(" 🎵 " + iterator.next());
+        }
+    }
+}
