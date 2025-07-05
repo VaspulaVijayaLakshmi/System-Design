@@ -1,1 +1,59 @@
+https://algomaster.io/learn/design-patterns/java/state
+
+
+For example, a Document class might use if-else blocks to determine what to do based on whether it's in "Draft", "Review", or "Published" state.
+
+
+As the number of states grows, this approach becomes hard to scale, difficult to test, and violates the Open/Closed Principle — any new state requires modifying existing logic, 
+increasing the risk of breaking current functionality.
+
+
+
+The State Pattern solves this by encapsulating each state into its own class, and letting the context object delegate behavior to the current state object.
+This makes your code easier to extend, reuse, and maintain — without cluttering the core logic with conditionals.
+
+
+In this, We have 3 things
+
+
+Interface defining - operations we can do
+Each state class - extends this interface
+
+Now we will have a Class 
+we will have -  MachineState currentState - object, alomg with other objects.
+
+
+(LOOK AT THE DIAGRAM)
+
+-> Define a State interface (or abstract class) that declares methods representing the actions the Context can perform.
+
+-> Create ConcreteState classes, each implementing the State interface. 
+   Each ConcreteState class implements the behavior specific to that particular state of the Context.
+
+-> The Context class maintains an instance of a ConcreteState subclass that defines its current state.
+
+
+
+
+
+
+*********
+
+
+    public void selectItem(String itemCode) {
+        currentState.selectItem(this, itemCode);
+    }
+
+    public void insertCoin(double amount) {
+        currentState.insertCoin(this, amount);
+    }
+
+    public void dispenseItem() {
+        currentState.dispenseItem(this);
+    }
+
+
+
+
+we will need to pass the current object - and do all the  operations on this, so Im passing "this"
 
