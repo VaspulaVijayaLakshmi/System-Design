@@ -1,1 +1,14 @@
+https://algomaster.io/learn/design-patterns/java/chain-of-responsibility
+
+
+Decouples the logic of request handling from the client code.
+Series of handlers -> linked through links -> and the request processes the request or choose to pass it  through the next handler in series of handlers .
+
+
+Create an Interface
+
+create an abstract class, that would implement the common methods of forward request.
+
+
+Then we can have concrete set of request handlers. extending the abstract class.
 
