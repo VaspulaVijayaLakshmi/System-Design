@@ -1,0 +1,146 @@
+https://algomaster.io/learn/design-patterns/java/factory-method
+
+
+Let convert the example given in this to abstract factory
+
+
+
+FACTORY   >>>>>>
+
+// Product
+interface Notification {
+    void send(String message);
+}
+
+// Concrete Products
+class EmailNotification implements Notification {
+    public void send(String message) {
+        System.out.println("Email: " + message);
+    }
+}
+
+class SMSNotification implements Notification {
+    public void send(String message) {
+        System.out.println("SMS: " + message);
+    }
+}
+
+// Factory Method
+abstract class NotificationCreator {
+    public abstract Notification createNotification();
+
+    public void notifyUser(String msg) {
+        Notification n = createNotification();
+        n.send(msg);
+    }
+}
+
+// Concrete Creators
+class EmailCreator extends NotificationCreator {
+    public Notification createNotification() {
+        return new EmailNotification();
+    }
+}
+
+class SMSCreator extends NotificationCreator {
+    public Notification createNotification() {
+        return new SMSNotification();
+    }
+}
+
+
+
+
+ABTSRACT FACTORY >>>>>>>>
+
+
+imagine that instead of just Notification, we also want to send a Log message along with it — like Notification + Logger.
+
+
+
+
+interface Logger {
+    void log(String message);
+}
+
+class EmailLogger implements Logger {
+    public void log(String message) {
+        System.out.println("Email Log: " + message);
+    }
+}
+
+class SMSLogger implements Logger {
+    public void log(String message) {
+        System.out.println("SMS Log: " + message);
+    }
+}
+
+
+
+
+
+
+
+
+
+ABSTARCT FACTORY :
+
+
+interface NotificationFactory {
+    Notification createNotification();
+    Logger createLogger();
+}
+
+
+
+
+
+
+
+CONCRETE FACTORY
+
+
+
+
+
+class EmailFactory implements NotificationFactory {
+    public Notification createNotification() {
+        return new EmailNotification();
+    }
+    public Logger createLogger() {
+        return new EmailLogger();
+    }
+}
+
+class SMSFactory implements NotificationFactory {
+    public Notification createNotification() {
+        return new SMSNotification();
+    }
+    public Logger createLogger() {
+        return new SMSLogger();
+    }
+}
+
+
+
+
+
+
+CLIENT CODE
+
+
+
+
+public class AbstractFactoryClient {
+    public static void main(String[] args) {
+        NotificationFactory factory = new EmailFactory(); // or new SMSFactory()
+
+        Notification n = factory.createNotification();
+        Logger l = factory.createLogger();
+
+        n.send("Your order has been shipped!");
+        l.log("Notification sent to user.");
+    }
+}
+
+
