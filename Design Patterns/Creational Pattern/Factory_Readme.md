@@ -1,0 +1,48 @@
+// Base Product
+interface Controller {
+    void connect();
+}
+
+// Concrete Products
+class PSController implements Controller {
+    public void connect() {
+        System.out.println("Connecting PlayStation Controller...");
+    }
+}
+
+class XboxController implements Controller {
+    public void connect() {
+        System.out.println("Connecting Xbox Controller...");
+    }
+}
+
+// Factory Method Creator
+abstract class ControllerCreator {
+    public abstract Controller createController();
+
+    public void setup() {
+        Controller c = createController();
+        c.connect();
+    }
+}
+
+// Subclasses (decide which controller to make)
+class PSControllerCreator extends ControllerCreator {
+    public Controller createController() {
+        return new PSController();
+    }
+}
+
+class XboxControllerCreator extends ControllerCreator {
+    public Controller createController() {
+        return new XboxController();
+    }
+}
+
+// Client
+public class FactoryMethodDemo {
+    public static void main(String[] args) {
+        ControllerCreator creator = new XboxControllerCreator();
+        creator.setup();  // Output: Connecting Xbox Controller...
+    }
+}
