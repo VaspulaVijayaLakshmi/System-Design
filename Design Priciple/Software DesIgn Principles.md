@@ -35,7 +35,7 @@ This is what excapulation is , we need not know the internal details - The inter
 
  D -> 𝐃𝐈𝐏 (𝐃𝐞𝐩𝐞𝐧𝐝𝐞𝐧𝐜𝐲 𝐈𝐧𝐯𝐞𝐫𝐬𝐢𝐨𝐧 𝐏𝐫𝐢𝐧𝐜𝐢𝐩𝐥𝐞): Depend on abstractions, not details—high-level modules shouldn’t depend on low-level modules. - abstarctions 
 
-
+https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/Design%20Priciple/SOLID
 
 ____________
 
