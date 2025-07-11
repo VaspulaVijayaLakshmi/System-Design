@@ -1,6 +1,94 @@
 https://algomaster.io/learn/lld
 
 
+KISS (Keep It Simple, Stupid)
+Design solutions as simply as possible.
+
+Avoid overengineering or unnecessary complexity.
+
+DRY (Don’t Repeat Yourself)
+Eliminate duplicate code.
+
+Centralize logic to make maintenance easier.
+
+YAGNI (You Aren’t Gonna Need It)
+Only build features that are needed now.
+
+Avoid speculative development of future features.
+
+Strive for Loosely Coupled Designs
+Reduce interdependencies between components.
+
+Ensures changes in one module don’t break others.
+
+Favor Composition Over Inheritance
+Prefer combining small, reusable components over deep class hierarchies.
+
+Composition is more flexible and easier to manage over time.
+
+Law of Demeter (LOD)
+Only interact with immediate neighbors.
+
+Avoid chained calls like: order.getCustomer().getAddress().getCity()
+
+Promotes encapsulation: internal structure should be hidden from the client.
+
+SOLID Principles
+S – Single Responsibility Principle (SRP)
+A class should have one and only one reason to change.
+
+Focus on one responsibility per class/module.
+
+O – Open/Closed Principle (OCP)
+Software entities should be open for extension but closed for modification.
+
+Achieved using inheritance, interfaces, or composition.
+
+L – Liskov Substitution Principle (LSP)
+Subtypes must be substitutable for their base types.
+
+Client code should not break when using a derived class instead of a base class.
+
+I – Interface Segregation Principle (ISP)
+Clients should not be forced to depend on interfaces they do not use.
+
+Prefer small, specific interfaces over large, general-purpose ones.
+
+D – Dependency Inversion Principle (DIP)
+High-level modules should not depend on low-level modules.
+
+Both should depend on abstractions.
+
+Abstractions should not depend on details; details should depend on abstractions.
+
+Supporting Concepts
+Interfaces
+Define a contract: what should be done, not how.
+
+Used to promote loose coupling and extensibility.
+
+Abstraction
+Expose only essential behavior and hide implementation details.
+
+Can include:
+
+Abstract methods (no implementation)
+
+Concrete methods (optional default behavior)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 1. 𝐊𝐈𝐒𝐒 (𝐊𝐞𝐞𝐩 𝐈𝐭 𝐒𝐢𝐦𝐩𝐥𝐞, 𝐒𝐭𝐮𝐩𝐢𝐝): Design solutions as simply as possible. Avoid unnecessary complexity.
 
 2. 𝐃𝐑𝐘 (𝐃𝐨𝐧'𝐭 𝐑𝐞𝐩𝐞𝐚𝐭 𝐘𝐨𝐮𝐫𝐬𝐞𝐥𝐟): Eliminate duplicate code. Centralize logic to make maintenance easier.
