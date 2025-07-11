@@ -1,0 +1,15 @@
+It lets you add new behavior to objects without changing their original code (or subclassing it like crazy).
+
+Like putting on accessories — same person, just extra now.
+
+You're ordering a coffee ☕
+
+Basic coffee: ₹100
+Add milk: +₹20
+Add whipped cream: +₹30
+Add chocolate: +₹40
+
+You’re decorating the coffee step-by-step.
+
+At its core, the pattern relies on wrapping an object inside another object (a decorator) that implements the same interface and adds new behavior
+
