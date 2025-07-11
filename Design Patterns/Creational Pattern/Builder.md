@@ -59,6 +59,17 @@ class Burger {
         }
     }}
 
+    public class Main {
+    public static void main(String[] args) {
+        Burger myBurger = new Burger.Builder("Wheat")
+                            .cheese(true)
+                            .lettuce(true)
+                            .mayo(true)
+                            .build();
+
+        myBurger.showBurger();
+    }}
+
 
 
 
