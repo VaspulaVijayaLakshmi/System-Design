@@ -1,0 +1,13 @@
+What does static mean?
+It means: "This thing belongs to the class, not the object."
+
+
+You have a classroom of students. Normally, each student has their own notebook.
+But now you say:
+
+"Let’s keep one shared whiteboard in the room."
+
+That whiteboard = static variable
+The notebooks = instance variables
+
+You can access static stuff via class name: Student.totalStudents
