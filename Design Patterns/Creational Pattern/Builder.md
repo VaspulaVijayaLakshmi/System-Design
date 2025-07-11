@@ -1,3 +1,4 @@
+
 class Burger {
     private String bun;
     private boolean cheese;
@@ -5,7 +6,6 @@ class Burger {
     private boolean tomato;
     private boolean mayo;
 
-    // private constructor
     private Burger(Builder builder) {
         this.bun = builder.bun;
         this.cheese = builder.cheese;
@@ -22,7 +22,7 @@ class Burger {
             (mayo ? "mayo" : ""));
     }
 
-    // Builder Class
+    //  Builder Inner Class
     public static class Builder {
         private String bun;
         private boolean cheese;
@@ -57,8 +57,8 @@ class Burger {
         public Burger build() {
             return new Burger(this);
         }
-    }
-}
+    }}
+
 
 
 
