@@ -13,3 +13,154 @@ You’re decorating the coffee step-by-step.
 
 At its core, the pattern relies on wrapping an object inside another object (a decorator) that implements the same interface and adds new behavior
 
+___________
+
+
+This is with Subclasses
+
+
+//  Base class
+class SimpleCoffee {
+    public String getDescription() {
+        return "Simple Coffee";
+    }
+
+    public int getCost() {
+        return 100;
+    }
+}
+
+//  Add Milk
+class MilkCoffee extends SimpleCoffee {
+    @Override
+    public String getDescription() {
+        return super.getDescription() + ", Milk";
+    }
+
+    @Override
+    public int getCost() {
+        return super.getCost() + 20;
+    }
+}
+
+// 🍦 Add Whip
+class WhipCoffee extends SimpleCoffee {
+    @Override
+    public String getDescription() {
+        return super.getDescription() + ", Whip";
+    }
+
+    @Override
+    public int getCost() {
+        return super.getCost() + 30;
+    }
+}
+
+//  Add Milk + Whip (New Class Required!)
+class MilkWhipCoffee extends SimpleCoffee {
+    @Override
+    public String getDescription() {
+        return super.getDescription() + ", Milk, Whip";
+    }
+
+    @Override
+    public int getCost() {
+        return super.getCost() + 20 + 30;
+    }
+}
+
+//  Usage
+public class CoffeeApp1 {
+    public static void main(String[] args) {
+        SimpleCoffee c1 = new MilkWhipCoffee();
+        System.out.println("Order: " + c1.getDescription());
+        System.out.println("Cost: ₹" + c1.getCost());
+    }
+}
+
+
+Now for different combinations we need to create new subclasses which would be messy after a while.
+
+
+____________________
+
+
+This is with Decorator Pattern
+
+
+//  Common Interface
+interface Coffee {
+    String getDescription();
+    int getCost();
+}
+
+//  Base class
+class SimpleCoffee implements Coffee {
+    public String getDescription() {
+        return "Simple Coffee";
+    }
+
+    public int getCost() {
+        return 100;
+    }
+}
+
+//  Abstract Decorator
+abstract class CoffeeDecorator implements Coffee {
+    protected Coffee coffee;
+
+    public CoffeeDecorator(Coffee coffee) {
+        this.coffee = coffee;
+    }
+}
+
+//  Milk Topping
+class MilkDecorator extends CoffeeDecorator {
+    public MilkDecorator(Coffee coffee) {
+        super(coffee);
+    }
+
+    public String getDescription() {
+        return coffee.getDescription() + ", Milk";
+    }
+
+    public int getCost() {
+        return coffee.getCost() + 20;
+    }
+}
+
+//  Whip Topping
+class WhipDecorator extends CoffeeDecorator {
+    public WhipDecorator(Coffee coffee) {
+        super(coffee);
+    }
+
+    public String getDescription() {
+        return coffee.getDescription() + ", Whip";
+    }
+
+    public int getCost() {
+        return coffee.getCost() + 30;
+    }
+}
+
+//  Usage
+public class CoffeeApp2 {
+    public static void main(String[] args) {
+        Coffee coffee = new SimpleCoffee();                // ₹100
+        coffee = new MilkDecorator(coffee);                // +₹20
+        coffee = new WhipDecorator(coffee);                // +₹30
+
+        System.out.println("Order: " + coffee.getDescription());
+        System.out.println("Cost: ₹" + coffee.getCost());
+    }
+}
+
+
+
+You don’t need new classes for combos
+You just wrap stuff in the order you want
+It's extensible (add new topping? Just write 1 decorator)
+
+
+
