@@ -37,7 +37,7 @@ This is what excapulation is , we need not know the internal details - The inter
 
 
 
-
+____________
 
 -> Interfaces :
 A pure contract — defines what should be done, but not how.
