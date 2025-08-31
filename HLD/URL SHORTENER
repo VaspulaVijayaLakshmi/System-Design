@@ -90,7 +90,7 @@ POST /urls
 Returns a shortened url
 
 
-____
+___________
 
 
 GET:  Given a short url - return the long url
@@ -120,35 +120,133 @@ Browsers typically cache this response, meaning subsequent requests for the same
 __________________
 
 
-Database - SQL/ NO SQL
-
-NOSQL
-
-_____________________
-
 
 
 -> How to generate this 6-10 Short length random string?
 
-Hash Function
+*  Random Number Generator and Hash Function :
+SHA1/MD5 algorithms
 
-SHA1/MD5 alogrothims
-
-
-
--> How to shard the DB? 
-
-Range Based partitoning
-
-We can have ???
+A random number (to avoid collisions).
+A hash function (to generate a compact, unique code).
+A short base encoding (Base62 → a-zA-Z0-9).
 
 
+why do we ned base62 encoding after hash funtion
+
+1. A hash function (SHA, MD5, polynomial hash, etc.) produces a big integer (or binary string).
+   Example: MD5 gives a 128-bit hex string → 5d41402abc4b2a76b9719d911017c592.
+   That’s too long and ugly for a short URL.
+
+2. Need compact, human-friendly short codes
+   We want a short identifier like abc123 not 5d41402abc....
+   So we take the big hash number and compress it into fewer characters using Base62.
+
+
+Why base62? It's a compact representation of numbers that uses 62 characters (a-z, A-Z, 0-9). 
+The reason it's 62 and not the more common base64 is because we exclude the characters + and / since those are reserved for url encoding.
+
+
+- COLLISIONS - IN HASH
+
+
+
+ IMPROVISE:
+__________
+
+UNIQUE COUNTER WITH BASE ENCODING:
+
+
+One way to guarantee we don't have collisions is to simply increment a counter for each new url. 
+We can then take the output of the counter and encode it using base62 encoding to ensure it's a compacted representation.
+
+Use a unique counter - redis is well suited.
+
+Being single-threaded means Redis processes one command at a time, eliminating race conditions. 
+Its INCR command is atomic, meaning the increment operation is guaranteed to execute completely without interference from other operations. 
+This is crucial for our counter - we need absolute certainty that each URL gets a unique number, with no duplicates or gaps.
+
+
+
+_______________________
+
+
+How can we ensure that redirects are fast?
+
+Redirects are fast - when given short url - return long url
+Brute force - SCan through DB
+
+
+
+1. Indexing: 
+
+An index creates a separate, sorted list of our short URLs, each with a pointer to where the full information is stored in the main table
+
+-> Primary Key: We should designate the short code as the primary key of our table. 
+This automatically creates an index and ensures uniqueness.
+By making the short code the primary key, we get the benefits of both indexing and data integrity,
+as the database will enforce uniqueness and optimize queries on this field.
+
+
+-> B-tree Indexing: Most relational databases use B-tree indexes by default.
+
+
+
+2. Caching - Most frequently used url
+
+
+3. CDNS - 
+
+Fast Redirection (Edge Caching)
+
+A short URL like sho.rt/abc123 → needs to redirect to the long URL.
+Instead of all requests hitting your origin server, a CDN  can cache the redirect response (HTTP 301/302) at the edge.
+That means users get lightning-fast redirects since the CDN is closer geographically.
+
+
+
+
+So basically:
+
+Read path (user clicks a short URL): CDN can help a lot → cache the 301/302 redirect.
+Write path (user creates a short URL): CDN doesn’t help → must go to origin + DB.
+
+
+_______________________
+
+
+
+How can we scale to support 1B shortened urls and 100M DAU?
+
+
+We can have sepaarte read service and write service so tht read service can scale independltly
+
+
+Write opertion - Counter - We agreed on centralised redis global counter
 
 
 -> Latancies - we can pregenerate URLS befor hand instead of generating at run time and use it thus saving 
             latencies and once we exhaust them we can again generate another set.
 
             Cache
+
+
+________________
+
+
+
+-> Database - SQL/ NO SQL
+   Better choose Postgres
+
+
+DATA replication
+data backup - screenshots of data at regular itnervals
+
+-> How to shard the DB? 
+
+Range Based partitoning
+
+We can have ???
 
 
 
