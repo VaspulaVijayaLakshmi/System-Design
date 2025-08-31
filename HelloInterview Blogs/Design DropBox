@@ -113,8 +113,67 @@ After each chunk is uploaded, the client sends a PATCH request to our backend wi
 .  FileMetadata table will mark the chunk as "uploaded".
 Once all chunks in our chunks array are marked as "uploaded", the backend will update the FileMetadata table to mark the file as "uploaded".
 
+_____________
 
 
+
+FIle security
+
+
+
+-> HTTPS
+-> S3 encrypt - if option enabled it encrypts the file and store the key in separate location
+-> Access Control -Our shareList or separate share table/cache is our basic ACL
+
+
+_________________
+
+
+But what happens if an authorized user shares a download link with an unauthorized user? For example, an authorized user may, 
+intentionally or unintentionally, 
+post a download link to a public forum or social media and we need to make sure that unauthorized users cannot download the file.
+
+
+_______________
+
+
+What signed URLs guarantee
+
+A signed URL is basically:
+
+https://storage.example.com/file.jpg?Expires=1690001234&Signature=abcdef...
+
+
+The signature + expiry means only someone with this exact URL can access the file, and only until the expiry time.
+The server doesn’t need to check who the user is — the signature itself is the proof of authorization.
+
+
+If an unauthorized person gets the signed URL before it expires, they can download the file.
+signed URLs are like temporary keys — whoever has the key during its validity period can open the door.
+
+
+
+______________
+
+
+
+“access control + signed URL”
+
+Case 1: Signed URL only (no extra access control)
+Whoever has the link → can download until expiry.
+If you mistakenly shared it → anyone who clicks it before expiry gets the file.
+That’s why these links are usually short-lived.
+
+
+
+Case 2: Signed URL + Access Control (your case)
+When someone clicks the link, the server doesn’t just check the signature/expiry.
+It also checks:
+Is this user logged in?
+Do they have permission for this file?
+
+-> If yes → download allowed.
+-> If no → even with a valid signed URL, they get 403 Forbidden (or similar).
 
 
 
