@@ -1,0 +1,176 @@
+Core Requirements:
+
+Users should be able to view events
+Users should be able to search for events
+Users should be able to book tickets to events
+
+
+__________________________
+
+NON NF Requirements:
+
+Consistency - for booking tickets
+
+Availability - for searching events, view events
+
+Realiability - no two users should book the same seats
+
+Scalability
+
+Fault tolerant
+
+Secure - User info
+
+Payment - 3rd party secure
+
+
+____________________________
+
+
+System is ready heavy.
+
+
+
+Large Number of people will  be hitting out apis once the slot is open to book their tickets.
+But there will be limited seats only
+
+
+______________________________
+
+
+COre Compenents are :
+
+User
+EVent - event details, performers, agebda
+Performer - list of songs..performer details 
+Venue 
+Ticket
+Booking
+
+___________
+
+Ticket - 
+
+TicketId - 
+Date -  (if its a 3/4 day event, then we need exipraration)
+seat details (like section, row, and seat number), 
+pricing, and 
+status (available or sold)
+
+_______________
+
+Booking - 
+
+Tickets : List[Ticket]
+User
+Price
+
+1:1 b/w ticket and user
+
+_________________________________
+
+
+
+APIS:
+
+-> Users should be able to view events
+
+/get Events speciufy all events - over 3-4 days
+if sslected data - show that day's ticket only.
+
+
+-> Users should be able to search for events
+
+-> spcify fields and perform LIKE operations on DB
+GET /events/search?keyword={keyword}&start={start_date}&end={end_date}&pageSize={page_size}&page={page_number} -> Event[]
+
+
+
+-> POST Endpoint
+
+When it comes to purchasing/booking a ticket, we have a post endpoint that takes
+the list of tickets and payment details and returns a bookingId.
+
+
+ we'll evolve this into two separate endpoints - one for reserving a ticket 
+and one for confirming a purchase, but this is a good starting point.
+
+
+
+______________________
+
+
+Design:
+
+
+user -> LB -> Event Service -> Event DB : Event table, Performer table , Venue Table , Ticket , User
+
+            -> Search 
+
+            -> Booking Service  
+                      ^
+                      |
+                 payment(Stripe)
+
+
+______________________________
+
+
+DB : Consistency - for event Booking - PostgresDb'
+
+
+_______________________________
+
+
+Cache DB queries - read queries
+Search - use elastic for full text search
+Booking
+
+Booking system - we should not allow the user forever to book or make
+the payment for fair ticket booking system.
+i.e, a particular user shuldnt "HOLD THE RESOURCES" longer
+
+
+Booking service will - communicate with tickets and booking table.
+and update accordingly
+
+
+
+How do we implement this?
+So we give user a timer to reserve the ticket and 
+open the external payment service to make the payment, and we have a timer, within which the 
+window closes.
+
+Lets say the payment should be done in 2-5mins.
+or else the ticket will be released.
+
+If payment is successful -> update sttaus to booked
+else update to -> Available
+
+
+Ticket status is an IMP factor here - We need to update accordingly.
+Reserved / Booked / Available
+
+
+
+_________________________________
+
+
+
+
+
+
+
+
+
+
+
+           
+
+
+
+
+
+
+
+
