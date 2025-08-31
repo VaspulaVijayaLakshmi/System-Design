@@ -1,1 +1,100 @@
+CAPACITY ESTIMATION : 
+
+
+10M users
+
+SO read to write ratio - 1:10
+
+SO Daily Active USers (DAU) : 10M
+And each user access 10 urls - 10M * 10 - 100M urls accessed per day
+
+CACHE - Frequntely Accessed Urls
+
+Writes - 1M - 1KB EACH   1024 bytes
+so 1M - 1M*1KB per day
+
+Total Memory per year - 365*1M*1KB 
+
+
+__________________
+
+
+
+Functional Requirements:
+
+-> Users should be able to submit a long URL and receive a shortened version.
+
+Optionally, users should be able to specify a custom alias for their shortened URL.
+Optionally, users should be able to specify an expiration date for their shortened URL.
+
+
+-> Users should be able to access the original URL by using the shortened URL.
+
+_____________________
+
+NF requiremnets : 
+
+-> Avaiabilty
+-> Consistency
+
+
+this is Read heavy SYstem - then number of uniues url generated is way less than the no.of reads
+So availability is IMP.
+
+-> Scalable
+
+-> Reliable - each short url should be mapped to one long url
+
+-> replication and redundancy
+
+___________________
+
+
+SImple design 
+
+
+USER -> LB -> URL SHORTENER SERVICE ->  DB
+
+           -> Cache 
+
+
+DB mapping:
+short url -> long url
+
+
+We need a random url geenrator  - which geenrated unique random letter.
+Database -? SQL/ NO SQL
+
+
+Cache to store frequently Accessed urls
+
+
+____________________
+
+
+
+How to generate this 6-10 Short length random string?
+
+Hash Function
+
+SHA1/MD5 alogrothims
+
+
+
+
+How to shard the DB? 
+
+
+
+
+
+Latancies - we can pregenerate URLS befor hand instead of generating at run time and use it thus saving latencies
+
+
+
+
+
+
+
+
 
