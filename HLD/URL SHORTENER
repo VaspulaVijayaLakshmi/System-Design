@@ -84,11 +84,16 @@ SHA1/MD5 alogrothims
 
 How to shard the DB? 
 
+Range Based partitoning
 
 
 
 
-Latancies - we can pregenerate URLS befor hand instead of generating at run time and use it thus saving latencies
+
+
+
+Latancies - we can pregenerate URLS befor hand instead of generating at run time and use it thus saving 
+            latencies and once we exhaust them we can again generate another set.
 
 
 
