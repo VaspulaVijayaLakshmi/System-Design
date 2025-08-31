@@ -73,6 +73,24 @@ _________
 __________________
 
 
+HLD : 
+
+- Video streaming services like Netflix: https://lnkd.in/gnHSyCj8 
+- Autocomplete feature of Google: https://lnkd.in/g3VFcaYN
+- Proximity service like Uber: https://lnkd.in/grtPbr6k
+- Hotel booking services like Airbnb: https://lnkd.in/gWjrGwCM
+- File sharing service like Dropbox: https://lnkd.in/gnSQ6rAd
+- Web crawler: https://lnkd.in/gTkfCH8U
+- Social media apps like Twitter: https://lnkd.in/guParNhY
+- Messaging app like WhatsApp: https://lnkd.in/g5zJa_4W
+- Online document editor like Google Docs: https://lnkd.in/gBvztEqV
+- URL shortener or TinyURL: https://lnkd.in/gJPWZsX3
+- Notifcation Service
+
+
+__________________
+
+
 Books : 
 
 1. Designing Data Intensive Application
@@ -107,6 +125,8 @@ KAFKA : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/KAFKA/RE
 REDIS : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/Why%20is%20Redis%20so%20Fast%20and%20Efficient%3F
 
 GRAPHQL : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/GraphQL.md
+
+
 
 
 
