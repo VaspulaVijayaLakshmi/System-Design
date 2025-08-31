@@ -35,27 +35,7 @@ Websockets are vulnerable to attacks
 Implement secure WebSocket connections (wss://), authenticate users, and validate input to protect against common vulnerabilities.
 
 
-
-Web socket VS HTTP VS POLLIMG VS LONG POLLING : 
-
-
-
 HTTP - reuqest /response model, not good for rela time updates
-
-
-POLLIMG : A connection is established, a client keeps polling   frequntly to check for updates, once it receove as request, it closes the connection
-          this simulates real time updaes.
-
-
-
-LONG POLLING  :  The client intitates a connection and waits for the repsonse, it keeps the conection open untik there's a response.
-once the response is set it closes the connecyion.
-
-If there;s a timeout it opens and new connection (new request )
- and waits till the response.
-
-Resource Usage: Long-polling can lead to resource exhaustion on the server as it must manage many open connections and handle frequent reconnections.
-
 
 
 Bi-Directional: Unlike HTTP, polling, and long-polling, WebSockets allow for two-way communication.
@@ -63,3 +43,56 @@ Bi-Directional: Unlike HTTP, polling, and long-polling, WebSockets allow for two
 Low Latency: Because the connection remains open, data can be sent and received with minimal delay.
 
 Efficiency: WebSockets are more efficient in terms of resource usage and bandwidth.
+
+___________________
+
+
+Web socket VS HTTP VS POLLIMG VS LONG POLLING : 
+
+
+________________
+
+
+Polling
+
+How it works:
+Client sends requests at fixed intervals (e.g., every 2 seconds: “any update?”).
+Server responds immediately, often with nothing new.
+
+Wasteful — lots of unnecessary requests/responses with no new data.
+
+Latency depends on polling interval (too short = wasteful, too long = slow updates).
+
+
+
+Long Polling
+
+How it works:
+Client sends a request → server holds the request open until:
+
+new data is available
+timeout is reached.
+When the server responds, client immediately sends a new request to “wait again.”
+
+
+
+___________________
+
+
+Long Polling
+
+How it works:
+Client sends an HTTP request → server doesn’t immediately respond → it holds the request open until there’s new data OR a timeout.
+When data is sent, client immediately fires a new request again to wait for the next update.
+
+Connection behavior:
+Not truly “persistent.” Each update = one request/response cycle.
+
+Overhead:
+Every cycle costs an HTTP request/response header exchange, so it’s wasteful.
+
+If there;s a timeout it opens and new connection (new request )
+ and waits till the response.
+
+
+Resource Usage: Long-polling can lead to resource exhaustion on the server as it must manage many open connections and handle frequent reconnections.
