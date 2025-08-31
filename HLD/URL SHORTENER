@@ -63,17 +63,72 @@ short url -> long url
 
 
 We need a random url geenrator  - which geenrated unique random letter.
-Database -? SQL/ NO SQL
-
-
 Cache to store frequently Accessed urls
 
 
 ____________________
 
 
+APIs :
 
-How to generate this 6-10 Short length random string?
+
+Give long url to generate a short url
+
+POST /urls
+{
+  "long_url": "https://www.example.com/some/very/long/url",
+  "custom_alias": "optional_custom_alias",
+  "expiration_date": "optional_expiration_date"
+}
+
+->
+{
+  "short_url": "http://short.ly/abc123"
+}
+
+
+Returns a shortened url
+
+
+____
+
+
+GET:  Given a short url - return the long url
+
+GET /{short_code}
+-> HTTP 302 Redirect to the original long URL
+
+_____________________
+
+
+
+
+validate the long URL - This is to ensure that the URL is valid (there's no point in shortening an invalid URL)
+and that it doesn't already exist in our system
+(we don't want collisions).
+
+
+301 - permanent Redirect
+Browsers typically cache this response, meaning subsequent requests for the same short URL might go directly to the long URL, bypassing our server.
+
+
+302 - temporary Redirect - browser dont cache
+
+302 is better option because, 301 - browsers cache but these links have expirations
+
+
+__________________
+
+
+Database - SQL/ NO SQL
+
+NOSQL
+
+_____________________
+
+
+
+-> How to generate this 6-10 Short length random string?
 
 Hash Function
 
@@ -81,21 +136,19 @@ SHA1/MD5 alogrothims
 
 
 
-
-How to shard the DB? 
+-> How to shard the DB? 
 
 Range Based partitoning
 
+We can have ???
 
 
 
 
-
-
-Latancies - we can pregenerate URLS befor hand instead of generating at run time and use it thus saving 
+-> Latancies - we can pregenerate URLS befor hand instead of generating at run time and use it thus saving 
             latencies and once we exhaust them we can again generate another set.
 
-
+            Cache
 
 
 
