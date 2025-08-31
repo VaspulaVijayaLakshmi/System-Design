@@ -128,7 +128,17 @@ GRAPHQL : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/GraphQ
 
 
 
+_________________________
 
+
+SHA → Secure Hash Algorithm
+MD5 → Message Digest 5
+
+Both are hashing algorithms, but:
+
+-> MD5 is older, produces a 128-bit hash, and is considered broken (collisions possible).
+
+-> SHA is a family of algorithms (SHA-1, SHA-2, SHA-3, etc.), more secure, widely used in digital signatures, TLS, blockchain, etc.
 
 
 
