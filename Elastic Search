@@ -7,3 +7,20 @@ efficient for search operations.
 
 Inverted indexes allow Elasticsearch to quickly locate and retrieve data by mapping each unique
 word to the documents or records it appears in, significantly speeding up search queries.
+
+
+
+
+Lets say the elastic is set up along with some DB - we need to sync the changes.
+
+To make sure the data in Elasticsearch is always in sync with the data in our SQL DB,
+we can use change data capture (CDC) for real-time or near-real-time data synchronization 
+from PostgreSQL to Elasticsearch. 
+
+
+This setup captures changes in the PostgreSQL database, such as inserts, updates, and deletes, and replicates them to the Elasticsearch index.
+
+
+We can enable fuzzy search functionality with Elasticsearch, which allows for error tolerance in search queries. 
+This is way we can handle typos and slight variations in spellings such as "Taylor Swift" vs "Tayler Swift".
+This is something that would be very difficult to do with SQL alone.
