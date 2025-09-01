@@ -169,12 +169,50 @@ Because we cant fanout to 10M users right.
 
 FOr people following more people? their feed generation would be tougher - so we can use genertae and precompute the feed and store it and update overtime
 
+
+
+How to precompute the feed ?
+
+QUEUE + ASYNC FEED WORKERS
+
+Since there can be a delay b/w when the opost is written and when its shown, we can leverage this to write it to an intermdeiate queue and a bunch of 
+feed workers can read from these queue can update the feeds.
+
+In this also making sure, we dont want these feed workers to update the feed of people - with celebirty
+
+i.e, celebirty posts needs not be updated in the feed so we can maintain one flag  for feedworkers to skip these, because its a lot of writes
+we can load into users feed on-demand.
+
+
 Time stamp is major thing for feed geenrtion.
 
 
 
+______________________________________________
+
+How we can take care of DB hotspots?
 
 
+Caching - 
+
+we can keep a long time to live (TTL) on the posts and have our cache evict posts that are least recently used (LRU). 
+As long as our cache is big enough to house most recent posts, the vast majority of requests to the Post Table will instead hit our cache
+
+
+The biggest challenge with the Post Cache is it has the same hot key problem that the Post Table did! For the unlucky shard/partition that has multiple viral posts, 
+the hosts that support it will be getting an unequal distribution of load (again) which makes this cache very hard to scale. 
+Many of the hosts will be underutilized.
+
+ORRR
+
+Unlike the Distributed Post Cache solution above, we can choose to have multiple distinct caches that our readers can hit.
+These cache instances don't need to coordinate. 
+Instead of distributing the posts in our cache across the entire fleet, 
+we can have multiple instances which can all service the same postID. 
+This does mean we may have more requests that end up going to our database 
+(for a very viral post, with N cache instances, we might have N requests to the database instead of 1 if we had sharded the cache by postID). 
+
+But N requests is much, much smaller than the millions of requests we'd need to handle if we didn't have a cache in the first place.
 
 
 
