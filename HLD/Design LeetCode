@@ -217,6 +217,17 @@ but they are much more lightweight and faster to start up.
 
 
 
+_____________________
+
+
+When a user makes a submission, our system will:
+
+The API Server will recieve the user's code submission and problem ID and 
+send it to the appropriate container for the language specified.
+
+The isolated container runs the user's code in a sandboxed environment and returns the result to the API server.
+
+The API Server will then store the submission results in the database and return the results to the client.
 
 
 
