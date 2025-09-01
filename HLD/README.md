@@ -16,7 +16,7 @@ Containers offer less isolation than VMs but are more efficient in terms of reso
 <img width="850" height="430" alt="image" src="https://github.com/user-attachments/assets/93f560fe-3bbe-4bfb-b4b6-c0e163a93c82" />
 
 
-SandBoxed Environment:
+## SandBoxed Environment:
 
 A sandboxed environment = a restricted, isolated execution environment where code or processes
 run with limited access to the host system.
@@ -37,7 +37,7 @@ The environment can be reset/erased after execution.
 Keeps things clean and safe.
 
 
-Examples :
+## Examples :
 
 -> Web browsers: JavaScript runs in a sandbox → can’t touch your local files (unless you allow).
 
@@ -50,7 +50,6 @@ Examples :
 
 
 
-________________________________________________________
 
 # Redis
 
