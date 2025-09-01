@@ -40,6 +40,9 @@ Keeps things clean and safe.
 Examples :
 
 -> Web browsers: JavaScript runs in a sandbox → can’t touch your local files (unless you allow).
+
 -> Docker containers: Provide sandboxed runtime for apps.
+
 -> Online coding judges (like HackerRank/LeetCode): Run your code in a sandbox → so you can’t access the server.
+
 -> Mobile apps (iOS/Android): Each app runs in its own sandbox → can’t access other apps’ data.
