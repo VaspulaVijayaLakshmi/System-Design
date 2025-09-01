@@ -38,8 +38,13 @@ Posts - Image/Video
         Created On
 
 
+Follow - UserFollowing (PK)      - reverse mapping as well -  
+         FollowedBy (SK)
+
 FOllow - FOllowing  - Graph Neo$j
 we can traverse to the user's followers list and pull in 2nd degree connections for mutual recommnedation
+
+Functionally, following or friending a person is establishing a relationship between two users. This is a many-to-many relationship, and we can model it as a graph.
 
 _______________________
 
@@ -79,14 +84,24 @@ Read - on AVg each user reads 50-100 Posts
 50M * 100 - 500M * 10 - 5Billion
 
 
+Memory Estimation - 
 
+1 Image - 200KB
+Lets say 10M pictures everyday
 
-
-
+10M * 200KB - ___GB
+....
 
 ______________________
 Design Diagram
 
+
+User -> LB -> Post Service -> POSTS DB 
+
+Feed -> userfollowing -> Follows Table
+
+
+FOlows
 
 
 
@@ -110,7 +125,7 @@ OBSERVATION : Feed generation can be offline.
 ___________________________
 
 
-Feed Generation : 
+
 
 
 
