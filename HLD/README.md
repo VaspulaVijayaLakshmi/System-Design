@@ -46,3 +46,17 @@ Examples :
 -> Online coding judges (like HackerRank/LeetCode): Run your code in a sandbox → so you can’t access the server.
 
 -> Mobile apps (iOS/Android): Each app runs in its own sandbox → can’t access other apps’ data.
+
+
+
+
+________________________________________________________
+
+# Redis
+
+Sorted Sets:
+
+
+Like a Set → all elements are unique (no duplicates).
+But every element has an associated score (a floating-point number).
+Redis keeps elements ordered by score automatically.
