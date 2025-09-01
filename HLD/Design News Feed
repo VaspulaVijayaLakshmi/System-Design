@@ -101,7 +101,43 @@ User -> LB -> Post Service -> POSTS DB
 Feed -> userfollowing -> Follows Table
 
 
-FOlows
+Follows Table - FollowId - FollowerId
+                FollowerId - FOllowId
+
+Dynamo DB maintains  GSI - Global Secondary Index – it’s a concept from NoSQL databases like DynamoDB.
+
+
+________________________________________________
+
+Now the question WHy we need FOllows Table?
+instead of list ?
+
+
+-> A celebrity could have 100M followers.
+Storing a giant array in a single row/record = one huge blob.
+
+-> List is hard to maintain - even if someone unfloows someone we need to update ists
+this is burden for people who has lot of followers.
+
+
+-> "Who are the 20 most recent people I followed?"
+"Who are my followers (with pagination)?"
+
+With a list, you’d have to load the entire blob 
+With a Follows table, you can paginate/query efficiently.
+
+
+
+-> Every new follow/unfollow = rewriting the giant list field.
+In a Follows table, it’s just inserting/deleting one row. Much cheaper.
+
+
+-> Distributed storage
+
+In a sharded DB, you can’t easily split one giant array across shards.
+But a Follows table with (followerId, followedId) can be sharded naturally by followerId.
+
+
 
 
 
@@ -124,8 +160,16 @@ OBSERVATION : Feed generation can be offline.
 
 ___________________________
 
+So which we need to use?
+Hybrid model would work
 
 
+For users with large number of followers we can have Fan_IN that is when user refreshers we can send them.
+Because we cant fanout to 10M users right.
+
+FOr people following more people? their feed generation would be tougher - so we can use genertae and precompute the feed and store it and update overtime
+
+Time stamp is major thing for feed geenrtion.
 
 
 
