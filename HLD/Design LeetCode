@@ -231,30 +231,58 @@ The API Server will then store the submission results in the database and return
 
 
 
+_________________________________
+
+
+LeaderBoard:
+
+The easiest thing we can do when users request the leaderboard via /leaderboard/:competitionId is to 
+query the submission table for all items/rows with the competitionId and then group by userId, 
+ordering by the number of successful submissions.
+
+_________________________________
+
+
+
+DEEP DIVES:
+
+How will the system support isolation and security when running user code?
+
+Its running in container in sandboxed emovireonment.
+
+Reduce the access to files , If user is writing to some file, create a temp dorectory write to that.
+MEmory and TIme LImitiations so tht user will not run into infote loops or memeory usage overly.
+No system calls allowed
 
 
 
 
+How would you make fetching the leaderboard more efficient?
+
+-> Polling - with DB queries
+
+This is what we have now in the high-level design. We store all submission results in the main database. 
+Clients poll the server every few seconds, and on each poll, the server queries the database for the top N users,
+sorts them, and returns the result
+
+Disadavtage - DB Overload
 
 
+-> Caching - with timely updates.
+Still polling is needed by redis to get updates
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-The key decision here is where to store the contest data, user's score, and the leaderboard.
+-> Redis - Sorted sets 
 
 We need real time updates for the leaderboard and data changes frequently. 
-We can use an in-memory database like Redis to store the leaderboard. Redis is a fast, in-memory database that is well suited for high performance, real time data processing
+We can use an in-memory database like Redis to store the leaderboard. 
+Redis is a fast, in-memory database that is well suited for high performance, real time data processing
+
+
+What is a Sorted Set?
+
+Like a Set → all elements are unique (no duplicates).
+But every element has an associated score (a floating-point number).
+Redis keeps elements ordered by score automatically.
 
 
 
