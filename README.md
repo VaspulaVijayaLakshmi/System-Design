@@ -1,4 +1,4 @@
-#Tools
+# Tools : 
 https://systemdesignschool.io/resource-estimator
 
 
@@ -77,7 +77,7 @@ _________
 __________________
 
 
-#HLD : 
+# HLD : 
 
 - Video streaming services like Netflix: https://lnkd.in/gnHSyCj8 
 - Autocomplete feature of Google: https://lnkd.in/g3VFcaYN
@@ -95,7 +95,7 @@ __________________
 __________________
 
 
-#Books : 
+# Books : 
 
 1. Designing Data Intensive Application
 2. Amazon : Dynamo DB paper
