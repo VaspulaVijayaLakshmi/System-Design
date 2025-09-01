@@ -162,4 +162,9 @@ If the user completes the purchase, the ticket's status in the database is updat
 If the TTL expires (indicating the user did not complete the purchase in time), Redis automatically releases the lock. This ensures that the ticket becomes available for booking by other users without any additional intervention.
 
 
+___________________________
+
+
+https://www.hellointerview.com/learn/system-design/deep-dives/redis
+
 
