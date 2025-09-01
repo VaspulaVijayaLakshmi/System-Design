@@ -1,0 +1,127 @@
+Function Requirements
+
+Users should be able to create posts.
+Users should be able to friend/follow people.
+Users should be able to view a feed of posts from people they follow, in chronological order.
+Users should be able to page through their feed.
+
+
+NF:
+scalable
+relaible
+highy available
+
+Feed - read-heavy so it should be able to scale independently
+
+
+eventual consistency -  we will pick No-sql DB - dynamo
+ 
+
+____________________
+
+Core enities : 
+
+
+Key  - value pairs
+
+Users:
+
+UserId - User Name
+       Posts
+       Followers : List<Users>
+       Following : List<Users>
+
+
+Posts - Image/Video
+        COmments
+        LIkes
+        Created On
+
+
+FOllow - FOllowing  - Graph Neo$j
+we can traverse to the user's followers list and pull in 2nd degree connections for mutual recommnedation
+
+_______________________
+
+
+
+APIs:
+
+POST: 
+/Posts
+
+
+GET
+/feed -> List<Posts>    - Pagiates results
+
+
+FOllowing and followers is many to many relationships
+
+/follow-request
+-> {} - OK
+
+
+__________________________
+
+Capacity Estimation:
+
+100M users
+
+DAU - 50M
+
+Read : Write : 100:1
+
+We post less compared to the posts we read
+
+Posts - 50M * 5 - 250M posts
+
+Read - on AVg each user reads 50-100 Posts
+50M * 100 - 500M * 10 - 5Billion
+
+
+
+
+
+
+
+______________________
+Design Diagram
+
+
+
+
+
+__________________________
+
+When a user posts a photo - all the followers should be able to see 
+
+When a user wants to check  feed - all the people user is following 
+
+
+SO when a user posts a pic - we fan out - to all the followers - send to everyone
+but this is difficult for users with millions of followers
+
+
+FAN -IN : WHen a user refreshes then we pull the chnages and update the feed.
+
+
+OBSERVATION : Feed generation can be offline.
+
+___________________________
+
+
+Feed Generation : 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
