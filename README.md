@@ -1,3 +1,7 @@
+#Tools
+https://systemdesignschool.io/resource-estimator
+
+
 # System-Design
 
 
@@ -73,7 +77,7 @@ _________
 __________________
 
 
-HLD : 
+#HLD : 
 
 - Video streaming services like Netflix: https://lnkd.in/gnHSyCj8 
 - Autocomplete feature of Google: https://lnkd.in/g3VFcaYN
@@ -91,7 +95,7 @@ HLD :
 __________________
 
 
-Books : 
+#Books : 
 
 1. Designing Data Intensive Application
 2. Amazon : Dynamo DB paper
@@ -163,6 +167,9 @@ If the TTL expires (indicating the user did not complete the purchase in time), 
 
 
 ___________________________
+
+
+
 
 
 https://www.hellointerview.com/learn/system-design/deep-dives/redis
