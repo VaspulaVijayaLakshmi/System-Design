@@ -1,0 +1,71 @@
+https://www.youtube.com/watch?v=dpEOhfEEoyw
+
+RateLimiter - TO limit users from abusing resources.
+Threshold on the number of requetss/user
+
+Too Many reqests - 429 error
+
+
+This is importnt along with timeouts and CBs
+
+____________
+
+
+Define in API gateways/LBs
+
+_____________
+
+
+
+-> Token Bucket :
+
+Token comes into Bucket at constant rate   - and when a reqests comes it checks if a token is available then this rquest is executed
+But if more requests come and bucket does not have a token its dicarded and can be put into queue  and retirned
+
+
+
+DLQ - A DLQ is a special queue where messages go when they can’t be delivered or processed successfully after several attempts.
+It prevents “poison messages” (bad data, corrupted payloads, unprocessable events) from clogging your main queue.
+
+
+
+
+-> Leaky Bucket :
+
+Bucket itself has a limit - and only tht many req it can hold say per sec.
+SO each req from the bucket is removed and prcoessed.
+
+Requets can be put in the bucket, once the bucket overflows, tht means we have reache dlimit and cant put requests , we can put them in queue and retyr.
+
+
+
+
+-> Fixed WIndow : 
+
+In each min, we define , a counter manatining the number of requests and in tht window we will prices son those
+
+Bursts at boundary
+
+
+
+-> Slinding Window :
+
+We slide the window .
+
+
+
+
+
+
+
+
+DESIGN
+
+
+
+User -> API GATEWAY -> SERVICE
+
+
+        we can store qeq counter in redis 
+       or it can check if the user has enough token in their token bucket
+
