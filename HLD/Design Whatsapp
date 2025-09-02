@@ -1,6 +1,232 @@
 FR
 
-A user can send and receive text messages in real time.
-When the user goes online, she receives all the messages that were addressed to her during her offline time.
+
 By default, once a message is delivered to a user, it will be stored on the user's device and we no longer need to store them on the server (like WhatsApp and WeChat).
 The users shouldn't see duplicate messages.
+Users should be able to start group chats with multiple participants (limit 100).
+Users should be able to send/receive messages.
+Users should be able to receive messages sent while they are not online.
+Users should be able to send/receive media in their messages.
+
+
+Read Recipients
+Online and last Seen
+
+____________________________________
+
+NF Req:
+
+Scalable
+Reliable
+Real time Messaging - Latencies
+Msgs should not be lost
+
+
+
+_____________________________________
+
+Capacity estimation:
+
+1 user - 20-30 msgs per day
+DAU : 100M
+
+Each msg is - 
+
+
+Storage - 
+_____________________________________
+
+
+Core entiities:
+
+User
+
+{
+UserId
+Description
+Name
+Group-> List<ChatIds>
+}
+
+
+
+Insetad of group-> List<ChatIds>
+
+Groups is nothing but group of chatIds we can ahce a table
+
+
+UserId     ChatId(GroupId)
+
+User1       chat1
+User2       chat2
+User3       chat1
+user3       chat2
+
+
+The reasoning is simple as mentioned in the news feed, user following and followed by
+maintaining large list of User and he the groups he is part of is hard to maintain
+and we need to update the entire lists leaves a group and all
+
+so we can have user -> chatId mapping, and this table can be efficently queried.
+
+We can have a reverse mapping as well
+
+CHatId -> Listof users we can get.
+
+
+We can maintain no-SQL DB, Dynamo
+
+
+Message:
+
+{
+messageId:
+MessageContent : MIME/Plain
+Reactions : List<Reactions>
+UserSent:
+UserIntentedTo:
+timeStamp:
+}
+
+
+
+Chat:
+
+{
+
+chatId:
+MessageId:
+UsedId:
+SendTo: List<Users>   - in case of group chat
+DeliveredAt:
+SeenAt:
+}
+
+
+______________________________________
+
+Apis:
+
+
+send msg :
+
+Post - /{userId}/send
+
+Body: {
+       UserId:
+       ChatId:
+       message : "text"
+      
+}
+
+
+
+Receive Msg:
+GET 
+
+/receive - message
+
+
+/reaction :
+
+[
+msgId: 
+ChatId:
+Reaction:
+}
+
+
+_________________________________
+
+Design:
+
+UserService
+ChatService
+
+User -> WebSocket -> ChatService -> ChatDB
+
+ChatService is Ready heavy - Sent : Received : 10:1
+
+
+Media Service: Handle media separately 
+
+Notification Service : 
+
+Push Notiification or Push:
+
+Push Notification : Send notiification to user's devices.
+
+
+
+FANOUT != PUSH
+
+FANOUT Means braodcasting everyone about an event.
+Push - Indepedently sedning notifcation to user.
+
+_________________________________
+
+
+
+Websocket - bidrectional communication
+RestApi Calls are hard as we need to open connections - HTTP Reqs
+
+WS are faster more efficinet 
+
+Instead of Polling and Long Polling
+
+Polling is resource intensive
+
+
+WebSockets connections can be stored in some cache.
+Each User has their OWN Inbox to store msgs if theyre offline and to send them once they are online.
+
+________________________________
+
+DB to store Chat Service - No sql DB is fine
+
+MEssage should not be lost.
+Order of mesage is also important they need to be send in the same order they are received as timing is important.
+
+So we need to have queues -> that will store messages and will relay those messages in order as soon as user comes online.
+
+
+______________________________
+
+Last Seen: We can poll to check if user is offline occasionally - almost accurate.
+HearBeat Mechanisms
+
+
+Notiifcation : If a message is sent, we check if the user is online, if yes, we send the mesges or we queue the messages.
+
+how to know if user is active : users active conn/last seen
+
+
+
+Read Recipients:  Once the user is active - we froward the messages from queue - and client can send some kiind of 
+ACK tht msgs have been delivered and  We mark this time period as DELIVERED.
+
+Once the user OPENS the chat-> we mark the field LASTSEEN- update the read recipients
+
+
+____________
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
