@@ -1,0 +1,139 @@
+https://systemdesignschool.io/problems/webhook/solution
+Description: 
+
+Design a webhook service that processes incoming requests and ensures efficient, secure handling of real-time events, 
+such as payment notifications from services like Stripe or Shopify.
+
+
+Webhooks are a common way to receive real-time notifications from external systems. 
+
+Unlike traditional APIs, which rely on polling, webhooks push data immediately when an event occurs, making them highly efficient and real-time.
+
+
+You can think of webhooks as a kind of lightweight notification service between systems.
+
+Push notification (mobile/web): tells a user something happened.
+Webhook: tells another system/service something happened.
+
+Example:
+
+User pays via Stripe → Stripe fires an eevnt → your backend updates DB + triggers a push notification to user → “Payment successful”.
+
+
+1. Event happens in Stripe → payment_intent.succeeded.
+2. Stripe pushes that event to your server via an HTTP request → this is the webhook call.
+3. Your server processes it (e.g., update DB, send confirmation mail).
+
+
+
+So:
+Webhook = system → system notification.
+Push Notification = system → user notification.
+
+
+___________________
+
+
+Core Requirements'
+Accept API Calls to Receive Event Notifications: Accept API calls to receive event notifications (e.g., payment processed or order shipped), 
+execute corresponding operations, and persist original event data and operation results for tracking, auditing, and debugging.
+
+High Availability and Resilience: The service must ensure events are processed even if system components fail, maintaining reliability for critical data.
+
+
+At-least-once processing: Each event should be processed at least once if the system accepts it.
+
+_____________________
+
+
+Accept the event -> prcoess them -> and store them(persist them)
+
+Also its better to have a buffer that will receive the reuqests and prcoes them separately
+Loose COupling
+
+
+
+Stripe -> LB -> Request Handler -> Queue -> Request Handler/Processor -> DB
+
+request handler takes msgs and puts in queue
+Queue will store the requests as they enter 
+Queue needs not loose data and needs to ensure msgs are sent.
+
+Request queue consumer -> Will prcoess the reuqests and stores in DB.
+
+DB - persistence store
+
+______________________
+
+
+Send Event: The external client service (e.g., Shopify.com) triggers an event and sends it to the webhook service's endpoint (our_domain.com/webhook). This event could represent a specific action, like a payment confirmation or order update.
+
+Enqueue Event: The Request Handler in the webhook service receives the event and enqueues it into a Message Queue. This action stores the event temporarily, allowing the system to process events asynchronously, improving reliability and scalability.
+
+Return 200: After enqueuing the event successfully, the Request Handler immediately returns a 200 HTTP status code to the client, confirming that the webhook event has been received. This acknowledgment allows the client to know the event was accepted, even if processing hasn't yet occurred.
+
+Fetch Event: A Queue Consumer fetches the event from the Message Queue. This component is responsible for processing events one by one (or in batches, depending on design) as they become available in the queue.
+
+Process Event: The Queue Consumer processes the event, which involves performing the necessary operations related to the event. For example, if it’s a payment confirmation, it may update the payment status in the system.
+
+Persist Results: After processing, the Queue Consumer persists the results of the operation to a database. This could involve storing details like the original event, the outcome of the processing, and any relevant status updates.
+
+DB Write Succeeds: Once the results are successfully saved in the database, the system receives confirmation of a successful write operation. This ensures that the event processing has been completed and recorded for future reference, such as for audits or debugging.
+
+Dequeue the Event: After the event has been successfully processed and stored, it is dequeued from the Message Queue. This marks the event as fully handled, removing it from the queue and freeing up space for new incoming events.
+
+
+_____________________________
+
+
+
+Handling Failure in Each Component
+
+
+-> Request Handler :
+
+Scale it well and also replication/backup handlers
+we will not send 200 to client , if not 200 means the request is not enqueue to queue.
+
+Timeouts and Circuit Breakers: Implementing timeouts and circuit breakers can help prevent the request handler 
+from hanging indefinitely if it encounters issues. 
+If a request takes too long to process, a timeout triggers a failure, signaling to the client to retry.
+A circuit breaker can temporarily halt request processing if failures are detected, giving the system time to recover.
+
+
+
+-> Message Queue Failures :
+
+Queue fails -> we lose data
+Kakfa and rabbitMq use clusters , and it replicates the queues.
+SO it can store In some persistent storage like kafka
+
+Queue has sent the data to consumer, but it didnt reach consumer, then consumer can send ACK to user, so it can enequeu from the
+QUeue.
+
+but this is not safe what if COnsumer fails after It sends ACK msg.SO it will be removed from qeuue
+
+SO consuer needs to prcoess and store  the request in db then can send ACK msg and it can be dequeued.
+
+
+-> Database Failures :
+
+
+Write Retries with Backoff: Implement automatic retries with exponential backoff for database writes.
+If the first write attempt fails, the system retries after a short delay, with each subsequent delay increasing 
+if failures continue. This helps avoid overwhelming the database during transient issues.
+
+Replication
+
+___________________________
+
+
+
+
+
+
+
+
+
+
+
