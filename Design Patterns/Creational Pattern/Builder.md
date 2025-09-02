@@ -1,5 +1,8 @@
 
 class Burger {
+    
+
+    class Burger {
     private String bun;
     private boolean cheese;
     private boolean lettuce;
