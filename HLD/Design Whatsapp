@@ -184,7 +184,7 @@ ________________________________
 
 DB to store Chat Service - No sql DB is fine
 
-MEssage should not be lost.
+Message should not be lost.
 Order of mesage is also important they need to be send in the same order they are received as timing is important.
 
 So we need to have queues -> that will store messages and will relay those messages in order as soon as user comes online.
@@ -196,7 +196,7 @@ Last Seen: We can poll to check if user is offline occasionally - almost accurat
 HearBeat Mechanisms
 
 
-Notiifcation : If a message is sent, we check if the user is online, if yes, we send the mesges or we queue the messages.
+Notification : If a message is sent, we check if the user is online, if yes, we send the mesges or we queue the messages.
 
 how to know if user is active : users active conn/last seen
 
@@ -212,8 +212,19 @@ ____________
 
 
 
+Message Queues - To send messages async
+
+Function: It serves as a buffer, temporarily holding messages to ensure they are processed in the order they arrive, 
+especially during high traffic or if there are downstream delays. 
+This decouples the sending and processing of messages, providing system resilience.
 
 
+
+Database (DB):
+
+Purpose: Long-term storage solution.
+Function: The DB is responsible for storing messages persistently.
+Once a message is in the database, it's safely recorded and can be retrieved, even if the system restarts or encounters failures.
 
 
 
