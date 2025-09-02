@@ -1,1 +1,6 @@
+FR
 
+A user can send and receive text messages in real time.
+When the user goes online, she receives all the messages that were addressed to her during her offline time.
+By default, once a message is delivered to a user, it will be stored on the user's device and we no longer need to store them on the server (like WhatsApp and WeChat).
+The users shouldn't see duplicate messages.
