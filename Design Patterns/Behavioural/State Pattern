@@ -9,18 +9,13 @@ increasing the risk of breaking current functionality.
 
 
 
-The State Pattern solves this by encapsulating each state into its own class, and letting the context object delegate behavior to the current state object.
-This makes your code easier to extend, reuse, and maintain — without cluttering the core logic with conditionals.
-
-
 In this, We have 3 things
 
 
 Interface defining - operations we can do
 Each state class - extends this interface
 
-Now we will have a Class 
-we will have -  MachineState currentState - object, alomg with other objects.
+
 
 
 (LOOK AT THE DIAGRAM)
@@ -39,21 +34,24 @@ we will have -  MachineState currentState - object, alomg with other objects.
 
 *********
 
+interface State {
+    void handle();
+}
 
-    public void selectItem(String itemCode) {
-        currentState.selectItem(this, itemCode);
+
+  class OnState implements State {
+    @Override
+    public void handle() {
+        System.out.println("Device is ON");
     }
+}
 
-    public void insertCoin(double amount) {
-        currentState.insertCoin(this, amount);
+class OffState implements State {
+    @Override
+    public void handle() {
+        System.out.println("Device is OFF");
     }
-
-    public void dispenseItem() {
-        currentState.dispenseItem(this);
-    }
+}
 
 
-
-
-we will need to pass the current object - and do all the  operations on this, so Im passing "this"
 
