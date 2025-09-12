@@ -182,11 +182,13 @@ _____________________
 
 Back of the Envelope Calculations
 
-Power	 Approximate      value	
-10	 1 Thousand	    1 Kilobyte	 10^3
-20	 1 Million	    1 Megabyte	 10^6
-30	 1 Billion	    1 Gigabyte	 10^9
-40	 1 Trillion	    1 Terabyte	 10^12
-50	 1 Quadrillion   1 Petabyte	 10^15
+
+| Power of 10 | Number Name   | Storage Equivalent | Scientific Notation |
+|-------------|--------------|--------------------|----------------------|
+| 10        | 1 Thousand   | 1 Kilobyte (KB)    | 10³                  |
+| 10        | 1 Million    | 1 Megabyte (MB)    | 10⁶                  |
+| 10        | 1 Billion    | 1 Gigabyte (GB)    | 10⁹                  |
+| 10        | 1 Trillion   | 1 Terabyte (TB)    | 10¹²                 |
+| 10        | 1 Quadrillion| 1 Petabyte (PB)    | 10¹⁵                 |
 
 
