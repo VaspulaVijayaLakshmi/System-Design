@@ -175,3 +175,18 @@ ___________________________
 https://www.hellointerview.com/learn/system-design/deep-dives/redis
 
 
+_____________________
+
+
+
+
+Back of the Envelope Calculations
+
+Power	 Approximate      value	
+10	 1 Thousand	    1 Kilobyte	 10^3
+20	 1 Million	    1 Megabyte	 10^6
+30	 1 Billion	    1 Gigabyte	 10^9
+40	 1 Trillion	    1 Terabyte	 10^12
+50	 1 Quadrillion   1 Petabyte	 10^15
+
+
