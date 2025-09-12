@@ -63,9 +63,9 @@ User3       chat1
 user3       chat2
 
 
-The reasoning is simple as mentioned in the news feed, user following and followed by
-maintaining large list of User and he the groups he is part of is hard to maintain
-and we need to update the entire lists leaves a group and all
+The reasoning is simple as mentioned in the news feed, user following and followed by.
+maintaining large list of User and the  groups he is part of is hard to maintain
+and we need to update the entire lists as user leaves a group and all.
 
 so we can have user -> chatId mapping, and this table can be efficently queried.
 
@@ -96,7 +96,7 @@ Chat:
 
 chatId:
 MessageId:
-UsedId:
+UserId:
 SendTo: List<Users>   - in case of group chat
 DeliveredAt:
 SeenAt:
@@ -152,7 +152,7 @@ Media Service: Handle media separately
 
 Notification Service : 
 
-Push Notiification or Push:
+Push Notiification 
 
 Push Notification : Send notiification to user's devices.
 
