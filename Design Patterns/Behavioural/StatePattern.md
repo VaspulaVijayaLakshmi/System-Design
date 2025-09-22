@@ -34,6 +34,8 @@ Each state class - extends this interface
 
 *********
 
+```java
+
 interface State {
     void handle();
 }
@@ -52,6 +54,6 @@ class OffState implements State {
         System.out.println("Device is OFF");
     }
 }
-
+```
 
 
