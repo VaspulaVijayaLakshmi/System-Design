@@ -2,23 +2,25 @@ These 2 examples are the best.
 Undertstnd the implementation thoroughly.
 
 
+https://algomaster.io/learn/design-patterns/java/factory-method
 
 
 Factory Design Pattern
 
-It decouples object creation from usage
+The Factory Pattern provides an interface for creating objects but lets subclasses decide which class to instantiate.
+It decouples object creation from usage, reducing tight coupling between client code and concrete classes.
+
+
+🚦 How It Works
+
+Define a common interface or abstract class for the product.
+Implement concrete classes that implement the product interface.
+Create a Factory class with a method that returns an object of the product interface.
+The client calls the factory method instead of new to get objects.
 
 
 
-
-
-
-
-
-https://algomaster.io/learn/design-patterns/java/factory-method
-
-
-
+```
 
 // Base Product
 interface Controller {
@@ -40,8 +42,15 @@ class XboxController implements Controller {
 
 // Factory Method Creator
 abstract class ControllerCreator {
+
+
+//this is the create COntroller main fucntion tht will create objects
+//so tht subclasses will implemn this.
     public abstract Controller createController();
 
+
+
+//abstarct classes can have other methods as well
     public void setup() {
         Controller c = createController();
         c.connect();
@@ -68,3 +77,4 @@ public class FactoryMethodDemo {
         creator.setup();  // Output: Connecting Xbox Controller...
     }
 }
+```
