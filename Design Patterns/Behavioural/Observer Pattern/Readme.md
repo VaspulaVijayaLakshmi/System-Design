@@ -1,1 +1,24 @@
+https://algomaster.io/learn/design-patterns/java/observer
+
+The Observer Design Pattern is a behavioral pattern that defines a one-to-many dependency between objects so that when one object 
+(the subject) changes its state, all its dependents (observers) are automatically notified and updated.
+
+
+It’s particularly useful in situations where:
+
+-> You have multiple parts of the system that need to react to a change.
+-> You want to decouple the publisher of data from the subscribers who react to it.
+-> You need a dynamic, event-driven communication model without hardcoding who is listening to whom.
+
+
+
+
+
+For example, a NewsPublisher might call update() on a MobileApp, EmailService, 
+and WebsiteFeed every time a new article is published.
+
+The Observer Pattern solves this by decoupling the subject and its observers, allowing them to interact through a common interface.
+Observers can be added or removed at runtime.
+
+
 ![image](https://github.com/user-attachments/assets/47cbfb4e-37b1-4822-8517-5bebf6e16e89)
