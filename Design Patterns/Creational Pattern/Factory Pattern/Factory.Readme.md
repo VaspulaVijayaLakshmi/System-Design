@@ -20,7 +20,7 @@ The client calls the factory method instead of new to get objects.
 
 
 
-```
+```java
 
 // Base Product
 interface Controller {
