@@ -1,0 +1,215 @@
+1. Read Repeatable - 
+
+
+Lets say 2 trasactions are going on parallely and trans 1 is writing to a table and trans 2 is reading it.
+Then trans 2 will not see the updates.
+itll work as if its working on copy table.
+even if trans 1 has commited changes - trans 2 will not see it.
+unitl trans2 itself commits.
+once trans 2 commits , then it will be able to see changes.
+
+
+
+If Transaction 2 reads some row(s) at time t1,
+then throughout that transaction, re-reading the same row(s) will give the same values,
+even if Transaction 1 modifies and commits them in between.
+
+
+databases use MVCC (Multi-Version Concurrency Control).
+Each row can have multiple versions (old + new).
+When Transaction 2 starts, it uses a consistent snapshot — basically a version of rows that were committed before it began.
+If Transaction 1 updates a row and commits, a new version of the row is created.
+Transaction 2 keeps seeing the old version until it finishes.
+
+When Transaction 2 commits, it “ends its view” of the world.
+If it queries the same data in a new transaction, it will now see Transaction 1’s committed changes.
+
+
+
+WHat if Trans 2 is also writing to table:
+
+
+Lock on writes .
+
+
+
+If Transaction 1 already committed its update before Transaction 2 touches the same row:
+Transaction 2 is still seeing the old version (from snapshot).
+When it tries to update, the DB notices:
+
+“Wait, you’re trying to update a row based on an old version.”
+This usually triggers a write conflict → Transaction 2 will either:=
+Block until it can acquire the lock and retry (if DB supports it), or
+Fail with an error like "could not serialize access due to concurrent update"
+
+If Transaction 1 hasn’t committed yet (still in progress):
+Transaction 2’s update will block until Transaction 1 finishes.
+Then:
+
+If T1 commits → T2 may fail with a conflict (depends on DB).
+If T1 rolls back → T2 continues fine.
+
+
+
+
+*****
+Reads → snapshot (no blocking, no locks).
+Writes → lock (must coordinate, conflicts possible).
+*****
+
+
+
+__________________________
+
+
+READ COMMITED:
+
+Trans1 and trans2 r running
+
+trans1 is writing 
+it reads we will get updted value
+
+trans2 updates value ad COMMITS
+
+
+now when trans1 reads, we will see UPDATED VALUE from other trans.
+
+
+
+
+That means if Transaction 1 commits halfway through, Transaction 2 will immediately see the change on its next SELECT.
+So the snapshot is per query, not per transaction.
+This prevents dirty reads (you never see uncommitted changes).
+
+
+
+PROBLEM :
+
+
+What if both write simultaneously to same value
+
+
+Transaction 1 issues UPDATE table SET x = 10 WHERE id = 5;
+DB acquires an exclusive row lock on row id=5.
+Transaction 2 also issues UPDATE table SET x = 20 WHERE id = 5;
+
+But id=5 is already locked by T1.
+So T2 is blocked — it must wait until T1 finishes.
+
+Transaction 1 commits
+Its lock is released.
+Now T2 can proceed.
+
+At this point, T2 sees that row’s latest committed version (x=10) and applies its update (x=20).
+Transaction 2 commits
+Final value in DB = 20.
+
+
+________________
+
+
+
+
+READS UNCOMMITED :
+
+Transactions are allowed to see uncommitted changes from other transactions.
+This is the weakest isolation level.
+It allows dirty reads.
+
+
+
+Example of Dirty Read
+
+Let’s say we have a table:
+
+balance = 100
+
+
+Transaction 1 starts:
+
+UPDATE accounts SET balance = balance - 50 WHERE id=1;
+-- balance is now 50, but not committed yet
+
+
+Transaction 2 (in Read Uncommitted mode) runs:
+
+SELECT balance FROM accounts WHERE id=1;
+-- sees 50, even though it’s not committed!
+
+
+If Transaction 1 rolls back later, balance goes back to 100.
+But T2 already saw “50” — a dirty read, because it read data that never really existed permanently.
+
+
+
+
+
+Behavior for Writes
+
+Writes still need locks (no DB lets two writers scribble on the same row at once).
+So two updates on the same row behave like in Read Committed → one waits, then executes.
+The difference is only in reads: you can read someone else’s uncommitted data.
+
+
+________________
+
+
+SERIALIZABLE:
+
+ Strict Serialiation
+
+ It’s the safest, but also the slowest (more blocking, more retries).
+
+
+ This prevents all anomalies:
+
+✅ No dirty reads
+✅ No non-repeatable reads
+✅ No phantom reads
+✅ No lost updates            
+
+
+
+How it acheives - concurrency but still makes sure to acheive serialization.   
+
+
+DB guarantees the result is as if transactions were executed one after another in some serial order, even though in reality they may run concurrently.
+
+                                               
+
+Either of any one: 
+                                               
+1. Pessimistic Concurrency Control
+
+When a transaction reads or writes data, it takes a lock right away.
+This lock blocks other transactions from touching that data until the first one is done.
+Idea: better to block early than deal with messy conflicts later 
+
+
+                                              
+2. Optimistic Concurrency Control (opposite idea)
+
+Assume conflicts are rare.
+Let multiple transactions read freely (snapshots).
+Only when committing, check if somebody else changed the same rows.
+If yes → rollback (serialization error).
+
+
+
+
+                                               
+Pessimistic = “Better safe than sorry” → lock now, avoid conflict later.
+Optimistic = “Conflicts are rare, let’s be chill” → don’t lock, but maybe you’ll need to retry later.
+
+
+
+
+
+What is a Phantom Read?
+
+A phantom read happens when:
+
+Transaction A runs a query that returns a set of rows (based on some condition).
+While Transaction A is still open, Transaction B inserts (or deletes) rows that match that condition.
+If Transaction A re-runs the same query, it sees extra (phantom) rows that weren’t there before.                                                
+                                               
