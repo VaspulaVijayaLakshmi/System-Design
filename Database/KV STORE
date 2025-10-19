@@ -1,0 +1,42 @@
+LEts say we want to set an expiration on key
+
+to do manually.
+We can have a cron job that runs periodically.That updated .
+
+so when inserting we also insert the Creation time column
+and we will have ttl.
+
+We can run something like
+
+Delete * from db where creation time - now() > = ttl
+
+
+Lets say the cron job hadn't run yet and client accesses the key.
+
+then we need to have this check in the client query everytime where creation - now() <= ttl, then only return.
+
+But this operqtion is expensive we need to do it everytime - creation time - now() 
+
+
+So we can do soft delete, when jpob runs, we can mark the column is_expired as true, and when the traffic downtime is less we can run other jobs to delete the keys.
+
+
+now do we really need a new column is_expired, we can have something like, when cron job runs , it can mark expired keys as expired data to -1.
+When accessing we simply check if_ecpired !=-1
+
+
+
+
+Also in INSERTION IN KVstore
+
+
+SO when inserting do we retreive the kets
+With select then update those columns?
+
+with those value?
+
+
+We can simply do Upset query.
+
+UPSERT -> INSERT + UPDATE
+Insert if not exists and update if existss.
