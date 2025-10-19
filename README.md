@@ -192,3 +192,41 @@ Back of the Envelope Calculations
 | 10        | 1 Quadrillion| 1 Petabyte (PB)    | 10¹⁵                 |
 
 
+___________________
+
+
+
+
+
+
+
+- Practice a question from every major pattern (not just one type!):
+ • Social networks (news feed, messaging, notifications)
+ • Streaming/content delivery (video, live data)
+ • E-commerce (shopping cart, inventory)
+ • Cloud storage/file sharing
+ • Location-based services
+ • Ticketing/booking platforms
+ • Leaderboards, collaborative tools, rate limiters
+- Do at least one “foundational component” (cache, queue, rate limiter, etc.)
+
+
+How to Approach the Interview
+
+- Clarify requirements: Never assume, always discuss users, scale, features, constraints
+- Diagram a simple, functional system -before- optimizing or deep-diving
+- Prioritize the most “interviewer-interesting” part for deep dive (scaling, bottleneck, or reliability)
+- Clearly explain tradeoffs (what do you gain/lose with each approach?)
+- Make decisions, don’t just list options; pick, then justify
+
+ Narrate your thinking like a tech lead explaining to a junior engineer
+- Engage the interviewer, treat it as collaborative problem solving, not a solo show
+- Welcome interruptions, questions, and redirection, don’t ignore hints or suggestions
+
+Pick a system design framework and practice it until it feels natural
+- Always start by gathering -all- requirements (functional + non-functional)
+- Clarify ambiguities, ask the interviewer questions up front
+- List core entities and APIs before designing anything
+- Don’t chase a perfect design, opt for something that “works and can be improved”
+
+
