@@ -125,7 +125,43 @@ if failures continue. This helps avoid overwhelming the database during transien
 
 Replication
 
-___________________________
+
+
+
+Webhooks are using message queues:
+With atelast once delivery.
+
+so lets say the consumer has consumed, but The ACK has failed.
+or network failure.
+
+Then we m,ay retry the same message so duplicate processing..
+
+The solution to this is Idempotent APIS
+
+send unique ID with each event.
+SO before processing the request.
+We will check if its already processed.
+
+
+We will have UniqueId -> response mapping
+If the same request has reached , we check the tablr and return the same response.
+
+
+
+this way we avoid duplicate processing.
+
+CHecking Idemptentcy File in this repo.
+
+
+
+
+
+
+Also when we need to ACK.
+
+
+We need to ACK one we process the request ANDDDDD Stored in DB
+
 
 
 
