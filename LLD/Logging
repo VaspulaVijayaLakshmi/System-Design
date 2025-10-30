@@ -48,3 +48,24 @@ public class MyApp {
 
 
 TRACE logs record fine-grained information about a program’s internal behavior — every method call, condition, and intermediate step.
+
+
+
+logger is a static class-level variable
+
+Let’s break it down:
+
+static → Belongs to the class, not to any instance.
+So it’s shared by all objects of that class.
+You don’t need to create an object of MyService to use it — you can call it directly.
+
+final → Once assigned, it cannot be reassigned.
+(You don’t want your logger reference changing midway.)
+
+LoggerFactory.getLogger(MyService.class) →
+Creates a logger specific to this class name.
+So all logs from MyService will be tagged with its class name automatically — super helpful when debugging.
+
+
+
+
