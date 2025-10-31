@@ -1,0 +1,209 @@
+Hash based message Authentication Code
+
+Used in web hooks for message authetication.
+HMAC is used in webhooks to sign each payload with a shared secret, so the receiver can verify that the message came from the right source and wasn’t changed in transit.
+
+
+HMAC ensures the webhook request wasn’t tampered with and really came from your server.
+
+
+
+A sender (like a server or webhook provider)
+A receiver (like your application or API consumer)
+A shared secret key (both sides know it — no one else)
+
+
+
+Agree on a Shared Secret
+
+
+You configure your webhook URL in Stripe, and Stripe shows you a “Signing Secret”.
+You copy this into your app.  Now both Stripe and your app know the same secret.
+
+and both the sender and receiver services use it.
+
+
+
+Sender Generates the HMAC
+Sender wants to send a message (e.g. webhook payload):
+{
+  "order_id": 123,
+  "status": "shipped"
+}
+
+Sender calculates:
+signature = HMAC_SHA256(secret, message)
+
+
+Then sends:
+
+```
+POST /webhook
+Headers:
+  X-Signature: <signature>
+Body:
+  { "order_id": 123, "status": "shipped" }
+```
+
+
+
+ Step 3: Receiver Verifies the HMAC
+Receiver gets the payload and the signature header.
+
+
+Recomputes:
+expected_signature = HMAC_SHA256(secret, message)
+
+
+
+Compares with the incoming X-Signature.
+
+
+If they match →  Message authentic and untampered.
+If not → reject it.
+
+
+
+Step 4: Optional — Handle Replay Attacks
+To prevent someone from reusing the same valid message, the payload often includes:
+
+
+ -> A timestamp
+-> Or a nonce (random ID) 
+
+Receiver checks if timestamp is recent (say within 5 minutes).
+That way, even if someone intercepts it, it expires quickly.
+
+
+
+Why This Works
+Because:
+
+Only sender and receiver know the secret.
+Anyone intercepting the message can’t regenerate the same signature.
+Changing even one character in the message changes the HMAC drastically.
+
+
+
+
+
+The Replay Attack Problem
+Situation:
+
+You send this webhook (or API call):
+
+Body: { "order_id": 123, "status": "shipped" }
+Header: X-Signature: <valid HMAC>
+
+
+Attacker intercepts it (maybe through a network proxy or compromised endpoint).
+Later, the attacker replays the same request — same payload, same signature.
+
+Since the signature is still valid (because the message is identical),
+the receiver might wrongly process it again (e.g., mark the same order as shipped again, trigger another email, etc.)
+
+That’s the replay vulnerability.
+
+
+
+
+
+
+1. A timestamp
+
+SO we will have timestamp as well.
+
+POST /webhook
+Headers:
+  X-Timestamp: 1735666800
+  X-Signature: <HMAC>
+
+Body:
+  { "order_id": 123, "status": "shipped" }
+
+
+
+signature = HMAC(secret, message + timestamp)
+
+So if the interceptor is sedning new msgs also, we will expire the keys
+
+
+Receiver checks:
+
+Signature is valid 
+
+Timestamp is recent (e.g., within 5 minutes) 
+→ if too old →  reject (likely replayed)
+
+So even if an attacker replays it later, it’ll be considered expired.
+
+ Used by: Stripe, Razorpay, GitHub, etc.
+
+
+
+2. nonce (Number used only once)
+
+
+Sender includes this in the payload or header:
+
+{
+  "nonce": "7f3b1c1a-42cd-4d9b-9e72-6e67f6c12345",
+  "order_id": 123,
+  "status": "shipped"
+}
+
+
+The server keeps a record:
+
+If it’s the first time seeing this nonce →  process it
+If it’s seen before →  reject (replay attempt)
+That’s nonce-based replay prevention.
+
+
+
+
+nonce != Idempotent
+
+
+Idempotency means:
+
+Performing the same operation multiple times gives the same result as doing it once.
+Used mainly to handle retries safely (not attacks).
+
+
+
+
+
+3.
+
+Use both timestamp + nonce in the signed data.
+
+That gives:
+Freshness (prevents old messages)
+Uniqueness (prevents identical replays within window)
+
+
+
+
+
+
+
+
+
+
+
+
+ HMAC Flow Summary Diagram
+        (1) Shared Secret securely exchanged
+         ↓
+┌────────────────────┐              ┌──────────────────────┐
+│      Sender        │              │      Receiver        │
+│                    │              │                      │
+│ message + secret   │              │ message + secret     │
+│ → HMAC_SHA256()    │              │ → HMAC_SHA256()      │
+│ = signature         │             │ = expected_signature │
+│                    │              │                      │
+│ Send message + sig →─────────────→│ Verify match?       │
+│                    │              │ if match → accept    │
+└────────────────────┘              └──────────────────────┘
+
