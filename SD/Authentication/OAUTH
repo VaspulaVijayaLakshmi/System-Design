@@ -1,1 +1,123 @@
+Open AUthorisation
+
+OAuth is an authorization framework that allows third-party apps to access your data on another service without giving them your password.
+
+You’re shopping on ShopEasy, and you want to pay with PayPal.
+
+Now, ShopEasy (the e-commerce site) wants money from your PayPal account,
+but you obviously don’t want to give ShopEasy your PayPal password or OTP.
+
+So we need a safe way for ShopEasy to act on your behalf,
+without knowing your credentials.
+
+
+STEP 1:
+
+shopEasy → PayPal (redirect)
+
+You’re buying on ShopEasy and choose “Pay with PayPal.”
+ShopEasy redirects you to PayPal’s page.
+
+https://paypal.com/authorize?client_id=shopeasy&amount=500
+
+Now you log into PayPal, approve payment.
+
+
+
+STEP 2:
+
+PayPal → ShopEasy (redirect back)
+
+After you approve, PayPal redirects your browser back to ShopEasy like:
+
+https://shopeasy.com/callback?code=AUTH123
+
+
+That AUTH123 is a temporary authorization code, not a payment token yet.
+It’s short-lived (like 1 minute).
+
+
+
+
+STEP 3:
+
+ShopEasy ↔ PayPal (server-to-server)
+
+Now ShopEasy’s backend calls PayPal’s API directly (not through your browser):
+
+POST https://api.paypal.com/token
+{
+  "client_id": "shopeasy",
+  "client_secret": "SHOPEASY_SECRET",
+  "code": "AUTH123"
+}
+
+
+
+step 4:
+PayPal verifies that the code is valid and belongs to ShopEasy,
+then returns an access token (like "PAYMENT_TOKEN_ABC").
+
+{
+  "access_token": "PAYMENT_TOKEN_ABC",
+  "expires_in": 3600
+}
+
+
+
+
+
+
+STEP 5:
+
+ShopEasy uses the token to finalize payment
+
+Now ShopEasy calls PayPal’s payment API:
+
+POST https://api.paypal.com/payments
+Authorization: Bearer PAYMENT_TOKEN_ABC
+{
+  "amount": 500,
+  "order_id": "ORD789"
+}
+
+
+
+step 6: 
+
+PayPal executes the payment and returns success.
+
+{ "status": "SUCCESS" }
+
+
+
+
+
+
+Let’s break down why PayPal doesn’t just send the access token directly (and why the “4-step” flow exists instead of a simple 2-step one).
+
+
+That redirect (from PayPal → ShopEasy) happens through the user’s browser.
+
+If PayPal sent the real access token this way,
+anyone intercepting that redirect could immediately start using it to access your PayPal on behalf of ShopEasy.
+
+That’s a massive security hole.
+
+
+
+The first call happens in the user’s browser (user approves on PayPal).
+The second call happens server-to-server, so ShopEasy can safely finalize the payment without trusting anything from the browser.
+
+
+This ensures:
+
+The user can’t tamper with or fake a token.
+ShopEasy confirms it’s really talking to PayPal. 
+PayPal confirms the request comes from the registered ShopEasy backend.
+
+
+
+2 - way trust is needed that shopeasy is really talking to paypal and vice versa.
+
 
