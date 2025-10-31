@@ -170,7 +170,9 @@ ___________
 HMAC ensures the webhook request wasn’t tampered with and really came from your server.
 HMAC is used in webhooks to sign each payload with a shared secret, so the receiver can verify that the message came from the right source and wasn’t changed in transit.
 
-
+Rate Limiting
+Limit the number of requests the webhook service can accept from a specific IP or client within a certain time frame. For example, allow only 100 requests per minute per client.
+Benefit: Prevents malicious actors from overwhelming the service by sending excessive requests (Denial-of-Service attacks, aka DoS attacks).
 
 
 
