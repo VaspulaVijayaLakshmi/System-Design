@@ -1,0 +1,14 @@
+Object storage:
+
+
+
+Stores data as objects = {data + metadata + unique ID}.
+Flat structure (no folders).
+Scalable, durable, good for unstructured data like images, videos, backups.
+Access via HTTP APIs (e.g., AWS S3, Azure Blob).
+
+Use when: need high durability + huge scale, not frequent updates.
+
+Blob storage:
+
+“Blob” = Binary Large Object.
