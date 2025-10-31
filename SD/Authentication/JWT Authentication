@@ -1,0 +1,211 @@
+1. User logs in
+
+The client (browser or app) sends login credentials (like username and password) to the server.
+
+
+
+2. Server validates credentials
+
+If the credentials are correct, the server generates a JWT (JSON Web Token).
+The token typically contains:
+
+User ID or username
+Expiry time
+Optional roles or permissions
+And it’s signed with the server’s secret key
+
+
+```
+Example payload:
+
+{
+  "sub": "12345",
+  "name": "John Doe",
+  "role": "user",
+  "exp": 1761945600
+}
+```
+
+Secret Key -> Only Server has.
+
+
+
+
+3. Server sends JWT to client
+
+The server returns the token in the HTTP response (often in the response body or a header).
+
+Example:
+{
+  "token": "<jwt_here>"
+}
+
+
+4. Client stores the JWT
+
+The client saves the token — typically in:
+localStorage or sessionStorage (for web apps), or
+an in-memory variable or secure storage (for mobile apps)
+
+
+
+
+5. Client sends token with each request
+
+For every subsequent API call, the client includes this token in the Authorization header:
+Authorization: Bearer <jwt_here>
+
+
+
+6. Server verifies the token
+
+Every server can independently verify:
+
+The token’s signature (to confirm it wasn’t tampered with)
+The expiry time
+Any claims inside it:
+
+If valid, the request proceeds.
+If invalid or expired, the user must log in again.
+
+
+
+
+Conclusion:
+
+The server doesn’t store the JWT (it’s stateless).
+The client holds the JWT and sends it with each request.
+The server just verifies it when needed.
+
+
+
+
+_________________
+
+
+JWT Structure:
+
+JWT doesn’t look like a JSON object, but a set of characters.
+
+It has 3 parts:
+-> Header: It specifies the signing algorithm, such as RSA or HMAC
+-> Payload: It contains data and expiry time
+-> Signature: It shows the payload’s authenticity
+
+The payload is base64url encoded for compactness and ease of transmission across networks
+JWT (JSON Web Token) is just three Base64-encoded JSON blobs joined by dots:
+
+HEADER.PAYLOAD.SIGNATURE
+
+
+
+header: { "alg": "HS256", "typ": "JWT" }
+payload: { "userId": 42, "role": "admin", "exp": 1699999999 }
+signature: HMAC(secret, base64(header) + "." + base64(payload))
+
+
+Also PAYLOAD is not the user REQUEST PAYLOAD>
+Authentication has its own payload of guestId, role,expiration....... 
+
+
+_______________
+
+
+So server itself generates this entire token.
+Signs it also and store it in user side.
+
+So user needs to send this everytime to server.
+So again reclaukates the the signature with 
+
+ALgorithm(secret key + payload + header)
+
+SECRET KEY : only server has.
+
+
+
+Compare the two
+
+If:
+expectedSignature == signatureFromClient
+
+→ The token is valid (not tampered).
+Otherwise → reject the request as “Invalid signature”.
+
+
+
+
+After verification succeeds
+
+Once signature check passes:
+
+Server decodes the payload.
+Reads claims like userId, role, exp.
+Checks exp (expiry timestamp).
+Then proceeds to authorize access (like allowing only admins to certain APIs).
+
+
+
+_________________
+
+Scenario: “Someone steals my JWT token”
+
+Let’s say you log in → server gives you this JWT:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+
+You store it in your browser (maybe localStorage or a cookie).
+Now — someone manages to steal this token (via XSS, network sniffing, or shared link).
+
+
+
+
+What can the attacker do?
+
+They can now impersonate you —
+
+Because every time the attacker sends:
+Authorization: Bearer <your-token>
+
+the server will trust it, since the token signature is valid.
+Remember — the server doesn’t know who sent it.
+It only checks if the token’s signature is authentic (not tampered) and not expired.
+
+So if someone copies your valid token, they can hit the same endpoints as you — until it expires or is revoked.
+
+
+
+
+
+
+Why can’t the attacker modify it?
+
+Because if they change anything in the payload (like userId),
+the signature check will fail — they don’t have the secret key to generate a valid new signature.
+So they can’t forge or alter it, but they can reuse a stolen one.
+
+
+
+
+
+
+So how do we protect against this?
+
+1. Use HTTPS
+So nobody can sniff tokens in transit.
+
+2. Use short-lived access tokens
+Make them expire in, say, 15 minutes — even if stolen, attacker’s window is tiny.
+
+3. Use refresh tokens
+Store the refresh token in a secure, HttpOnly cookie.
+This lets you re-issue a new access token without re-login.
+
+
+
+
+When to Use JWTs:
+
+ - Large-scale, distributed, or microservices architectures where statelessness simplifies development and deployment.
+ - REST APIs or mobile clients, where each service should independently verify users.
+ - When horizontal scaling (multiple servers) is important, and you want to avoid complex, shared session stores.
+ - For third-party integrations or SSO (Single Sign-On), JWTs are commonly used for federated authentication.
