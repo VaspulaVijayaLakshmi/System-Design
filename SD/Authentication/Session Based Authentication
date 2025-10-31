@@ -1,0 +1,209 @@
+JWT - JSON WEB TOKEN
+https://newsletter.systemdesign.one/p/how-jwt-works
+https://www.linkedin.com/feed/update/urn:li:activity:7326939440856113152/
+
+Cookie
+
+A cookie is a small piece of data (usually a text key–value pair) that a web server stores in your browser.
+Each time you visit that site again, your browser automatically sends that cookie back — so the site knows who you are and what you were doing.
+
+
+
+You visit a website → example.com
+
+
+```
+The server responds with a header like:
+Set-Cookie: sessionId=abc123; HttpOnly; Secure; Path=/; Max-Age=3600
+```
+
+
+
+Your browser stores this cookie.
+
+```
+Next time you send a request to the same domain, the browser attaches it:
+Cookie: sessionId=abc123
+```
+
+Server sees sessionId → identifies your session → serves personalized content.
+
+
+
+
+Eg:
+
+Gift Advisor Chat Request
+
+```
+curl 'https://r2d2.perf.target.com/gift_recommendations/v1/chat' 
+\ -H 'accept: application/json' 
+\ -H 'accept-language: en-GB,en-US;q=0.9,en;q=0.8' 
+\ -H 'cache-control: no-cache' 
+\ -H 'content-type: application/json' 
+\ -b 'sapphire=1; 
+login-session=40yGsMzv6KLcQz3pyWC0b_CWyBdEjvt23y7heD4gG-M-7RUyIgMszFij3fBFhdTI; 
+profileCreatedDate=2024-12-19T08:16:06.414Z; 3YCzT93n=A2tRAheYAQAAeDZrPGIxHQB4Rx5WMaWj_OnFwTLHEnu4eYF0h2AnzKBS2DaAATuQKSyucp7CwH9eCOfvosJeCA|1|1|3ccd21db1c9932e001da15cb64ff1a4c35a823f3; 
+perf-login-session=PkYFI1QPVhMkjpKz6B5lx9OaTa_Ue2uskKDGmccRDJOEFeCSgy83OwPdkmTQfWau;
+BVBRANDID=4302b10d-7d04-4048-aed0-d6cfb790c31f; 
+UserLocation=55440|44.990|-93.270|MN|US; 
+fiatsCookie=DSI_1375|DSN_Mpls%20Nicollet%20Mall|DSZ_55403; 
+sapphire_audiences={%22base_membership%22:false%2C%22card_membership%22:false%2C%22paid_membership%22:false};
+visitorId=00000000014F0100105211CF52236870; 
+adScriptData=TN; 
+accessToken=0NzVlNGMxgzqCVKptICrTXpbkZdFdSdOboIcHSw; 
+idToken=ic2hvaGFpbCIsImZudSI6InNob2hhaWwiLCJlbSI6InNo.; 
+refreshToken=TGT.123280e5475e4fb9bd0b5b5951e25564-m; 
+stage_tdc-adScriptData=TX; 
+stage_tdc-idToken=iwic24iOm51bGx9fQ.; 
+stage_tdc-refreshToken=TGT.c10987cf6a7b413c940a970c09553a3f-m; 
+stage_tdc-accessToken=ih-RLlrNcM5IunR
+SSOSESSIONINFO=eyJ1c2VyIjoiWjAwRk5GWiIsImxvZ2luX3N0YXR1cyI6dHJ1ZSwiZGVidWdfdGltZXN0YW1wIjoxNzYxMDM2MzA2fQ==; 
+BVBRANDSID=b2301c53-3dfa-4604-8ad1-5f1a2360f129; 
+usprivacy=1NN-; 
+stateprivacycontrols=N; 
+TealeafAkaSid=GvlKadhKP2VWnfDC1vevzw3W-92dXy0X; 
+sddStore=DSI_2796|DSN_undefined|DSZ_35205; 
+,.........
+```
+
+Each cookie looks like:
+
+| Name                            | Value                                          | Purpose (likely)              |         |    |     |                                    |
+| ------------------------------- | ---------------------------------------------- | ----------------------------- | ------- | -- | --- | ---------------------------------- |
+| `sapphire`                      | `1`                                            | Feature flag / user tier      |         |    |     |                                    |
+| `login-session`                 | Long random string                             | Session ID for logged-in user |         |    |     |                                    |
+| `profileCreatedDate`            | `2024-12-19T08:16...`                          | When user profile was created |         |    |     |                                    |
+| `perf-login-session`            | Another session-like cookie                    | Internal environment session  |         |    |     |                                    |
+| `BVBRANDID`, `BVBRANDSID`       | BazaarVoice brand tracking                     |                               |         |    |     |                                    |
+| `UserLocation`                  | `55440                                         | 44.990                        | -93.270 | MN | US` | User’s detected or stored location |
+| `accessToken`                   | Long JWT                                       | Auth token (short-lived)      |         |    |     |                                    |
+| `idToken`                       | Another JWT                                    | Identity token (OpenID-style) |         |    |     |                                    |
+| `refreshToken`                  | Token to get new access token                  |                               |         |    |     |                                    |
+| `stage_tdc-*`                   | Tokens for staging environment                 |                               |         |    |     |                                    |
+| `SSOSESSIONINFO`                | Base64 JSON session info                       |                               |         |    |     |                                    |
+| `fs_uid`, `fs_lua`, `ffsession` | Front-end analytics / session-tracking cookies |                               |         |    |     |                                    |
+| `_pxvid`, `_px3`, `pxcts`       | PerimeterX bot protection cookies              |                               |         |    |     |                                    |
+| `granify.*`                     | A/B testing / personalization cookies          |                               |         |    |     |                                    
+| `wps_features`, `tgtqaorigin`   | Canary feature rollout cookies                 |                               |         |    |     |                                    |
+
+
+
+When you run that curl, it sends a request like:
+
+```
+POST /gift_recommendations/v1/chat
+Host: r2d2.perf.target.com
+Cookie: sapphire=1; login-session=...; profileCreatedDate=...; accessToken=...
+```
+
+
+
+So Target’s API receives all those cookies, just like if your browser made the call.
+The server can then:
+
+Authenticate you via accessToken or login-session
+Identify your location (UserLocation)
+Customize your gift suggestions (granify, ffsession, etc.)
+Enforce bot security (_px3, _pxvid)
+Honor privacy rules (usprivacy)
+
+
+
+
+
+
+______________
+
+
+Session Based AUthentication:
+
+
+Once the user gives credentials , server authenticates the user 
+the server creates a session object (an entry in a server-side session store, often a database, in-memory store like Redis, or a server’s local memory).
+ - The session object typically contains the user’s ID, roles, permissions, and any other necessary info.
+
+
+Session ID & Cookies:
+
+ - The server generates a unique session ID (random string).
+ - This session ID is sent to the client, almost always as an HTTP-only, secure cookie.
+ - The session data itself never leaves the server. The client only stores the session ID.
+
+
+Request Lifecycle:
+
+ - For each new HTTP request, the client’s browser automatically sends the session ID cookie.
+ - The server uses this ID to fetch user data from the session store and authorize the request.
+
+
+
+ Session Invalidation/Logout:
+
+ - To log out a user (or force logout, like after password change), the server simply deletes the session object.
+ - Any further requests with that session ID are now invalid.
+
+
+Pros:
+
+ - Centralized control. Server can forcibly log out users, immediately revoke sessions, and tightly manage access.
+ - Session data is never exposed to the client, so no risk of leaking sensitive user info through tokens.
+
+
+
+➥ Cons:
+
+ - Doesn’t scale well for distributed/microservices architectures unless sessions are stored in a shared data store (e.g., Redis, Memcached).
+ - Each request requires a lookup in the session store, which can add overhead at massive scale.
+ - More complex to implement with stateless REST APIs or across many domains/services.
+
+
+Problem in multi-server setup
+
+Let’s say you have multiple backend servers (S1, S2, S3) behind a load balancer:
+
+The session for the user might be stored only on S1.
+
+When the next request from the user’s phone or laptop goes to S2,
+→ S2 doesn’t know that session (unless all servers share a session store).
+→ The user appears logged out or unauthorized.
+
+This is called a session stickiness or session affinity issue.
+
+
+
+SOLUTION:
+
+
+Option 1: Shared Session Store
+
+All servers read and write session data from a shared location.
+Examples: Redis, Memcached, or a database.
+
+Pros:
+Works seamlessly across multiple servers.
+
+Cons:
+Slightly higher latency and overhead due to external session fetch.
+SIngle POint of failure
+
+
+
+Sticky Sessions at Load Balancer
+
+The load balancer ensures a user always connects to the same server (usually based on a cookie or IP hash).
+
+Pros:
+Simple solution that requires no code changes.
+
+Cons:
+Not ideal for scalability.
+
+If a server crashes, users tied to that server lose their sessions.
+
+
+Option 3: JWT
+
+
+
+
