@@ -164,7 +164,11 @@ We need to ACK one we process the request ANDDDDD Stored in DB
 
 
 
+___________
 
+
+HMAC ensures the webhook request wasn’t tampered with and really came from your server.
+HMAC is used in webhooks to sign each payload with a shared secret, so the receiver can verify that the message came from the right source and wasn’t changed in transit.
 
 
 
