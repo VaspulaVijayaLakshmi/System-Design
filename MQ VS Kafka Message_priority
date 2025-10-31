@@ -1,0 +1,44 @@
+RabbitMQ (supports message priority natively)
+
+RabbitMQ has priority queues built-in.
+
+How:
+When declaring a queue, you set a x-max-priority argument.
+Each message can have a priority field (0–10 for example).
+Broker automatically delivers higher-priority messages first.
+
+
+RabbitMQ internally keeps messages sorted by priority → higher ones get consumed first.
+
+
+
+
+Kafka (no native priority queue)
+
+Kafka doesn’t natively support message priorities because it’s a log-based system (append-only ordered by offset).
+Ways to handle it anyway:
+
+Option 1: Separate Topics by Priority
+topic-high-priority
+topic-normal
+topic-low-priority
+
+Consumer logic:
+Poll high-priority topic first → then normal → then low.
+Very common and scalable approach.  
+
+
+
+
+Option 2: Priority Embedded in Message
+
+Include priority in the message itself.
+Consumer reads a batch → sorts messages by priority → processes high first.  
+
+
+
+
+Standard SQS doesn’t have built-in priority, but you can:
+
+Use multiple queues (high, medium, low),
+Use a dispatcher service that polls high first.  
