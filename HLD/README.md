@@ -83,3 +83,17 @@ Sorted Sets:
 Like a Set → all elements are unique (no duplicates).
 But every element has an associated score (a floating-point number).
 Redis keeps elements ordered by score automatically.
+
+
+
+
+
+HMAC
+Nonce and Idempotent Keys
+
+| Concept             | Purpose                                      | Who Generates It                  | How It’s Used                                    |
+| ------------------- | -------------------------------------------- | --------------------------------- | ------------------------------------------------ |
+| **Nonce**           | Prevents replay attacks                      | Sender (and verified by receiver) | Stored temporarily; reject duplicates            |
+| **Idempotency Key** | Prevents duplicate processing due to retries | Client                            | Stored longer; return same response for same key |
+| **HMAC**            | Verifies authenticity/integrity              | Sender                            | Validates message hasn’t been tampered           |
+
