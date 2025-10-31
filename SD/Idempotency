@@ -34,60 +34,6 @@ system’s state unpredictably.
 
 
 
-Strategies to Implement Idempotency:
-
-
-When a client makes a request, it generates a unique ID that the server uses to track the request.
-If the server receives a request with the same ID later, it knows it’s a duplicate and discards it.
-
-
-
-from flask import Flask, request, jsonify
-import sqlite3
-
-app Flask(__name__)
-# Initialize SQLite connection
-
-
-def get_db():
-conn sqlite3.connect('database.db')
-return conn
-
-
-
-@app.route('/process_payment', methods=['POST'])
-def process_payment();
-request_id request.headers.get("Request-ID")
-db get_db()
-cursor db.cursor()
-
-
-# Check if request_id already processed
-cursor.execute("SELECT 1 FROM processed_requests WHERE request_id = ?", (request_id,))
-if cursor.fetchone():
-return jsonify({"message": "Duplicate request ignored"}), 200
-
-
-# Process payment
-#Here you would include your payment processing logic
-print("Processing payment...")
-
-
-#Mark request as processed
-cursor.execute("INSERT INTO processed_requests (request_id) VALUES (?)", (request_id,)) db.commit()
-return jsonify({"message": "Payment processed successfully"}), 200
-
-
-if __name__ == '__main__':
-app.run (debug=True)
-
-
-
-
-
-
-
-
 
 DB Operation : 
 
@@ -103,42 +49,148 @@ DB INSERT Operation isnot idempotent..
 
 
 
- Idempotency in HTTP Methods
-
-WHere as GET IS idempotent
-Put is also idempotent
-DELETE: Removes a resource from the server. 
-DELETE requests are idempotent because deleting a resource that’s already been deleted has no further effect
-
- POST IS not idempotent
-
-
-
-
 
 Idempotency in Messaging Systems
 
 We maintain alog of processed requetss and and checking against it for every incoming message.
 
-
+```
 import java.util.HashSet;
 import java.util.Set;
+
 public class MessageConsumer {
+
 private Set<String> processedMessages = new HashSet<>();
+
 public void processMessage(String messageId, String messageContent) {
 if (processedMessages.contains(messageId)) {
 System.out.println("Duplicate message ignored: + messageId); 11
 return;
 }
+
+
 // Process the message here
 System.out.println("Processing message: + messageContent); 11
 // Add messageId to processed set
 processedMessages.add(messageId);
 }
-}
 
+}
+```
 
 
 Use Locks or Versioning: Use locks, optimistic concurrency control, or version numbers to manage simultaneous requests safely.
+
+
+
+
+
+
+
+
+
+What Does “Idempotent” Mean?
+
+Idempotent means:
+Performing the same operation multiple times has the same effect as performing it once.
+
+
+
+Analogy:
+
+If you press the “Mute” button once or five times —
+the outcome is still “muted”.
+That’s idempotence.
+
+But pressing “Increase Volume” multiple times increases it each time —
+not idempotent.
+
+
+
+
+Idempotent APIs in HTTP
+
+Some HTTP methods are designed to be idempotent by spec:
+
+```
+HTTP                  Method	             Idempotent?	Why
+GET	                   Yes	               Doesn’t change state
+PUT                    Yes	               Replaces resource (same input = same state)
+DELETE	               Yes	               Deleting again has no effect
+POST	                 No	                 Creates a new resource each time (can cause duplicates)
+```
+
+
+
+Non-Idempotent:
+
+```
+POST /payments
+Body: { "amount": 100, "userId": 5 }
+
+Call it twice → user might get charged twice 
+```
+
+
+
+Idempotent:
+```
+PUT /payments/{paymentId}
+Body: { "amount": 100, "userId": 5 }
+
+
+Call it twice → only one payment with paymentId created/updated.
+```
+
+
+
+
+
+
+
+
+How to Design Idempotent APIs (esp. POSTs)
+
+Even POST can be made idempotent using a unique key.
+
+ 1️⃣ Idempotency Key
+
+Client generates a unique idempotency-key for each logical request.
+
+```
+POST /payments
+Headers: Idempotency-Key: abcd-1234
+Body: { "amount": 100, "userId": 5 }
+```
+
+
+
+2️⃣ Check for Duplicate Requests
+
+Server stores (key → result) mapping.
+If the same key is sent again → return cached response, don’t reprocess.
+Stripe, PayPal, and AWS APIs use this approach.
+
+
+
+Check for Duplicate Requests
+Before processing, check DB for an existing transaction/order ID.
+If found → skip processing, just return success.
+
+
+
+
+
+
+
+
+Problem	                                Without Idempotency	               With Idempotency
+
+Network retry	                           Might process twice	                Safe to retry
+Client resend	                           Creates duplicates	                   Safe
+Server crash mid-request	                Reprocessing causes duplicates	       Safe recovery
+Exactly-once behavior (like Kafka)	         Impossible	               Achievable
+
+Idempotency is the foundation for safe retries and exactly-once semantics in distributed systems.
 
 
