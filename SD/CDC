@@ -1,29 +1,127 @@
 https://blog.algomaster.io/p/change-data-capture-cdc
 
-CDC - CHange Dat Capture
 
-Change Data Capture (CDC) is a design pattern used to track and capture changes in a database (inserts, updates, deletes) and stream those changes in real time to downstream systems.
 
-At a high level, CDC works by continuously monitoring a database for data changes (insertions, updates, and deletions).
-When a change occurs, CDC captures the change event and makes the information available for processing.
+Change Data Capture (CDC) is a technique to detect and capture changes (INSERTs, UPDATEs, DELETEs) made to data in a source system (like a database), 
+so that those changes can be replicated or processed elsewhere in real-time or near-real-time.
 
-Maybe these can be processed using kafka/msg queue
+
+Instead of reloading entire tables each time (which is expensive), CDC just moves:
+“Only what changed, since last time.”
+
+
+You have a transactional database (like MySQL, PostgreSQL, MongoDB, etc.) — it’s your source of truth.
+But you also want fast, text-based searching and analytics, so you push the same data into Elasticsearch.
+
+
+
+
+
+Log-Based CDC (Most efficient)
+
+Reads changes directly from the DB transaction log.
+Doesn’t impact source DB performance much.
+
+
+
+Trigger-Based CDC
+
+Database triggers record changes into a separate audit/change table.
+
+Easy to understand
+Adds write latency and complexity
+
+
+
+Timestamp-Based CDC
+
+Periodically query rows with last_updated > last_sync_time.
+
+ Simple to implement
+ Can miss changes if timestamps aren’t reliable
+ Not truly real-time
+
+
+
+
+
+
+Example Use Case
+
+You have a MySQL database for orders, and you want your analytics system (BigQuery) to stay updated instantly.
+Instead of running SELECT * FROM orders every 5 minutes:
+
+
+
+Debezium listens to MySQL binlog.
+Each insert/update/delete emits an event to Kafka.
+Kafka streams it to BigQuery or Spark.
+
+
+
+
+
+
+
+
+CDC + Event-Driven Systems
+
+In modern systems, CDC acts as a bridge between databases and event streams — turning every DB change into an event that other services can consume in real time.
+
+So basically:
+CDC = Database → Event Stream → Everything stays in sync
+
+
+
+
+
+Change Data Capture (CDC) can totally happen between a database (DBA system) and Elasticsearch, and that’s actually a super common use case in production setups.
+
+
+
+
+You have a transactional database (like MySQL, PostgreSQL, MongoDB, etc.) — it’s your source of truth.
+But you also want fast, text-based searching and analytics, so you push the same data into Elasticsearch.
+
+Now the challenge is:
+
+“When data changes in my database, how do I keep Elasticsearch in sync — without reloading everything?”
+That’s where CDC comes in.
+
+
+
+
+
+ User updates row in DB (say MySQL)
+2️⃣ Database transaction log records the change
+3️⃣ CDC connector (like Debezium) reads the change from the log
+4️⃣ The connector produces an event (INSERT/UPDATE/DELETE)
+5️⃣ That event is sent to Kafka (or directly)
+6️⃣ An Elasticsearch sink connector consumes it
+7️⃣ The corresponding document in Elasticsearch is updated
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 The process typically involves:
 
-Monitoring: Detecting changes from source systems. This can be achieved through database triggers, reading transaction logs, or using specialized CDC tools.
-
-Capturing: Extracting details about the change event (such as before and after values) along with metadata (e.g., timestamp, changed table).
-
-Delivering: Transmitting the change event to consumers, which might include message queues, data pipelines, or real-time analytics systems.
 
 
 
 
 This helps in achieving event-driven architectures where applications respond to data changes as they happen.
-
-
 
 
 
@@ -33,29 +131,6 @@ Every time a row is inserted or modified, this column is updated with the curren
 
 Example Query:
 SELECT * FROM orders WHERE last_updated > '2024-02-15 12:00:00';
-
-
-Incomplete Capture: This method may not capture deleted records since the timestamp is typically updated on existing rows.
-Performance Overhead: As your data grows, frequent querying based on timestamps can impact performance, especially if indexing is not optimally configured.
-
-
-
-
-
-
-
-Trigger Based CDC:
-
-Trigger-Based CDC involves setting up database triggers that automatically log changes to a separate audit table whenever an insert, update, or delete operation occurs.
-This audit table then serves as a reliable source of change records, which can be pushed to other systems as needed.
-
-
-
-
-Log-Based CDC
-Log-Based CDC reads changes directly from the database’s write-ahead log (WAL).
- Enabling  to capture every change made to the database.
-
 
 
 
