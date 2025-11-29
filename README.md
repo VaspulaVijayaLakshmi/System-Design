@@ -107,11 +107,10 @@ Book : https://github.com/VaspulaVijayaLakshmi/System-Design/tree/main/Books
 _____________
 
 
-#LLD:
+# LLD:
 
- https://algomaster.io/learn/lld
-https://codewitharyan.com/system-design/low-level-design
-
+1. https://algomaster.io/learn/lld
+2. https://codewitharyan.com/system-design/low-level-design
 
 _____________
 
