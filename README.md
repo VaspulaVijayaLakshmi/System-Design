@@ -107,6 +107,15 @@ Book : https://github.com/VaspulaVijayaLakshmi/System-Design/tree/main/Books
 _____________
 
 
+#LLD:
+
+ https://algomaster.io/learn/lld
+https://codewitharyan.com/system-design/low-level-design
+
+
+_____________
+
+
 
 TradeOffs : https://blog.algomaster.io/p/system-design-top-15-trade-offs
 
@@ -120,9 +129,6 @@ https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/Algomasterio_Sys
 HLD : https://blog.algomaster.io/archive?sort=top
       https://github.com/karanpratapsingh/system-design
       
-LLD : https://algomaster.io/learn/lld
-
-
 
 KAFKA : https://github.com/VaspulaVijayaLakshmi/System-Design/blob/main/KAFKA/README.md
 
