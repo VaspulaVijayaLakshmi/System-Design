@@ -1,3 +1,4 @@
+```
 Map<String, Task> tasks;
 
 
@@ -9,7 +10,10 @@ public List<Task> listTaskByTaskStatus(TaskStatus taskStatus){
     
 }
 
+```
 
+
+```
 
 public class SortByDueDate implements TaskSortStrategy {
     @Override
@@ -18,7 +22,10 @@ public class SortByDueDate implements TaskSortStrategy {
     }
 }
 
+```
 
+
+```
 public class SortByPriority implements TaskSortStrategy {
     @Override
     public void sort(List<Task> tasks) {
@@ -26,9 +33,11 @@ public class SortByPriority implements TaskSortStrategy {
         tasks.sort(Comparator.comparing(Task::getPriority).reversed());
     }
 }
+```
 
 
 
+```
 public class KeywordSearchStrategy implements SearchStrategy {
     private final String keyword;
 
@@ -44,3 +53,4 @@ public class KeywordSearchStrategy implements SearchStrategy {
                 .collect(Collectors.toList());
     }
 }
+```
