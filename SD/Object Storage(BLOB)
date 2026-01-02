@@ -49,7 +49,16 @@ This will be actually stored as one object key:
 object key = "images/2025/profile.png"
 ```
 
+Why object storage has no real hierarchy
 
+Designed for scale
+Billions of objects
 
-Bucket
-Object (key + data + metadata)
+A directory tree would become a bottleneck
+Flat namespace → easy to distribute across nodes
+
+Fast lookups
+Object is fetched by key
+No need to traverse folders (/a/b/c)
+One hash lookup → direct access
+
