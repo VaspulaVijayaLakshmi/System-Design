@@ -250,6 +250,117 @@ We can have ???
 
 
 
+_______________________
+
+
+Users - submit long url and reeve short version
+
+
+
+Back of the envelope calculation:
+
+
+
+
+ApIs : 
+
+Post request
+Post long url and get short url
+
+Validate the long url - check If URL already exists in db - bloom filter
+
+
+URL may have expiration as well.
+
+
+This system is read heavy 
+
+
+
+Access 
+
+Access the original url -> we have to scan entire databases -> which is very inefficient
+
+We can create indexes - indexes based on what
+
+Or we can use bloom filter - deterministic data structure - to identify if a element is present or not
+
+We cannot conclusively say an element is present but we can say if it is not present..
+
+
+Why we cannot say if it is present -> because of collisions
+Bloom filter -> K hash fun^
+
+K indices and we mark those indices.
+
+If all k indices return 0, then it is not present else its present.
+
+
+
+How does redirection happens?
+
+Server response with HTTP redirect response
+
+
+301  -  moved permanently -   browsers cache this response. Next request are directly redirected from the cache.
+
+302 - moved temporarily - moved temporarily, browser do not cache this response.
+
+
+302 is most preferred - because we can expire links 
+                                     - if we need to  change/delete the short url
+
+
+
+
+How to generate short url?
+
+HashCode + Base62 Encoding
+
+
+we could use a hash function like SHA-256 to generate a fixed-size hash code.
+We can then take the output and encode it using a base62 encoding scheme and then take just the first N characters as our short code.
+
+
+
+Why base62? It's a compact representation of numbers that uses 62 characters (a-z, A-Z, 0-9). The reason it's 62 and not the more common base64 is because we exclude the characters + and / since those are reserved for url encoding.
+
+
+To handle collisions, implement a UNIQUE constraint on the short code column and retry with bounded attempts (e.g., max 3-5 retries).
+Upon saving to the database, we'll get an error if the short code already exists.
+
+
+Uniqueness
+
+1. Primary Key: We should designate the short code as the primary key of our table. This automatically creates an index and ensures uniqueness. By making the short code the primary key, we get the benefits of both indexing and data integrity, as the database will enforce uniqueness and optimize queries on this field. 
+
+
+Internally DBs use B_Tree Indexing
+     how can we make  re-directs fast?
+
+
+
+Redis cache - cache freq accessed urls 
+
+Cache invalidation - LRU
+CDNs - edge servers - Cache the urls.
+
+
+
+DB - PostGres
+
+Database replication 
+Database Backup - periodically taking snapshot of our db.
+
+
+
+Ready Heavy System - so we can separate concerns.
+
+Read service - Handles redirects
+Write service - handles creation of new short urls
+
+Scale independently
+
 
 
 
