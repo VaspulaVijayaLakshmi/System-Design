@@ -27,3 +27,29 @@ Data replicates across multiple servers or regions, ensuring high durability eve
 Amazon S3 (Simple Storage Service) is scalable, secure, and durable object storage from AWS. It's the most widely used object storage in the industry.
 Google Cloud Storage is flexible, fully managed object storage from Google Cloud.
 Azure Blob Storage is Microsoft's object storage solution in Azure.
+
+
+Storage Account (or Project)
+ └── Bucket
+      └── Object (key)
+
+
+
+EG:
+```
+bucket-name/
+ └── images/
+      └── 2025/
+           └── profile.png
+```
+
+This will be actually stored as one object key:
+
+```
+object key = "images/2025/profile.png"
+```
+
+
+
+Bucket
+Object (key + data + metadata)
