@@ -240,5 +240,4 @@ __________
 Difference b/w locking and Isolation 
 
 1. Locking -  control concurrent transactions
-2. 
-3. Isolation Levels  - Controls visibility of data between transactions
+2. Isolation Levels  - Controls visibility of data between transactions
