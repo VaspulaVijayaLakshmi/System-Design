@@ -234,4 +234,10 @@ Pick a system design framework and practice it until it feels natural
 - List core entities and APIs before designing anything
 - Don’t chase a perfect design, opt for something that “works and can be improved”
 
+__________
 
+
+Difference b/w locking and Isolation 
+
+Locking -  control concurrent transactions
+Isolation Levels  - Controls visibility of data between transactions
