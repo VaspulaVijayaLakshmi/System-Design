@@ -12,3 +12,5 @@ The refresh token is usually issued along with the access token and employed whe
 
 Thats the reason - in insmnia we need to keep replacing Bearer token
 Web Browser requests  we dont need to use Bearer token  because, it is replaced by refresh tojen.
+
+https://system-design-course.vercel.app/#oauth-20-and-openid-connect-oidc
