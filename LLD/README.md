@@ -54,3 +54,16 @@ public class KeywordSearchStrategy implements SearchStrategy {
     }
 }
 ```
+
+
+```
+
+In the initial design, I prioritize core functionality that delivers immediate value to users, while keeping the system simple and reliable.
+I focus on correctness, performance, and security first, along with clear APIs and data models.
+I also design with extensibility in mind so additional features can be added without major refactoring.
+
+
+I prioritize the core use cases, data consistency, and performance in the initial design. I keep the architecture simple, avoid premature optimization,
+and ensure good observability and error handling. This allows the system to scale and evolve safely as requirements grow.
+
+```
