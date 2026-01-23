@@ -1,0 +1,141 @@
+“Rental shop” just means a business that rents items to customers for a period of time, instead of selling them outright.
+
+
+-> bicycle rental shop
+
+
+
+Items to rent
+
+What is being rented? (Bicycle, Car, Tool)
+Item properties: ID, type, availability, condition
+
+
+Customers / Users
+
+Who rents the items?
+Track rental history
+
+
+
+Rental / Transaction
+
+Rental start/end date
+Fees / payment
+Status (active, returned, overdue)
+
+
+
+Inventory
+
+How many items are available
+Update when items are rented / returned
+
+
+Optional services
+
+Notifications (reminder for return)
+Late fees
+Damage tracking
+
+_________________________
+
+
+Customer / User
+
+Properties: id, name, email, phone
+Methods: viewRentalHistory()
+
+
+
+Item (Base Class)
+
+Properties: id, name, type, rentalPrice, availabilityStatus
+Subclasses: Bicycle, Car, Tool (if behavior differs)
+
+
+
+Inventory
+
+Properties: Map<Item, quantity>
+Methods: addItem(), removeItem(), checkAvailability()
+Optional: trigger notifications when low stock
+
+
+
+Rental / Transaction
+
+Properties: id, Customer, Item, rentalStartDate, rentalEndDate, status, amount
+Methods: startRental(), endRental(), calculateFee(), applyLateFee()
+Interacts with Inventory to update item availability
+
+
+
+Payment / Amount
+
+Properties: amount, currency, discount, tax
+Methods: processPayment(), refundPayment()
+
+
+Notification
+
+Methods: notifyDueDate(), notifyLateReturn()
+Can be implemented as a callback or Observer pattern
+
+
+___________
+
+
+Customer selects an item → checks Inventory for availability
+Rental.startRental() is called
+                                
+Inventory is updated to mark item as rented
+                                
+Fee is calculated via Amount
+Payment is processed
+                                
+Rental is tracked in Customer history
+On return → Rental.endRental()
+                                
+Inventory is updated
+Late fees applied if applicable
+Notifications can be triggered if items are overdue or low in stock
+
+________________
+
+
+
+Should rentItem() be thread-safe?
+
+Yes. Absolutely.
+
+Why?
+
+Multiple users can try to rent the same item at the same time
+Without protection → double booking, negative inventory
+
+What must be protected
+
+Inventory update
+Item availability check + decrement must be atomic                                
+
+
+
+_______________
+
+
+                                
+“The rentItem() operation needs to be atomic. I would ensure thread safety either using synchronized blocks,
+locks, or database-level transactions so that availability checks and inventory updates happen consistently.”
+
+
+
+Options you can mention
+
+Application-level lock (synchronized / mutex)
+DB transaction with row-level locking (preferred in real systems)
+
+
+________
+                                
+                                
