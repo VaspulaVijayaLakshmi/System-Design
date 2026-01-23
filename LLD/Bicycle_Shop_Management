@@ -1,0 +1,114 @@
+How would you approach designing an object-oriented model for a bicycle shop management system?
+
+
+Shop Management
+
+
+Customer Class
+Bicycle Class -> We can have different model types -> ENUM
+or we can have Bicycle Generic class -> and then extend classes - for different bikes. - Inheritance
+
+“Inventory maintains a mapping from a bicycle identifier (or model) to available quantity.”
+
+Why this is good design
+
+If asked why a map:
+
+O(1) lookup
+Easy to update stock
+Scales as models increase
+
+
+“When inventory is updated after a purchase, the system can check threshold rules. If stock falls below a configured level, it notifies interested parties like the owner or staff.”
+“This can be implemented using the Observer pattern so inventory doesn’t directly depend on notification channels.”
+
+If it’s a small system → simple callback / service is enough
+Observer pattern is justified only because thresholds + multiple listeners exist
+
+
+_______________
+
+
+Purchase class models one purchase event.
+
+Tracks:
+
+Which user (User) made the purchase
+What items (Bicycle) were bought
+Amount paid (Amount or just a price field)
+Timestamp, status (pending, completed)
+
+
+
+
+
+
+           +----------------+
+           |      User      |
+           +----------------+
+           | id             |
+           | name           |
+           | email          |
+           | address        |
+           +----------------+
+           | +purchaseHistory |
+           +----------------+
+                    |
+                    | has many
+                    v
+           +----------------+
+           |   Purchase     |
+           +----------------+
+           | id             |
+           | List<Bicycle>  |
+           | Amount         |
+           | timestamp      |
+           | status         |
+           +----------------+
+           | +executePurchase() |
+           +----------------+
+                    |
+        interacts with/updates
+                    v
+           +----------------+
+           |   Inventory    |
+           +----------------+
+           | Map<Bicycle, qty> |
+           +----------------+
+           | +addStock()      |
+           | +removeStock()   |
+           | +checkThreshold()|
+           +----------------+
+                    |
+         notifies via Observer / Callback
+                    v
+           +----------------+
+           | Notification   |
+           +----------------+
+           | +notifyStaff() |
+           +----------------+
+                    
+
+
+
+          Bicycle (Base Class)
+          ------------------
+          | id            |
+          | modelName     |
+          | type          |
+          | price         |
+          ------------------
+                  ^
+         ---------------------
+         |        |          |
+      Mountain  RoadBike   Hybrid
+
+
+
+
+User selects bicycles → adds to Purchase.
+Purchase calculates Amount (total price, taxes, discounts).
+Purchase.executePurchase() checks Inventory for stock.
+Deducts stock; triggers Notification if below threshold.
+Validates payment; marks purchase COMPLETED or FAILED.
+Updates User purchase history.
