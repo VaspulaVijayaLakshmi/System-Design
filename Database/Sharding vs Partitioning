@@ -1,1 +1,8 @@
+| Feature        | Partitioning | Sharding            |
+| -------------- | ------------ | ------------------- |
+| Scope          | Same DB      | Multiple DB servers |
+| Purpose        | Performance  | Scalability         |
+| Hardware       | Same machine | Different machines  |
+| Failure impact | Single point | Partial failure     |
+| Complexity     | Low          | High                |
 
