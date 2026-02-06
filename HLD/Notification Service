@@ -80,3 +80,125 @@ Works well with async queues + batching
                  │ Retry / DLQ      │
                  │ (Backoff + CB)   │
                  └──────────────────┘
+
+
+
+
+
+Example with multiple users
+User U1
+
+Phone (Android)
+
+Customer App → Token T1
+Delivery App → Token T2
+
+Tablet (Android)
+Customer App → Token T3
+
+
+
+User U2
+
+Phone (iOS)
+Customer App → Token T4
+
+Phone (Android)
+Restaurant App → Token T5
+
+
+
+
+Clients register tokens and request notifications.
+
+Notification API validates and routes requests.
+Token Registry Service stores and manages device/app tokens.
+Orchestrator fetches tokens and performs async fan-out.
+Messages go to Queue for decoupling and buffering.
+
+Workers consume messages:
+Batch notifications
+Apply retry + exponential backoff
+Use circuit breaker per provider
+
+Providers (FCM/APNS) deliver notifications.
+Failures beyond retries go to DLQ for analysis.
+
+
+
+
+
+
+
+Who sends the request for token registration?
+✅ The client app itself
+
+Flow
+
+Mobile / Web App
+   ↓
+Token Registry API
+
+Why client?
+
+Token is generated inside the app by FCM/APNS
+Backend cannot generate or guess it
+
+Only the app knows:
+current token
+refresh events
+uninstall/reinstall lifecycle
+
+Typical registration flow (very important)
+
+User logs in
+
+App gets token from FCM/APNS
+
+App calls backend
+
+POST /tokens/register
+{
+  "userId": "U1",
+  "deviceId": "D1",
+  "appType": "CUSTOMER",
+  "platform": "ANDROID",
+  "provider": "FCM",
+  "token": "T1"
+}
+
+
+Backend stores / updates token
+
+
+
+Who sends requests to Notification Orchestrator?
+✅ Backend services, not clients
+
+Examples:
+
+Order Service
+
+Payment Service
+
+Delivery Service
+
+Admin tools
+
+Order Service
+   ↓
+Notification Orchestrator
+
+
+
+Very important interview distinction (say this)
+
+“Token registration APIs are client-facing, notification orchestration APIs are internal service-to-service.”
+
+This line alone clears confusion and scores points.
+
+
+
+
+
+
