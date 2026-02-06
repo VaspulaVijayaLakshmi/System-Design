@@ -1,1 +1,82 @@
-Notification Service  - client agnostic SHould send updates whthers its a web app, app,
+Notification Service  - client agnostic SHould send updates whthers its a web app, app.
+
+
+What is FCM?
+
+FCM is Google’s push notification service used to send notifications to:
+
+Android apps
+Web apps
+iOS apps (via APNS bridge)
+
+Why FCM is used
+
+Reliable delivery
+Handles device connectivity
+Manages token routing
+Scales automatically
+
+
+You don’t talk directly to devices — you talk to FCM.
+
+
+Why FCM fits push notification systems
+
+No need to manage device connections
+Built-in retries
+Works well with async queues + batching
+
+
+
+
+        ┌───────────────────┐
+        │   Business        │
+        │   Services        │
+        │ (Order / Payment  │
+        │  Delivery etc.)   │
+        └────────┬──────────┘
+                 │
+                 │ Notification Event
+                 ▼
+        ┌──────────────────────┐
+        │ Notification API /   │
+        │ Orchestrator Service │
+        └────────┬─────────────┘
+                 │
+      ┌──────────┴───────────┐
+      │                      │
+      ▼                      ▼
+┌───────────────┐    ┌──────────────────┐
+│ Token Registry│    │ Fan-out Engine   │
+│ Service + DB  │    │ (Async)          │
+└───────────────┘    └────────┬─────────┘
+                              │
+                              │ Enqueue per token
+                              ▼
+                    ┌──────────────────┐
+                    │ Message Queue    │
+                    │ (Kafka / SQS)    │
+                    └────────┬─────────┘
+                             │
+             ┌───────────────┴───────────────┐
+             │                               │
+             ▼                               ▼
+    ┌──────────────────┐            ┌──────────────────┐
+    │ Push Worker      │            │ Push Worker      │
+    │ (FCM)            │            │ (APNS)           │
+    │ Batch + Retry    │            │ Batch + Retry    │
+    └────────┬─────────┘            └────────┬─────────┘
+             │                                │
+             ▼                                ▼
+      ┌──────────────┐                ┌──────────────┐
+      │ FCM Provider │                │ APNS Provider│
+      └──────────────┘                └──────────────┘
+             │                                │
+        Success / Failure               Success / Failure
+             │                                │
+             └──────────────┬────────────────┘
+                            ▼
+                 ┌──────────────────┐
+                 │ Retry / DLQ      │
+                 │ (Backoff + CB)   │
+                 └──────────────────┘
