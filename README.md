@@ -263,6 +263,8 @@ _________
 9. Design a Text Storage Service like Pastebin
 10. Design Unified Payments Interface (UPI)
 
+
+
 ➤ 𝐌𝐞𝐝𝐢𝐮𝐦
 11. Design Tinder
 12. Design Twitter
@@ -286,6 +288,8 @@ _________
 31. Design Autocomplete for Search Engines
 32. Design a Distributed Message Queue like Kafka
 33. Design an Analytics Platform (Metrics & Logging)
+
+
 
 ➤ 𝐇𝐚𝐫𝐝
 34. Design Uber
