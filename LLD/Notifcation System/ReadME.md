@@ -23,4 +23,39 @@ Consider extensibility and modularity to accommodate future changes or additions
 Your design should focus on class structure and organization while promoting code reusability and maintainability. It should provide a clear and intuitive way to handle user subscriptions, notification creation, and delivery across different channels.
 
 
+___________________
+
+
+API Gateway: The entry point for client requests (e.g., promotional alerts or OTPs). It handles authentication, rate limiting, and request validation.
+
+Notification Service: Receives requests from the Gateway. It performs basic processing and sends messages to the message queue. It interacts with the User Preference Service to determine which channels (Email, SMS, Push) a user has opted into.
+
+Message Queue (Kafka/SQS): Decouples the notification service from the delivery workers. It allows for priority-based processing (e.g., OTPs in a high-priority queue vs. newsletters in a low-priority queue).
+
+Notification Workers: These microservices consume messages from the queue. Each worker is dedicated to a specific channel (e.g., SMS worker, Push worker) to allow independent scaling.
+
+Third-Party Providers: Workers call external APIs like Twilio (SMS), SendGrid (Email), or Firebase Cloud Messaging (Push).
+
+Retry & Dead Letter Queue (DLQ): If a delivery fails, the system retries with exponential backoff. Persistent failures are moved to a DLQ for manual inspection.
+
+
+_______________
+
+
+
+The LLD focuses on class structures, design patterns, and internal logic to make the system maintainable.
+
+-> Factory Pattern: Used to create the appropriate NotificationSender (SMS, Email, or Push) based on the channel type. This makes the system easily extendable to new channels like WhatsApp.
+-> Strategy Pattern: Each delivery method implements a common interface (e.g., send(Notification n)). This decouples the core logic from specific provider implementations.
+
+
+Core Entities:
+
+-> User: Unique ID and contact info.
+-> Notification: Payload containing message, subject, and priority.
+-> UserPreference: Stores opt-in/opt-out settings for different notification types.
+-> Idempotency: To prevent duplicate notifications (e.g., during a retry), each notification should have a unique requestID stored in a distributed cache like Redis.
+
+_____________
+
 
