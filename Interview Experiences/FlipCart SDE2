@@ -19,3 +19,7 @@ For simplicity we will assume that there is only 1 external seller registered on
 
 Optional:
 Have a mechanism in place to automatically cancel an order and free up the provisional inventory reserved if the order is not confirmed within a particular time duration after creation.
+
+
+
+https://leetcode.com/discuss/post/3918884/phonepe-machine-coding-design-order-mana-39fp/
