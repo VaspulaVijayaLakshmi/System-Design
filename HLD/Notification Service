@@ -1,3 +1,28 @@
+At a high level, any notification system has a few key parts. First, you have the Event Producers. These are the services that generate events, like a 'like' service or a 'comment' service. When an action happens, they send a message.
+
+Next, this message doesn't go directly to the user. It goes to a central Notification Service. This service is the brain. It needs to figure out who should receive the notification. For a 'like' on a photo, it's the photo's owner. For a comment, it could be the post owner and anyone tagged.
+
+To handle the massive volume of these events, we use Message Queues like Kafka or RabbitMQ. These act as a buffer, ensuring that even if the Notification Service is temporarily overwhelmed, no events are lost. This decoupling is crucial for a resilient architecture.
+
+Finally, once the Notification Service determines the recipients, it needs to actually send the push notification. It does this by communicating with third party Push Notification Services like Apple Push Notification Service (APNs) for iOS and Firebase Cloud Messaging (FCM) for Android.
+
+
+
+
+The Billion User Problem: Fanout
+The real complexity comes with scale. Imagine a celebrity with 100 million followers posts an update. How do you notify all of them instantly? This is the classic fanout problem.
+
+Fanout on Write is a common approach. When the celebrity posts, the system immediately identifies all 100 million followers and generates a notification for each one, pushing them into a queue. This is great for the followers because the notification is ready to be read instantly. However, it creates a massive write load on your system. It's a 'write storm'.
+
+Alternatively, you could use Fanout on Read. When a user opens their app, the system checks all the people they follow to see if there are any new updates. This is easier on your write system but creates a heavy read load and isn't suitable for real time push notifications. For our use case, a well optimized Fanout on Write strategy is generally preferred.
+
+In an interview, discussing the tradeoffs between these approaches and considering a hybrid model for users with a huge number of followers shows a deep level of understanding.
+
+
+
+
+
+
 Notification Service  - client agnostic SHould send updates whthers its a web app, app.
 
 
