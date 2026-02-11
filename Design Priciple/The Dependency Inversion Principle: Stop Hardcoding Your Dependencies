@@ -1,0 +1,38 @@
+Lets look at the below code:
+
+class OrderService {
+    private PayPalPaymentProcessor paymentProcessor = new PayPalPaymentProcessor();
+    
+    public void processOrder(Order order) {
+        paymentProcessor.charge(order.getAmount());
+    }
+}
+Looks simple? It's a ticking time bomb. What happens when you need to support Stripe? Or Razorpay? Rewrite everything?
+
+What is Dependency Inversion Principle (DIP)?
+DIP states: High-level modules should not depend on low-level modules. Both should depend on abstractions.
+
+Translation: Your business logic shouldn't care how payments are processed, only that they are processed.
+
+
+interface PaymentProcessor {
+    PaymentResult charge(BigDecimal amount);
+}
+
+class OrderService {
+    private final PaymentProcessor paymentProcessor;
+    
+    // Dependency injected, not created
+    public OrderService(PaymentProcessor paymentProcessor) {
+        this.paymentProcessor = paymentProcessor;
+    }
+    
+    public void processOrder(Order order) {
+        paymentProcessor.charge(order.getAmount());
+    }
+}
+
+// Multiple implementations possible
+class PayPalPaymentProcessor implements PaymentProcessor { ... }
+class StripePaymentProcessor implements PaymentProcessor { ... }
+class RazorpayPaymentProcessor implements PaymentProcessor { ... }
