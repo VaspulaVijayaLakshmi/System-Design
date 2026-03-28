@@ -1,0 +1,37 @@
+To handle millions of records:
+
+Use B+ Tree indexing for fast lookups
+Optimize queries to leverage indexes
+Use pagination instead of full scans - Pagination (avoid full scans)
+
+
+Apply partitioning to reduce data scanned
+
+-> Partitioning (very important at scale)
+
+Split large table into chunks:
+
+By date (2023, 2024)
+By user_id (hash/range)
+
+Now query hits only one partition, not entire table.
+
+
+
+Use sharding when a single DB can't scale
+
+-> Sharding (when one DB is not enough)
+
+Distribute data across machines:
+
+User-based sharding:
+
+user_id % N
+
+Tradeoff:
+
+Hard joins across shards
+
+
+Add caching to reduce DB load
+Use denormalization & precomputation for heavy reads
