@@ -3,3 +3,83 @@ https://leetcode.com/discuss/post/1082786/system-design-designing-a-distributed-
 https://blog.algomaster.io/p/design-a-distributed-job-scheduler
 
 https://medium.com/@mayilb77/design-a-distributed-job-scheduler-for-millions-of-tasks-in-daily-operations-4132dc6d645f
+
+
+
+ask Scheduler, you mainly need to answer:
+
+How jobs are stored
+How workers pick them
+How retries/status are tracked
+Core Tables (clean and interview-ready)
+1. Jobs Table (main table)
+jobs (
+  job_id           BIGINT PRIMARY KEY,
+  user_id          BIGINT,
+  scheduled_time   TIMESTAMP,
+  status           ENUM('PENDING', 'RUNNING', 'COMPLETED', 'FAILED'),
+  payload          JSON,
+  retry_count      INT,
+  max_retries      INT,
+  created_at       TIMESTAMP,
+  updated_at       TIMESTAMP
+)
+Why this works
+job_id → direct lookup
+scheduled_time → scheduling
+status → worker coordination
+payload → actual work data
+2. Indexes (THIS is where you score points)
+
+You should explicitly say this in interview:
+
+Index on (scheduled_time) → fetch next jobs fast
+Index on (status, scheduled_time) → fetch only PENDING jobs
+Primary key on job_id
+How queries look (important)
+Fetch next jobs to execute
+SELECT * 
+FROM jobs 
+WHERE status = 'PENDING' 
+  AND scheduled_time <= NOW() 
+ORDER BY scheduled_time 
+LIMIT 100;
+
+Explain:
+
+“This uses the (status, scheduled_time) index → efficient even with millions of rows”
+
+Update job when picked by worker
+UPDATE jobs 
+SET status = 'RUNNING' 
+WHERE job_id = ?;
+Optional Table (adds depth if asked)
+3. Job Execution Logs
+job_executions (
+  execution_id   BIGINT PRIMARY KEY,
+  job_id         BIGINT,
+  status         ENUM('SUCCESS', 'FAILED'),
+  started_at     TIMESTAMP,
+  finished_at    TIMESTAMP,
+  error_message  TEXT
+)
+
+Why:
+
+“Helps debugging, retries, observability”
+
+If they push for scale (very likely)
+
+Say this:
+
+1. Avoid DB overload
+Scheduler pushes jobs to queue (Kafka/SQS)
+Workers consume from queue instead of DB polling
+2. Partitioning
+Partition table by scheduled_time
+Keeps queries fast
+3. Archival
+Move old jobs to cold storage
+One strong line (use this in interview)
+
+“DB is the source of truth, but execution should be decoupled via a queue to handle scale.”
