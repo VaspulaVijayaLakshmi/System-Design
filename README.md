@@ -1,6 +1,7 @@
 # Tools : 
 https://systemdesignschool.io/resource-estimator
 
+https://www.hellointerview.com/community/submissions/system-design
 
 # System-Design
 
