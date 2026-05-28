@@ -34,169 +34,188 @@ _______________________
 
 
 
+# Concurrency Control
 
-
-# Locking Strategies
-
-Locking strategies define **HOW databases achieve isolation and concurrency control**.
-
-There are two major approaches:
+Concurrency control ensures multiple transactions can run simultaneously while maintaining data consistency and correctness.
 
 ---
 
-# 1. Pessimistic Locking
+# Components of Concurrency Control
 
-## Assumption
-
-Conflicts **WILL happen**.
-
-So the database locks the data immediately before modification.
+```text id="szt0v8"
+Concurrency Control
+        │
+        ├── Isolation Levels
+        │       ├── Read Committed
+        │       ├── Repeatable Read
+        │       └── Serializable
+        │
+        ├── Pessimistic Locking
+        │       └── Uses locks immediately
+        │
+        ├── Optimistic Locking
+        │       └── Uses version checking
+        │
+        └── MVCC
+                └── Keeps multiple row versions internally
+```
 
 ---
 
-## Flow
+# 1. Isolation Levels
 
-* Read row
-* Lock row
-* Modify row
-* Commit transaction
-* Release lock
+Isolation levels define:
+
+```text id="5gdrgm"
+"What consistency guarantees should transactions have?"
+```
+
+They control what kind of anomalies are allowed.
 
 ---
 
-## Example
+## Read Committed
 
-```sql
+* Each query sees only committed data
+* New queries can see newer committed values
+
+Possible issue:
+
+* Non-repeatable reads
+
+---
+
+## Repeatable Read
+
+* Transaction sees same snapshot throughout execution
+* Repeated reads return same result
+
+Possible issue:
+
+* Phantom reads (depending on DB)
+
+---
+
+## Serializable
+
+* Highest isolation level
+* Transactions behave as if executed one-by-one sequentially
+
+Most correct but slowest.
+
+---
+
+# 2. Pessimistic Locking
+
+Assumes:
+
+```text id="0ok2na"
+conflicts WILL happen
+```
+
+So rows are locked immediately.
+
+Example:
+
+```sql id="jlwm70"
 SELECT * FROM account
-WHERE id = 1
+WHERE id=1
 FOR UPDATE;
 ```
 
-This locks the row.
-
-Now:
-
-* other transactions cannot modify this row
-* they must wait until transaction completes
+Other transactions must wait until lock released.
 
 ---
 
-## Use Cases
+## Best For
 
-* Banking systems
+* Banking
 * Ticket booking
-* Seat reservation
 * Flash sales
-* Wallet balance updates
+* Wallet systems
 
 ---
 
-## Why Use It?
+# 3. Optimistic Locking
 
-Used when:
+Assumes:
 
-* conflicts are frequent
-* correctness is extremely important
-* retries are expensive
+```text id="jlwm71"
+conflicts are rare
+```
 
----
-
-# 2. Optimistic Locking
-
-## Assumption
-
-Conflicts are rare.
-
-So no lock is taken initially.
+No lock initially.
 
 Instead:
 
-* read data
-* modify locally
-* during update/commit check whether someone already changed the row
+* read row
+* modify
+* during update check if row changed
 
-Usually implemented using a `version` column.
+Usually implemented using:
 
----
-
-## Example Table
-
-| id | balance | version |
-| -- | ------- | ------- |
-| 1  | 100     | 5       |
-
----
-
-## Flow
-
-Transaction reads:
-
-```text
-balance = 100
-version = 5
+```text id="jlwm72"
+version column
 ```
 
-Then updates:
+Example:
 
-```sql
+```sql id="jlwm73"
 UPDATE account
-SET balance = 200,
-    version = 6
-WHERE id = 1
-  AND version = 5;
+SET balance=200,
+    version=6
+WHERE id=1
+  AND version=5;
 ```
 
----
-
-## Conflict Detection
-
-If another transaction already updated the row:
-
-```text
-version becomes 6
-```
-
-Then:
-
-```text
-0 rows updated
-```
-
-which means:
+If version mismatch:
 
 * conflict detected
 * retry transaction
 
 ---
 
-## Use Cases
+## Best For
 
-* E-commerce inventory
+* Social media systems
 * User profile updates
 * Collaborative editing
-* Social media systems
 * Analytics systems
 
 ---
 
-## Why Use It?
+# 4. MVCC (Multi Version Concurrency Control)
 
-Used when:
+MVCC is an internal DB mechanism.
 
-* conflicts are uncommon
-* high concurrency needed
-* locking overhead should be avoided
+Database keeps multiple versions of rows instead of overwriting immediately.
+
+Conceptually:
+
+| value | created_by | deleted_by |
+| ----- | ---------- | ---------- |
+| 100   | TX1        | TX2        |
+| 200   | TX2        | null       |
+
+This allows:
+
+* readers and writers to work concurrently
+* snapshot-based reads
+* fewer locks
+
+Used internally by:
+
+* PostgreSQL
+* MySQL InnoDB
 
 ---
 
-# Quick Comparison
+# Overall Mapping
 
-| Aspect             | Pessimistic Locking   | Optimistic Locking        |
-| ------------------ | --------------------- | ------------------------- |
-| Assumption         | Conflicts common      | Conflicts rare            |
-| Locking            | Immediate             | No initial lock           |
-| Conflict Detection | Before modification   | During commit/update      |
-| Concurrency        | Lower                 | Higher                    |
-| Waiting            | Transactions may wait | Usually retry on conflict |
-| Best For           | Critical correctness  | High scalability          |
-                
+| Component           | Purpose                                     |
+| ------------------- | ------------------------------------------- |
+| Isolation Levels    | Define required consistency                 |
+| Pessimistic Locking | Prevent conflicts using locks               |
+| Optimistic Locking  | Detect conflicts during commit              |
+| MVCC                | Internal mechanism for snapshots/versioning |
+
