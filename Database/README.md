@@ -33,18 +33,170 @@ _______________
 _______________________
 
 
-Concurrency Control
-        │
-        ├── Isolation Levels
-        │       ├── Read Committed
-        │       ├── Repeatable Read
-        │       └── Serializable
-        │
-        ├── Pessimistic Locking
-        │       └── Uses locks immediately
-        │
-        ├── Optimistic Locking
-        │       └── Uses version checking
-        │
-        └── MVCC
-                └── Keeps multiple row versions internally
+
+
+
+# Locking Strategies
+
+Locking strategies define **HOW databases achieve isolation and concurrency control**.
+
+There are two major approaches:
+
+---
+
+# 1. Pessimistic Locking
+
+## Assumption
+
+Conflicts **WILL happen**.
+
+So the database locks the data immediately before modification.
+
+---
+
+## Flow
+
+* Read row
+* Lock row
+* Modify row
+* Commit transaction
+* Release lock
+
+---
+
+## Example
+
+```sql
+SELECT * FROM account
+WHERE id = 1
+FOR UPDATE;
+```
+
+This locks the row.
+
+Now:
+
+* other transactions cannot modify this row
+* they must wait until transaction completes
+
+---
+
+## Use Cases
+
+* Banking systems
+* Ticket booking
+* Seat reservation
+* Flash sales
+* Wallet balance updates
+
+---
+
+## Why Use It?
+
+Used when:
+
+* conflicts are frequent
+* correctness is extremely important
+* retries are expensive
+
+---
+
+# 2. Optimistic Locking
+
+## Assumption
+
+Conflicts are rare.
+
+So no lock is taken initially.
+
+Instead:
+
+* read data
+* modify locally
+* during update/commit check whether someone already changed the row
+
+Usually implemented using a `version` column.
+
+---
+
+## Example Table
+
+| id | balance | version |
+| -- | ------- | ------- |
+| 1  | 100     | 5       |
+
+---
+
+## Flow
+
+Transaction reads:
+
+```text
+balance = 100
+version = 5
+```
+
+Then updates:
+
+```sql
+UPDATE account
+SET balance = 200,
+    version = 6
+WHERE id = 1
+  AND version = 5;
+```
+
+---
+
+## Conflict Detection
+
+If another transaction already updated the row:
+
+```text
+version becomes 6
+```
+
+Then:
+
+```text
+0 rows updated
+```
+
+which means:
+
+* conflict detected
+* retry transaction
+
+---
+
+## Use Cases
+
+* E-commerce inventory
+* User profile updates
+* Collaborative editing
+* Social media systems
+* Analytics systems
+
+---
+
+## Why Use It?
+
+Used when:
+
+* conflicts are uncommon
+* high concurrency needed
+* locking overhead should be avoided
+
+---
+
+# Quick Comparison
+
+| Aspect             | Pessimistic Locking   | Optimistic Locking        |
+| ------------------ | --------------------- | ------------------------- |
+| Assumption         | Conflicts common      | Conflicts rare            |
+| Locking            | Immediate             | No initial lock           |
+| Conflict Detection | Before modification   | During commit/update      |
+| Concurrency        | Lower                 | Higher                    |
+| Waiting            | Transactions may wait | Usually retry on conflict |
+| Best For           | Critical correctness  | High scalability          |
+                
