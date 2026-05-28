@@ -13,6 +13,9 @@
 
 
 
+_______________
+
+
 | Use Case                 | Why Optimistic?                   | Why Pessimistic?                       |
 | ------------------------ | --------------------------------- | -------------------------------------- |
 | E-commerce inventory     | Conflicts relatively low normally | During flash sales/high contention     |
@@ -25,3 +28,23 @@
 | Collaborative editing    | Many reads, occasional conflicts  | Locks hurt UX                          |
 | Wallet balance updates   | Risk of lost updates              | Safer with locks                       |
 | Order processing         | Sometimes optimistic enough       | Use pessimistic for critical inventory |
+
+
+_______________________
+
+
+Concurrency Control
+        │
+        ├── Isolation Levels
+        │       ├── Read Committed
+        │       ├── Repeatable Read
+        │       └── Serializable
+        │
+        ├── Pessimistic Locking
+        │       └── Uses locks immediately
+        │
+        ├── Optimistic Locking
+        │       └── Uses version checking
+        │
+        └── MVCC
+                └── Keeps multiple row versions internally
