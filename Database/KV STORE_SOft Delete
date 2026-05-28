@@ -1,0 +1,48 @@
+When key is created:
+store expiry_time = now + ttl
+
+During reads:
+if current_time > expiry_time
+    key considered expired
+
+This check is cheap.
+
+To avoid keeping expired keys forever:
+background cleanup jobs periodically delete them.
+
+This combines:
+1. Lazy expiration during reads
+2. Periodic cleanup in background
+
+
+
+Soft delete (is_expired) usually unnecessary because:
+
+expiry_time already tells whether expired
+extra column increases storage/indexing
+
+
+
+Real systems like Redis do:
+
+1. Passive Expiration
+Check expiry during read.
+
+2. Active Expiration
+Background thread randomly scans and deletes expired keys.
+
+
+
+Also in INSERTION IN KVstore
+
+
+SO when inserting do we retreive the kets
+With select then update those columns?
+
+with those value?
+
+
+We can simply do Upset query.
+
+UPSERT -> INSERT + UPDATE
+Insert if not exists and update if existss.
