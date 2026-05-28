@@ -1,0 +1,154 @@
+Flash Sale Example
+
+Suppose:
+
+100 iPhones available
+
+Flash sale starts.
+
+1 million users click BUY simultaneously
+
+If all requests directly hit DB:
+
+UPDATE inventory
+SET stock = stock - 1
+
+then:
+
+huge DB contention
+lock waits
+retries
+DB crash possibility
+
+
+
+
+So real systems use multiple layers.
+
+
+________________________________
+
+Step 1 — Redis Atomic Stock Check
+
+Stock stored in Redis:
+
+stock:iphone = 100
+
+When user clicks BUY:
+DECR stock:iphone
+
+Redis operation is atomic.
+
+So:
+
+only first 100 users succeed
+others instantly rejected
+
+This prevents:
+
+overselling
+
+
+________________________________
+
+Step 2 — Queue Requests
+
+Successful users placed into queue:
+
+Kafka / RabbitMQ
+
+Why?
+
+Instead of:
+1M requests hitting DB together
+
+queue smooths traffic.
+
+________________________________
+
+Step 3 — Sequential Order Processing
+
+Order workers consume queue gradually.
+
+Example:
+
+Worker 1 processes UserA
+Worker 2 processes UserB
+
+Now DB load controlled.
+
+________________________________
+
+Step 4 — DB Update
+
+Now final inventory updated safely.
+
+Possible approaches:
+
+Optimistic Locking
+UPDATE inventory
+SET stock=99, version=6
+WHERE version=5;
+
+Good when contention manageable.
+
+
+
+Pessimistic Locking
+SELECT * FROM inventory
+WHERE item='iphone'
+FOR UPDATE;
+
+Used for strict correctness.
+
+Ensures:
+
+no simultaneous modification
+
+________________________________
+
+
+Why cant we dorectly use DB locks - pessimistoc locking for updates
+
+
+If 1M users directly wait on DB locks:
+DB becomes bottleneck
+Too many blocked transactions.
+
+________________________________
+
+So systems:
+
+filter traffic at Redis
+serialize via queues
+use DB locking only at final stage
+
+
+
+
+Final Architecture
+Users
+  ↓
+Redis Atomic Counter
+  ↓
+Queue (Kafka)
+  ↓
+Order Workers
+  ↓
+DB with locking
+  ↓
+Order Confirmed
+
+
+
+Main Idea
+
+
+Redis
+fast stock reservation
+
+Queue
+smooth traffic spikes
+
+DB Locking
+final correctness guarantee
