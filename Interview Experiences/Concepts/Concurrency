@@ -1,0 +1,216 @@
+Concurrency control when there are multiple threads. 
+Concurrency control if our application is made distributed and we are using a central database. 
+Concurrency when both app and db are distributed.
+
+
+
+1. 
+
+Single machine (multi-threaded app)
+
+Problem
+
+Multiple threads accessing shared memory/resources → race conditions.
+
+What can go wrong
+Lost updates
+Dirty reads (in-memory)
+Inconsistent state
+
+
+Solutions:
+
+Locks (mutex / synchronized)
+Only one thread enters critical section
+
+Read-Write locks
+Many readers, one writer
+
+Thread-safe structures
+ConcurrentHashMap, blocking queues
+
+
+_______________
+
+
+
+2. 
+
+Distributed app + single central DB
+
+
+Problem
+
+Multiple app instances → all hitting same DB concurrently.
+Now DB becomes the “source of truth + concurrency controller”.
+
+What can go wrong
+
+Double booking / double spend
+Lost updates across services
+
+
+
+Solutions (most important interview area):
+
+1. DB locks
+
+Row-level locks (SELECT ... FOR UPDATE
+Pessimistic locking
+Good for strict consistency
+
+
+2. Optimistic locking (very common)
+Add version column
+
+
+Update like:
+
+UPDATE table
+SET value = ?, version = version + 1
+WHERE id = ? AND version = ?
+If 0 rows updated → conflict detected
+
+
+
+3. Unique constraints (
+Prevent duplicates at DB level
+Example: booking_id unique
+
+
+4. Idempotency keys
+API safe retry mechanism
+Prevent duplicate processing due to retries
+
+
+5. Transactions
+ACID guarantees inside DB
+Ensures atomicity across multiple updates
+
+
+_________________
+
+3.
+
+
+Fully distributed system (app + DB both distributed)
+
+Now it gets interesting. No single global lock exists.
+
+Problem:
+
+Multiple services
+Multiple DBs
+Network failures
+Partial updates
+
+
+
+A. Distributed locking (careful with this)
+Redis lock / Zookeeper ..
+
+
+Probelms :
+
+Network partition issues
+Deadlocks if not handled properly
+Expiry-based locks can be unsafe
+
+
+
+
+
+B. Saga pattern (VERY important)
+
+Instead of one big transaction:
+
+You do steps + compensating actions.
+
+Example:
+
+Payment service charges money
+Order service creates order
+Inventory service reserves stock
+
+If step 3 fails:
+
+Compensate step 2 (cancel order)
+Compensate step 1 (refund)
+
+Types:
+
+Choreography (event-driven)
+Orchestration (central coordinator)
+
+
+SEE In Hotel Booking System HLD Section
+
+
+
+C. Eventual consistency
+Systems sync asynchronously
+Data may be temporarily inconsistent
+
+
+
+D. Idempotency everywhere
+
+Because:
+
+retries WILL happen
+network WILL fail
+
+So every operation must be safe to retry
+
+
+
+
+E. Message queues
+
+Kafka / SQS style flow:
+
+Producer sends event
+Consumer processes async
+
+But then you need:
+
+exactly-once or at-least-once handling
+deduplication
+
+
+
+F. Outbox pattern (important interview concept)
+Write DB + event in same transaction
+Then async publisher sends event to queue
+
+Prevents:
+
+“DB updated but event not sent” issue
+
+
+
+
+
+| Level              | Problem             | Tool                                       |
+| ------------------ | ------------------- | ------------------------------------------ |
+| Threads in process | shared memory       | locks, atomics                             |
+| Multi-service + DB | concurrent requests | DB locks, optimistic locking, transactions |
+| Fully distributed  | partial failures    | saga, events, idempotency                  |
+
+
+
+_______
+
+
+Threads in the same process share:
+
+Heap Memory
+Global Variables
+Files
+Sockets
+
+Each thread has its own:
+
+Stack
+Program Counter
+Registers
