@@ -1,0 +1,15 @@
+Question:
+A property dealer currently owns a website that puts out the details of the properties listed by the brokers and merchants. 
+The property details are added with photos, location, and basic details. As they do not wish to maintain the current system, 
+They want to move it to a more scalable, faster, and secure system. 
+Data consistency and performance is a major concern. They want to move from a traditional system to a cloud-based system architecture.
+
+Ask questions, assess the architecture, review the additional requirements given below and design the whole system.
+
+The system should be able to support all the necessary services and modules to allow users to do the following:
+
+- Browse property listings
+- Search for a property
+- Perform actions like login, register, and logout
+- The property in the listing page should be segregated with the merchant name
+
