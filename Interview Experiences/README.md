@@ -13,3 +13,11 @@ https://bugfree.ai/interview/microsoft-sde-2-interview-experience--strong-design
 
 multithreading, concurrency and synchronization techniques
 
+
+Leetcode Disucss
+System Design And Beyond: 
+https://leetcode.com/discuss/topic/system-design-for-interviews-and-beyond/
+
+
+https://leetcode.com/discuss/post/7234497/chat-service-eg-whatsapp-messenger-syste-qzwv/
+
