@@ -13,3 +13,354 @@ The system should be able to support all the necessary services and modules to a
 - Perform actions like login, register, and logout
 - The property in the listing page should be segregated with the merchant name
 
+
+
+HLD : 
+
+
+What is the scale are we expecting : 
+
+Daily active users
+How many property can we have - i.e, how many brokers or merchants 
+
+what aboutt he hsitory of house sold and all.. - cold storage
+Security - Authenticationa nd authorisation
+
+This  is a read-heavy system - many buyers will be searching at a time
+
+write : read - 1 : 1000 
+
+Data consistency - if the price is updated or at discount it should reflect quickly
+If user has booked lets say - keep it as marked..
+If flat is sold - update it
+
+____________
+
+APIs:
+FIlters are improtnt in this system , as users wil have something in their mind already on which one they want..LIke 2BHK, 3BHK, Society names, locations
+
+paginated results
+Cache - freq checked ones -> In DEMAND Propertyy
+Important to maintain cache in sync
+
+
+for property updates
+little eventually consistency is also OK here right, not strong consistency
+becuase usually users will call and check anywaysss...
+
+
+For User/merchants and all strong cosnistcy is needed.
+
+object storage
+Images I can store in CDN for fast retreival
+
+
+
+______________________________________
+
+
+High Level Design would be :
+
+
+
+Client -> LB ->  Auth service 
+                 Property Service
+                 Merchant Servce
+                 Search Service  
+
+
+PostgreSQL
+  - Users
+  - Brokers/Merchants
+  - Property metadata
+  - Property image metadata (URLs, image ids, upload timestamps)
+ - Elastic Search
+ -S3/Object Storage - Actual property photos
+
+
+These are exactly the kinds of filtering, faceting, full-text search, and sorting that Elasticsearch/OpenSearch are designed for.
+
+
+Elastic search is not the primary db its just search index
+
+PostgreSQL = Source of Truth
+Elasticsearch = Search Index
+
+If Elasticsearch loses data, you can rebuild it from PostgreSQL.
+
+
+_______________
+
+
+DB
+
+
+Core Entities
+
+User
+- userId
+- name
+- email
+- phone
+
+
+Merchant extends User
+- merchantId
+- companyName
+- Verfied
+
+User
+  ├── Buyer
+  └── Merchant/Broker
+
+
+Property
+- propertyId
+- merchantId
+- title
+- description
+- location
+- price
+- status
+- PostedOn
+
+
+PropertyImage
+- imageId
+- propertyId
+- imageUrl
+
+
+Merchant 1 ---- N Property
+Property 1 ---- N Images
+
+
+____________
+
+
+APIs
+
+POST /register
+POST /login
+POST /logout
+
+GET /properties/{id}
+
+GET /search
+?page=
+&location=
+&bhk=
+&price=
+
+POST /properties
+PUT /properties/{id}
+
+GET /merchants/{id}/properties
+
+
+paginated results
+
+Just saying
+SHow trending ones when the page loads..
+
+This can be caluclated by property soldings/most searched /most contacyed....or something like tht..
+Can run pipelines offline every 24 hours / weekly
+
+Collect clicks/contacted and all - spark jobs 
+If filters are applied show them filtered results.
+
+
+_________________________
+
+
+Walk through Each flows
+
+
+Merchant adds a property
+
+Merchant
+   ↓
+Property Service
+   ↓
+Postgres
+
+
+
+Images
+   ↓
+S3
+
+
+Property metadata
+   ↓
+Postgres
+
+
+
+Index property
+   ↓
+Search Service / Elasticsearch
+
+
+______________
+
+User searches for something
+
+
+User -> SearchService  -> ES
+
+ES stores only searcable property  Data 
+
+
+Elasticsearch
+---------------
+propertyId
+title
+price
+location
+bhk
+merchantName
+thumbnailUrl
+status
+
+
+Elasticsearch stores propertyId, searchable fields, and thumbnail metadata. Postgres remains the source of truth.
+
+IMP -> thumbnails only, when user clicks on a particular property then we hit property page and DB
+
+
+User Search
+    ↓
+Elasticsearch
+    ↓
+Return search results directly
+
+
+When user clicks a property:
+
+Property Details Page
+    ↓
+Property Service
+    ↓
+Postgres
+
+
+This is usually what large property portals do because listing pages need:
+
+Property Image
+Price
+Location
+Merchant
+BHK
+
+for 20-50 results at once.
+
+__________________
+
+If a merchant changes the property price from 80L → 75L, how does Elasticsearch get updated? Direct synchronous call? Event/queue? Or something else?
+
+PostgreSQL is the source of truth. We use CDC to keep Elasticsearch synchronized.
+
+Merchant updates property
+       ↓
+Property Service
+       ↓
+Postgres (commit)
+       ↓
+CDC reads WAL
+       ↓
+Kafka/Event Stream
+       ↓
+Search Indexer
+       ↓
+Elasticsearch updated
+
+
+Why CDC instead of directly updating Elasticsearch?
+
+
+CDC helps because:
+
+DB commit happens first.
+WAL becomes the source of truth.
+Failed indexing can be retried.
+Rebuilding Elasticsearch becomes easier.
+
+
+
+
+Don't say:
+
+We send DB updates as events to Elasticsearch.
+
+because technically the database is not sending events.
+
+More accurately:
+
+CDC tool (e.g. Debezium)
+    ↓
+Reads WAL/binlog
+    ↓
+Produces events
+    ↓
+Consumers update Elasticsearch
+
+_________________
+
+
+Cache 
+
+1. Property Details Cache
+GET /properties/{id}
+
+Very frequently viewed properties can be cached.
+
+2. Merchant Details
+merchant:456
+
+Merchant profiles don't change often.
+
+
+3. Search Results?
+
+This is where I'd challenge you.
+
+Suppose users search:
+
+3BHK Hyderabad under 80L
+
+Can we cache it?
+
+Yes.
+
+But then:
+
+3BHK Hyderabad under 75L
+3BHK Hyderabad under 70L
+2BHK Hyderabad
+...
+
+Search combinations explode.
+
+So I'd ask:
+
+Is caching search results worth it?
+
+Usually Elasticsearch itself is already optimized for search, so many designs cache only the hottest queries.
+
+
+
+
+__________________
+
+
+
+Property Details Update : 
+
+
+Invalidate Cache
+Write to DB
+Next read reloads cache
+
+
+DOnt write parallely to DB and cache
