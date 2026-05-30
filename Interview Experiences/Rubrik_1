@@ -1,2 +1,10 @@
-Design a scalable and fault-tolerant data collection system that can collect logs and data from various sources (eg, application servers, tailing a file etc.) and route them to different destinations (e.g., Elasticsearch, Kafka, S3) for further processing and analysis.
+Design a scalable and fault-tolerant data collection system that can collect logs and data from various 
+sources (eg, application servers, tailing a file etc.) and route them to different destinations (e.g., Elasticsearch, Kafka, S3) for 
+further processing and analysis.
 
+
+
+System Coding 1: In this round, they focus on concurrency, multithreading, process, memory management and synchronization concepts. **Question 
+I was asked: **: Design a job scheduler that runs all available jobs in an optimized manner, considering job dependencies. 
+You can assume the existence of a function get_next_jobs(finished_jobs) that returns all jobs 
+whose dependencies are fully satisfied based on the currently finished jobs. A job can only be executed after all of its parent (dependent) jobs are complete.
