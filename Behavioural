@@ -1,0 +1,29 @@
+There is an upcoming launch and we discover something is broken, 
+the other team owns it. Walk me through the process of error discovery, 
+identifying the right owner and fixing the issue before the big launch tomorrow.
+
+
+Alert fires: CB open / high 5xx / timeouts / latency spike
+Check dashboards: confirm real spike vs noise
+Go to logs: find request_id / trace_id → see failing service
+Isolate dependency: which backend is failing (DB / downstream service)
+Identify owner: service name → service catalog / on-call (PagerDuty)
+Escalate fast: page owning team + share logs + impact
+Mitigate: rollback / feature flag off / fallback / traffic shift
+Verify: error rate normal, CB closed, latency back
+
+
+
+
+If we have to co-develop an app with help from partner team,
+what are the things you'd do to ensure faster delivery (he was looking for answer from a tech perspective and not process perspective).
+
+
+
+Clear API contracts (OpenAPI/Proto) before coding
+Mock servers / stubs so both teams can develop in parallel
+Backward-compatible APIs + versioning (avoid blocking each other)
+Shared schemas/models (or strict schema governance)
+Feature flags to merge early without breaking prod
+Event-driven integration (Kafka/pub-sub) where possible to decouple services
+Well-defined error codes + tracing (correlation IDs) for debugging fast
