@@ -8,3 +8,5 @@ LLD steps
 6. Thread Safety / Concurrency
 
 
+https://bugfree.ai/interview/microsoft-sde-2-interview-experience--strong-design-rounds--missed-dsa-bar
+
