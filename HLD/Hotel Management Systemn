@@ -1,0 +1,228 @@
+https://bytebytego.com/courses/system-design-interview/hotel-reservation-system
+
+
+Concurrency Issues
+
+Double booking :
+
+1. Optimistic Locking
+
+
+Optimistic locking with version or timestamp
+Better to use version as clocks may not be relaible and in sync
+
+
+Optimisitc Locking : Let users see the value until someone commits
+Onc users commits it will increase the version number
+
+Now other tranactions when trying to update will have version less than new version , so fail.
+
+
+UPDATE property
+SET status='RESERVED',
+    version=version+1
+WHERE property_id=123
+  AND version=5
+  AND status='AVAILABLE';
+
+
+Use when Conflcits are rare
+
+
+
+
+2. Pessimistic Locking - Lock the records.
+
+
+
+Redis Distributed Locking
+
+
+If Key is already in DB , someone already locked.
+NX = "Only set the key if it does NOT already exist"
+
+
+Example (Redis Lock)
+SET lock:property:123 buyerA NX EX 30
+
+This means:
+
+SET → create a key
+NX → only if key does NOT exist
+EX 30 → expire in 30 seconds
+
+
+
+Redis is external system:
+
+Network partition
+Redis restart
+Master failover
+
+
+
+During these:
+
+Lock might be lost
+Or incorrectly assumed released
+Leads to race conditions
+
+
+Added operational complexity
+
+
+So max prefer optimistic locking
+
+
+_____________________
+
+
+Idempotency APIs
+
+Idempotency Solves - duplicate Reqeusts
+
+
+Eg: 
+
+Client
+   ↓
+POST /reserve
+   ↓
+Timeout
+   ↓
+Retry POST /reserve
+
+
+
+Without idempotency:
+
+Reserve #1
+Reserve #2
+
+could create duplicate reservations.
+
+
+
+With:
+
+Idempotency-Key: abc123
+
+the second request returns the same result as the first.
+
+
+___________
+
+
+Idempotency : same user -> double request
+Double booking - 2 users , trying to book one particular thing
+
+
+____________
+
+
+
+
+
+SAGA Pattern
+
+Saga Pattern is used when a business transaction spans multiple services/databases and you cannot use a single ACID transaction.
+
+Unlike monolithic architecture, microservices architecture has separate DB for each service
+So there maybe oeprations that needs to be handled in multiple services.
+
+
+Eg: Reservation Swrvice -> Reservation DB
+    Inventory Service -> Inventory DB
+
+Once user reserves a item -> we have update inventory as well.
+
+So the transcation is no long performed atomically on a single DB but spans multiple services and DBs.
+
+
+ A saga is a sequence of local transactions. Each transaction updates and publishes a message to trigger the next transaction step. 
+If a step fails, the saga executes compensating transactions to undo the changes that were made by preceding transactions
+
+
+     Happy Path
+
+User
+  │
+  ▼
+Reserve Property
+(Property Service)
+  │
+  ▼
+Property Status = RESERVED
+  │
+  ▼
+Process Payment
+(Payment Service)
+  │
+  ▼
+Payment SUCCESS
+  │
+  ▼
+Mark Property SOLD
+(Property Service)
+  │
+  ▼
+Send Notification
+(Notification Service)
+  │
+  ▼
+BOOKING COMPLETED
+
+
+
+Eg 1: 
+
+Reserve Property
+      │
+      ▼
+Property Status = RESERVED
+      │
+      ▼
+Process Payment
+      │
+      ▼
+FAILED
+      │
+      ▼
+Compensation:
+Property Status
+RESERVED → AVAILABLE
+
+
+Eg 2: 
+
+Reserve Property
+      │
+      ▼
+RESERVED
+      │
+      ▼
+Process Payment
+      │
+      ▼
+SUCCESS
+      │
+      ▼
+Mark Property SOLD
+      │
+      ▼
+FAILED
+      │
+      ▼
+Compensation 1:
+Refund Payment
+      │
+      ▼
+Compensation 2:
+RESERVED → AVAILABLE
+
+
+
+
+
+
+
