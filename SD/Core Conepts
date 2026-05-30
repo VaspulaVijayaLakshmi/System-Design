@@ -1,0 +1,342 @@
+
+SYNC VS ASYNC
+
+| Type                          | Success Response Sent When?            | Pros                               | Cons                                                    |
+| ----------------------------- | -------------------------------------- | ---------------------------------- | ------------------------------------------------------- |
+| **Synchronous Replication**   | Leader + all replicas acknowledge      | Strong consistency, no stale reads | High latency, lower availability                        |
+| **Asynchronous Replication**  | Leader commits only                    | Fast writes, high availability     | Data loss possible if leader crashes before replication |
+| **Semi-Synchronous (Quorum)** | Leader + quorum (majority) acknowledge | Balance of consistency & latency   | Slightly slower than async                              |
+
+____________
+
+
+Async Patterns
+
+Pub/Sub
+Retries + DLQ
+Multiple consumers process messages from same queue.
+
+           Queue
+         /   |   \
+        ▼    ▼    ▼
+      W1    W2   W3
+
+Event-Driven Architecture - Services communicate through events.
+
+____________________
+
+
+
+Blocking I/O
+
+Thread waits until I/O operation completes.
+
+Thread
+  │
+  ▼
+Read File / DB / Network
+  │
+(waiting...)
+  │
+  ▼
+Response
+
+Problem:
+
+Thread sits idle while waiting.
+Need many threads for many connections.
+
+
+
+Non-Blocking I/O
+
+
+Thread initiates I/O and continues doing other work.
+
+Thread
+  │
+Start Read
+  │
+Continue other work
+  │
+Data arrives
+  ▼
+Process Data
+
+
+_____________
+
+Message Acknowledgement:
+
+
+ACK tells the broker that the consumer has successfully processed the message.
+
+
+Delivery Guarantees
+
+1. At Most Once
+
+Deliver
+  │
+Remove
+
+Fastest
+
+May lose messages.
+
+
+2. At Least Once
+
+Deliver
+  │
+No ACK
+  │
+Retry
+
+No message loss
+Duplicates possible.
+Most common.
+
+
+3. Exactly Once
+Deliver once
+Process once
+
+Needs:
+
+Idempotency
+Deduplication
+Transactions
+
+Most expensive.
+
+______________
+
+
+
+Blocking Queue:
+
+
+Blocking Queue = Thread-safe queue where producers wait when full and consumers wait when empty,
+avoiding busy waiting and enabling efficient producer-consumer communication.
+
+
+A thread-safe queue where:
+
+Producer waits if queue is full.
+Consumer waits if queue is empty.
+
+Used in Producer-Consumer pattern.
+
+
+Producer ---> Blocking Queue ---> Consumer
+
+
+
+Why do we need it?
+
+Without a blocking queue:
+
+Consumer
+   │
+   ▼
+while(true) {
+   if(queue not empty)
+      consume();
+}
+
+This wastes CPU (busy waiting).
+
+
+
+With a blocking queue:
+
+Consumer
+   │
+take()
+   │
+(waiting)
+   │
+Message arrives
+   ▼
+consume
+
+Thread sleeps efficiently until data arrives.
+
+
+
+
+Internal Implementation
+
+Typically uses:
+
+Queue
+ +
+Mutex Lock
+ +
+Condition Variables
+
+
+Consumer signals producer when space becomes available.
+
+_________
+
+
+
+Thread Pool
+
+
+
+Creating and destroying threads is expensive because it involves OS-level operations.
+
+Instead of creating a new thread for every request, we pre-create a fixed number of worker threads and keep them ready in a pool.
+
+           Task Queue
+                │
+     ┌──────────┼──────────┐
+     ▼          ▼          ▼
+ Thread1    Thread2    Thread3
+ (idle)     (idle)     (idle)
+
+
+
+
+When a task arrives:
+
+Task arrives
+    │
+    ▼
+Task Queue
+    │
+    ▼
+Available Thread picks task
+    │
+    ▼
+Executes task
+
+
+
+
+
+When finished:
+
+Thread completes task
+      │
+      ▼
+Returns to pool
+      │
+      ▼
+Waits for next task
+
+
+
+__________________
+
+
+Service Discovery 
+
+
+In a microservices architecture:
+
+User Service → Order Service → Payment Service
+
+Each service may have multiple instances:
+
+Order Service
+ ├─ Instance 1
+ ├─ Instance 2
+ └─ Instance 3
+
+IPs keep changing because:
+
+Auto-scaling
+Container restarts
+Deployments
+Failures
+
+Hardcoding IPs won't work.
+
+Service Discovery
+
+A central registry maintains information about all service instances.
+
+
+
+               Service Registry
+              (Eureka/Zookeeper/Consul)
+                     ▲
+                     │
+       Register      │      Lookup
+                     │
+                     ▼
+Service A  <------>  Service B
+
+
+
+
+Service Lookup
+
+Suppose User Service wants Order Service.
+
+User Service
+      │
+      ▼
+Ask Registry:
+"Where is order-service?"
+      │
+      ▼
+[IP1, IP2, IP3]
+
+Then User Service picks one instance (often using load balancing).
+
+
+
+__________________
+
+
+
+Delivery Data reliable
+
+Reliable Delivery
+    │
+    ├── Timeouts
+    ├── Retries
+    ├── Exponential Backoff
+    ├── Circuit Breaker
+    ├── Delivery Guarantees
+    │      ├── At Most Once
+    │      ├── At Least Once
+    │      └── Exactly Once
+    ├── Queues
+    └── DLQ
+
+
+___________________
+
+
+How to deliver data quickly
+
+Batching
+Compression
+
+
+___________________
+
+
+How to protect servers from clients
+
+
+Autoscaling
+RateLImiting
+
+
+
+__________________
+
+
+How to protect clients from servers
+
+Sync vs Asyn CLients
+CB
+Fail Fast
+
