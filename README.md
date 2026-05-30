@@ -3,6 +3,10 @@ https://systemdesignschool.io/resource-estimator
 
 https://www.hellointerview.com/community/submissions/system-design
 
+
+Concepts
+https://leetcode.com/explore/interview/card/system-design-for-interviews-and-beyond/722/how-to-define-system-requirements/
+
 # System-Design
 
 
