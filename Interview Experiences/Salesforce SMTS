@@ -157,6 +157,11 @@ PUT /properties/{id}
 
 GET /merchants/{id}/properties
 
+_____________
+
+POINTS :
+
+
 
 paginated results
 
@@ -168,6 +173,13 @@ Can run pipelines offline every 24 hours / weekly
 
 Collect clicks/contacted and all - spark jobs 
 If filters are applied show them filtered results.
+
+For a property website, thumbnails are very useful because:
+
+Search Results Page
+may show 50 properties at once.
+
+You don't want to download 50 original 10 MB images.
 
 
 _________________________
@@ -364,3 +376,134 @@ Next read reloads cache
 
 
 DOnt write parallely to DB and cache
+
+_______________
+
+
+
+
+
+Critical path:
+Upload → S3
+
+Non-critical path:
+Thumbnail generation
+Compression
+Watermarking
+
+
+
+Merchant
+    ↓
+Upload Image
+    ↓
+S3
+    ↓
+Success Response
+
+____
+
+
+Then asynchronously:
+
+S3 Event
+    ↓
+Queue
+    ↓
+Image Processing Service
+    ↓
+Generate Thumbnails
+    ↓
+Compress
+    ↓
+Store Processed Images in S3
+
+
+
+After storing in s3 only we need to generate thumbanils is it?
+YES
+
+
+____________________
+
+
+
+How do we make sure there won't be double booking (contention management)
+
+1. Optimistic locking in Postgres to prevent double booking.
+
+optimistic lock on db on property 123 
+Update Status as reserved  -> with expiry as well, 
+Remove lock
+Then go ahead with the payment 
+Then lock again and update status to booked.
+
+
+2.  I proposed splitting the payment flow into two APIs:
+POST /reserve (hold for 5 mins)  
+POST /confirm (after successful payment)
+
+And used a distributed lock (Redis) to manage contention.
+
+
+
+
+If payemnt failed then -> lock expires
+
+
+Run some cron job: 
+
+UPDATE property
+SET status='AVAILABLE'
+WHERE status='RESERVED'
+  AND expires_at < NOW();
+
+Can we narrow the scan?
+
+
+
+But during heavy traffic this may cause the DB overload
+
+SOl : Indexing
+
+status = RESERVED
+will be a tiny subset of all properties.
+
+And with an index on:
+
+(status, expires_at)
+the DB can efficiently find only expired reservations.
+
+
+
+index updates are tiny compared to DB scans so uodating indexes is better.
+
+
+__________
+
+Service segregation and individual scalability
+
+________
+
+
+Payment Service
+
+User
+   ↓
+POST /reserve
+   ↓
+Property = RESERVED
+
+User
+   ↓
+POST /pay
+   ↓
+Payment Service
+   ↓
+Payment Gateway (Razorpay/Stripe/etc.)
+
+
+
+
+
+
