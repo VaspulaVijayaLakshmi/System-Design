@@ -8,24 +8,74 @@
 Archive the image object to cold storage while retaining metadata in a database. Update metadata with archival status and cold-storage location so images remain searchable and retrievable without scanning cold storage.
 
 
-Flow:
+
+# Image Archival System
+
+## Metadata Database
+
+| Field | Value |
+|---------|---------|
+| imageId | 123 |
+| userId | 456 |
+| createdAt | 2026-06-11T10:00:00Z |
+| storageType | COLD |
+| location | s3://cold-bucket/123.jpg |
+| status | ARCHIVED |
+
+---
+
+## Cold Storage
+
+```text
+cold-bucket/
+└── 123.jpg
+```
+
+---
+
+
+
+
+## Archival Flow
+
+```text
+Hot Storage
+     │
+     ▼
+Archive Worker
+     │
+     ▼
+Cold Storage
 
 Metadata DB
-----------------------------------
-imageId = 123
-userId = 456
-createdAt = ...
-storageType = COLD
-location = s3://cold-bucket/123.jpg
-status = ARCHIVED
-----------------------------------
+(storageType=COLD,
+ status=ARCHIVED,
+ location=s3://cold-bucket/123.jpg)
+```
 
-Cold Storage
-----------------------------------
-123.jpg
-----------------------------------
+---
 
 
+
+## Retrieval Flow
+
+```text
+User Request
+      │
+      ▼
+Metadata DB Lookup
+      │
+      ▼
+storageType = COLD ?
+      │
+      ▼
+Fetch Image From Cold Storage
+      │
+      ▼
+Return Image
+```
+
+---
 
 
 Why keep metadata in DB?
@@ -36,19 +86,6 @@ User can still see image listings instantly.
 Archival eligibility checks become easy.
 Restore operations become easy.
 
-
-
-Retrieval:
-
-User requests image
-        ↓
-Metadata DB lookup
-        ↓
-storageType = COLD ?
-        ↓
-Fetch from cold storage
-        ↓
-Return image
 
 
 __________________________________________________________________________________
