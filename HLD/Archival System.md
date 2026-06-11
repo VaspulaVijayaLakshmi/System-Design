@@ -102,3 +102,9 @@ During migration:
 3. Delete from Primary DB
 
 This avoids data loss.
+
+
+_________________________________________________________________________________
+
+
+Metadata can be partitioned based on image creation date. Since archival eligibility is time-based (e.g., older than 1 year), date-based partitioning makes archival operations efficient. Entire old partitions can be migrated to archive storage instead of scanning the entire metadata table.
