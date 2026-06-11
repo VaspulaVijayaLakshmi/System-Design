@@ -108,3 +108,14 @@ ________________________________________________________________________________
 
 
 Metadata can be partitioned based on image creation date. Since archival eligibility is time-based (e.g., older than 1 year), date-based partitioning makes archival operations efficient. Entire old partitions can be migrated to archive storage instead of scanning the entire metadata table.
+
+
+_________________________________________________________________________________
+
+Metadata can be partitioned based on image creation date. Since archival eligibility is time-based (e.g., older than 1 year), date-based partitioning makes archival operations efficient. Entire old partitions can be migrated to archive storage instead of scanning the entire metadata table.
+
+
+"I would partition metadata month-wise based on creation date because archival is a time-based operation. This avoids full-table scans and makes archival jobs efficient."
+
+
+
