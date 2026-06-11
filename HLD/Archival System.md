@@ -118,4 +118,9 @@ Metadata can be partitioned based on image creation date. Since archival eligibi
 "I would partition metadata month-wise based on creation date because archival is a time-based operation. This avoids full-table scans and makes archival jobs efficient."
 
 
+_________________________________________________________________________________
 
+Idempotent Worker:
+
+
+The worker commits the Kafka offset only after successfully archiving the image and updating metadata. If the worker fails before offset commit, Kafka redelivers the message, which is why the worker must be idempotent.
