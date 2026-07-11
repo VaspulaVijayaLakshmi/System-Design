@@ -1,75 +1,52 @@
-package Creational.Builder;
-
 public class User {
 
-    String userName;
-    String email;
-    String phoneNumber;
-    String address;
-    int age;
-    String gender;
+    private final String name;
+    private final String email;
+    private final int age;
+    private final String phone;
+    private final String address;
 
-    private User(Builder builder) {
-        this.userName = builder.userName;
+    private User(UserBuilder builder) {
+        this.name = builder.name;
         this.email = builder.email;
-        this.phoneNumber = builder.phoneNumber;
-        this.address = builder.address;
         this.age = builder.age;
-        this.gender = builder.gender;
-
-
-        System.out.println("User created");
+        this.phone = builder.phone;
+        this.address = builder.address;
     }
 
+    public static class UserBuilder {
 
-    static class Builder{
+        // Required fields
+        private String name;
+        private String email;
 
-        String userName;
-        String email;
-        String phoneNumber;
-        String address;
-        int age;
-        String gender;
+        // Optional fields
+        private int age;
+        private String phone;
+        private String address;
 
-        public Builder setUserName(String userName){
-            this.userName = userName;
-            return this;
-        }
-
-        public Builder setEmail(String email){
+        public UserBuilder(String name, String email) {
+            this.name = name;
             this.email = email;
+        }
+
+        public UserBuilder age(int age) {
+            this.age = age;
             return this;
         }
 
-        public Builder setPhoneNumber(String phoneNumber){
-            this.phoneNumber = phoneNumber;
+        public UserBuilder phone(String phone) {
+            this.phone = phone;
             return this;
         }
 
-        public Builder setAddress(String address){
+        public UserBuilder address(String address) {
             this.address = address;
             return this;
         }
 
-        public Builder setAge(int age){
-        this.age = age;
-        return this;
-        }
-
-
-        public Builder setGender(String gender){
-            this.gender = gender;
-            return this;
-        }
-
-
-        public User build(){
+        public User build() {
             return new User(this);
         }
     }
-
-
-
-
-
 }
