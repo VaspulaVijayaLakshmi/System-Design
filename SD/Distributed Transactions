@@ -1,0 +1,63 @@
+A distributed transaction is a transaction where one business operation involves multiple independent services/databases.
+
+Example: Buy a product
+
+You click "Place Order".
+
+This might involve:
+
+                Buy Product
+                    |
+       -------------------------
+       |           |           |
+       v           v           v
+   Order DB    Inventory DB   Payment DB
+
+You need to:
+
+Create an order → Order Service
+Reduce/reserve inventory → Inventory Service
+Charge the customer → Payment Service
+
+These are different services, potentially with different databases.
+
+The entire operation is one business transaction, but the actual database operations are distributed across multiple systems.
+
+That's a distributed transaction.
+
+
+The problem
+
+Suppose:
+
+Create Order       ✅
+Reserve Inventory  ✅
+Charge Payment     ❌
+
+Now what?
+
+You don't want the system to end up with:
+
+Order = Created
+Inventory = Reserved
+Payment = Failed
+
+You need some mechanism to maintain consistency across these different services.
+
+That's where patterns like:
+
+2-Phase Commit (2PC)
+Saga Pattern
+
+come in.
+
+One-line definition
+
+A distributed transaction is a single logical business transaction that spans multiple independent services, databases, or systems.
+
+For your interview, remember this chain:
+
+Microservices → Separate databases → One business operation touches multiple DBs → Distributed transaction problem → 2PC or Saga.
+
+
+Now read SAGA & 2PC commit file.
