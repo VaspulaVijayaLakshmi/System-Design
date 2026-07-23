@@ -1,0 +1,196 @@
+Two Phase Commit
+
+
+
+
+
+
+SAGA
+
+The Saga Pattern is a design pattern used in microservices architecture to manage distributed transactions across multiple services without relying on a traditional two-phase commit (2PC).
+
+Instead of one global transaction, a saga breaks the business process into a series of local transactions. If one step fails, the saga executes compensating transactions to undo the previous successful steps.
+
+Example: E-commerce Order
+
+Suppose a customer places an order.
+
+Order Service
+Creates the order.
+Status = PENDING
+Inventory Service
+Reserves the items.
+Payment Service
+Charges the customer.
+Shipping Service
+Creates a shipment.
+
+If Payment Service fails:
+
+Inventory Service releases the reserved items.
+Order Service changes the order status to CANCELLED.
+
+Instead of rolling back a database transaction, each service performs its own compensating action.
+
+
+Types of Saga Pattern
+
+
+1. Choreography-based Saga
+
+Services communicate using events. There is no central coordinator.
+
+Example flow:
+
+Order Service
+    |
+    | OrderCreated
+    v
+Inventory Service
+    |
+    | InventoryReserved
+    v
+Payment Service
+    |
+    | PaymentProcessed
+    v
+Shipping Service
+
+Advantages
+
+Loosely coupled
+Easy to add new services
+No single point of failure
+
+Disadvantages
+
+Difficult to understand as the system grows
+Event chains become complex
+Harder to debug and monitor
+
+
+
+2. Orchestration-based Saga
+
+A central Saga Orchestrator coordinates the workflow.
+
+        Saga Orchestrator
+             |
+     -------------------
+     |       |        |
+     v       v        v
+ Order   Inventory  Payment
+             |
+             v
+         Shipping
+
+Workflow:
+
+Orchestrator tells Order Service to create an order.
+Order Service responds.
+Orchestrator tells Inventory Service to reserve stock.
+Orchestrator tells Payment Service to charge.
+If any step fails, the orchestrator invokes compensating actions.
+
+Advantages
+
+Easier to understand
+Centralized workflow
+Better monitoring and debugging
+
+Disadvantages
+
+Orchestrator can become complex
+Slightly tighter coupling
+
+
+Compensating Transactions
+
+Every local transaction should have a corresponding undo action.
+
+Transaction	Compensation
+
+Create Order	Cancel Order
+
+Reserve Inventory	Release Inventory
+
+Charge Payment	Refund Payment
+
+
+Create Shipment	Cancel Shipment
+
+
+
+
+Best Practices
+Make all operations idempotent.
+Use a message broker (e.g., Kafka or RabbitMQ).
+Store saga state persistently.
+Implement retry policies with exponential backoff.
+Use distributed tracing (e.g., OpenTelemetry).
+Clearly define compensating transactions for every step.
+
+
+
+
+2PC → all participants commit or rollback together.
+Saga → each service commits its local transaction, and failures are handled using compensating transactions.
+
+
+
+Simple example
+
+Suppose you have:
+
+Order Service
+      |
+      v
+Payment Service
+      |
+      v
+Inventory Service
+
+You want all three operations to succeed, or none of them should commit.
+
+2PC has two phases:
+
+Phase 1 — Prepare
+
+A Coordinator asks all participants:
+
+"Can you commit this transaction?"
+
+Coordinator
+    |
+    | Prepare?
+    v
+Order     → YES
+Payment   → YES
+Inventory → YES
+
+If everyone says YES, move to Phase 2.
+
+Phase 2 — Commit
+
+Coordinator says:
+
+Coordinator
+    |
+    | COMMIT
+    v
+Order
+Payment
+Inventory
+
+Everyone commits.
+
+If anyone says NO:
+
+Payment → NO
+
+Coordinator tells everyone:
+
+ROLLBACK
+In short
+Phase 1: "Are you ready to commit?"
+Phase 2: "Okay, everyone commit."
