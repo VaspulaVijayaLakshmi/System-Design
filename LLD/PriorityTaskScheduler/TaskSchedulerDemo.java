@@ -1,0 +1,146 @@
+package PriorityTaskScheduler;
+
+
+import java.util.LinkedList;
+import java.util.Queue;
+
+enum TaskPriority {
+    HIGH,
+    MEDIUM,
+    LOW
+}
+
+class TaskScheduler {
+
+    static class Task {
+
+        private Runnable runnable;
+        private TaskPriority priority;
+
+        public Task(Runnable runnable, TaskPriority priority) {
+
+            this.runnable = runnable;
+            this.priority = priority;
+        }
+    }
+
+
+    public TaskScheduler(int numWorkers) {
+
+        for (int i = 1; i <= numWorkers; i++) {
+            Thread worker = new Thread(new Worker(), "worker" + i);
+            worker.start();
+        }
+    }
+
+    private final Queue<Task> highPriorityTaskQueue =
+            new LinkedList<>();
+
+    private final Queue<Task> mediumPriorityTaskQueue =
+            new LinkedList<>();
+
+    private final Queue<Task> lowPriorityTaskQueue =
+            new LinkedList<>();
+
+
+    private final Object lock = new Object();
+
+
+    class Worker implements Runnable {
+        @Override
+        public void run() {
+
+            while (true) {
+                Task task = null;
+
+                synchronized (lock) {
+
+                    while (highPriorityTaskQueue.isEmpty() &&
+                            mediumPriorityTaskQueue.isEmpty() &&
+                            lowPriorityTaskQueue.isEmpty()) {
+
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
+                    }
+
+
+                    if (!highPriorityTaskQueue.isEmpty()) {
+                        task = highPriorityTaskQueue.poll();
+                    } else if (!mediumPriorityTaskQueue.isEmpty()) {
+                        task = mediumPriorityTaskQueue.poll();
+                    } else {
+                        task = lowPriorityTaskQueue.poll();
+                    }
+
+                }
+
+                task.runnable.run();
+            }
+
+        }
+    }
+
+
+    public void scheduleTask(Runnable runnable, TaskPriority priority) {
+
+        Task task = new Task(runnable, priority);
+
+        synchronized (lock) {
+
+            switch (priority) {
+
+                case HIGH:
+                    highPriorityTaskQueue.add(task);
+                    break;
+
+                case MEDIUM:
+                    mediumPriorityTaskQueue.add(task);
+                    break;
+
+                case LOW:
+                    lowPriorityTaskQueue.add(task);
+                    break;
+            }
+
+            // Wake waiting workers
+            lock.notifyAll();
+
+        }
+
+    }
+}
+
+
+public class TaskSchedulerDemo {
+
+
+    public static void main(String[] args) {
+
+        TaskScheduler scheduler =
+                new TaskScheduler(3);
+
+        scheduler.scheduleTask(
+                () -> System.out.println("Hello World"),
+                 TaskPriority.HIGH
+        );
+
+        scheduler.scheduleTask(
+                () -> System.out.println("Hello World"),
+                TaskPriority.MEDIUM
+        );
+
+        scheduler.scheduleTask(
+                () -> System.out.println("Hello World"),
+                TaskPriority.LOW
+        );
+
+
+    }
+}
+
+
+
