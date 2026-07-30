@@ -1,0 +1,800 @@
+They are divided into:
+
+Creational Patterns → Object creation
+Structural Patterns →  They define how different classes and objects work together to form larger, working structures
+Behavioral Patterns → Object communication/interaction
+
+
+1. Singleton Pattern 
+Problem:
+
+You want only one instance of a class throughout the application.
+
+Examples:
+
+Logger
+Database connection pool
+Configuration manager
+Cache manager
+
+
+Without Singleton
+Logger logger1 = new Logger();
+Logger logger2 = new Logger();
+
+Two loggers created → wasteful.
+
+
+class Logger {
+
+    private static Logger instance;
+
+    private Logger(){}
+
+   public synchronized static Logger getInstance(){
+
+    if(instance == null){
+        instance = new Logger();
+    }
+
+    return instance;
+}
+}
+
+
+
+
+2. Factory Pattern 
+
+Problem:
+
+Avoid creating objects directly.
+
+Instead of:
+EmailNotification email = new EmailNotification();
+
+Client should not know implementation details.
+
+
+
+Example:
+
+Notification System:
+
+          Notification
+              |
+    ---------------------
+    |         |          |
+ Email      SMS       Push
+
+
+
+Factory:
+
+class NotificationFactory {
+
+public Notification getNotification(String type){
+
+    if(type.equals("EMAIL"))
+        return new EmailNotification();
+
+    else if(type.equals("SMS"))
+        return new SMSNotification();
+
+    return new PushNotification();
+}
+
+}
+
+Client:
+
+Notification n = factory.getNotification("EMAIL");
+n.send();
+
+
+
+Benefits:
+
+Object creation centralized
+Easy adding new types
+Loose coupling
+
+
+Example:
+
+Tomorrow:
+
+WhatsappNotification
+Just modify factory.
+
+
+
+3. Abstract Factor is factory of Factories
+
+
+4. Builder Pattern 
+
+Very common in Java interviews.
+
+Problem:
+Constructor with many parameters.
+
+Example:
+
+User user =
+new User(
+"name",
+"email",
+"phone",
+"address",
+"age",
+"city"
+);
+
+Hard to maintain.
+
+
+Builder:
+
+User user =
+new User.Builder()
+.name("John")
+.email("abc@gmail.com")
+.age(25)
+.build();
+
+
+
+
+
+
+
+
+
+
+5. Strategy Pattern 
+One of the most important.
+
+Problem:
+Multiple algorithms.
+
+Example:
+
+Payment:
+
+Payment
+ |
+ ----------------
+ |       |       |
+Card   UPI    Paypal
+
+
+Bad:
+
+if(type=="CARD")
+   payCard();
+
+else if(type=="UPI")
+   payUPI();
+
+
+
+Strategy:
+
+Create interface:
+
+interface PaymentStrategy{
+void pay();
+}
+
+
+
+Implementations:
+
+class CardPayment implements PaymentStrategy{
+public void pay(){}
+}
+
+
+class UPIPayment implements PaymentStrategy{
+public void pay(){}
+}
+
+
+
+Runtime selection:
+
+payment.setStrategy(new UPIPayment());
+payment.pay();
+
+
+
+Used in:
+
+Payment system
+Sorting algorithms
+Compression algorithms
+
+
+
+
+
+
+
+
+
+
+6. Observer Pattern 
+
+One object notifies many objects.
+
+Example:
+
+YouTube subscription.
+
+Channel
+
+ |
+ ----------------
+Subscriber1
+Subscriber2
+Subscriber3
+
+
+When video uploaded:
+notify()
+
+
+
+
+
+
+
+
+
+
+
+7. State Pattern 
+
+Object behavior changes based on state.
+
+Example:
+
+Order:
+
+CREATED
+
+ |
+PAID
+
+ |
+SHIPPED
+
+ |
+DELIVERED
+
+
+Instead of:
+
+if(status=="PAID")
+...
+else if(status=="SHIPPED")
+
+
+
+Create:
+
+OrderState
+
+ |
+--------------
+PaidState
+ShipState
+DeliveredState
+
+Used in:
+
+Workflow engines
+Order systems
+
+
+
+
+
+
+
+
+8. Template Method 
+
+Define algorithm skeleton, subclasses customize steps.
+
+Example:
+
+Data processing:
+
+Process Data
+
+1.Read
+2.Validate
+3.Process
+4.Save
+
+Different implementations override steps.
+orchestrators
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9. Adapter Pattern 
+Very common.
+
+
+Problem:
+Two incompatible interfaces need to work together.
+
+
+1. Our common interface
+
+Our application expects every payment provider to implement PaymentProcessor.
+
+interface PaymentProcessor {
+    void pay(double amount);
+}
+
+
+Let's say your application supports multiple payment providers: PayPal and PhonePe.
+The problem is that each third-party API has a different method name.
+
+
+
+2. PayPal third-party API
+We cannot modify this class because it's provided by PayPal.
+
+
+class PayPal {
+
+    public void makePayment(double amount) {
+        System.out.println(
+            "Paid $" + amount + " using PayPal"
+        );
+    }
+}
+
+
+
+3. PhonePe third-party API
+
+Again, different method name.
+
+class PhonePe {
+
+    public void sendMoney(double amount) {
+        System.out.println(
+            "Paid ₹" + amount + " using PhonePe"
+        );
+    }
+}
+
+
+Now we have:
+
+Our Application
+       |
+       | expects
+       ↓
+PaymentProcessor
+       |
+       | pay()
+       |
+---------------------------
+|                         |
+PayPal                   PhonePe
+makePayment()            sendMoney()
+
+
+
+Problem: Our application expects pay(), but:
+
+PayPal has makePayment()
+PhonePe has sendMoney()
+
+They are incompatible.
+
+
+
+
+
+
+4. PayPal Adapter
+
+class PayPalAdapter implements PaymentProcessor {
+
+    private PayPal paypal;
+
+    public PayPalAdapter(PayPal paypal) {
+        this.paypal = paypal;
+    }
+
+    @Override
+    public void pay(double amount) {
+        paypal.makePayment(amount);
+    }
+}
+
+
+
+5. PhonePe Adapter
+
+class PhonePeAdapter implements PaymentProcessor {
+
+    private PhonePe phonePe;
+
+    public PhonePeAdapter(PhonePe phonePe) {
+        this.phonePe = phonePe;
+    }
+
+    @Override
+    public void pay(double amount) {
+        phonePe.sendMoney(amount);
+    }
+}
+
+
+
+6. Our Payment Service
+
+Now our application only knows about PaymentProcessor.
+
+class PaymentService {
+
+    public void processPayment(
+            PaymentProcessor processor,
+            double amount) {
+
+        processor.pay(amount);
+    }
+}
+
+It doesn't care whether it's PayPal or PhonePe.
+
+
+public class Main {
+
+    public static void main(String[] args) {
+
+        PaymentService service =
+                new PaymentService();
+
+        // PayPal
+        PayPal paypal = new PayPal();
+
+        PaymentProcessor paypalProcessor =
+                new PayPalAdapter(paypal);
+
+        service.processPayment(
+                paypalProcessor,
+                100
+        );
+
+
+        // PhonePe
+        PhonePe phonePe = new PhonePe();
+
+        PaymentProcessor phonePeProcessor =
+                new PhonePeAdapter(phonePe);
+
+        service.processPayment(
+                phonePeProcessor,
+                500
+        );
+    }
+}
+
+
+
+Output
+Paid $100 using PayPal
+Paid ₹500 using PhonePe
+The important part to understand:
+                PaymentService
+                      |
+                      | PaymentProcessor
+                      ↓
+              processor.pay()
+                      |
+             -----------------
+             |               |
+             ↓               ↓
+      PayPalAdapter    PhonePeAdapter
+             |               |
+             ↓               ↓
+       makePayment()    sendMoney()
+             |               |
+             ↓               ↓
+          PayPal           PhonePe
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10. Facade Pattern 
+
+Provide simple interface over complex system.
+
+Idea: Provide a simple interface to hide a complex subsystem.
+
+Let's use a Travel Booking example.
+
+Without Facade, the client needs to call multiple services:
+
+Client
+  |
+  |-- FlightService
+  |-- HotelService
+  |-- PaymentService
+
+
+
+With Facade:
+
+Client
+  |
+BookingFacade
+  |
+  |-- FlightService
+  |-- HotelService
+  |-- PaymentService
+
+
+
+// Complex subsystem 1
+class FlightService {
+
+    public void bookFlight() {
+        System.out.println("Flight booked");
+    }
+}
+
+
+// Complex subsystem 2
+class HotelService {
+
+    public void bookHotel() {
+        System.out.println("Hotel booked");
+    }
+}
+
+
+// Complex subsystem 3
+class PaymentService {
+
+    public void makePayment() {
+        System.out.println("Payment successful");
+    }
+}
+
+
+
+Now create the Facade:
+
+class BookingFacade {
+
+    private FlightService flightService;
+    private HotelService hotelService;
+    private PaymentService paymentService;
+
+    public BookingFacade() {
+        flightService = new FlightService();
+        hotelService = new HotelService();
+        paymentService = new PaymentService();
+    }
+
+    public void bookTrip() {
+
+        paymentService.makePayment();
+
+        flightService.bookFlight();
+
+        hotelService.bookHotel();
+
+        System.out.println("Trip booked successfully");
+    }
+}
+
+
+
+Client
+
+Instead of doing this:
+
+FlightService flight = new FlightService();
+HotelService hotel = new HotelService();
+PaymentService payment = new PaymentService();
+
+payment.makePayment();
+flight.bookFlight();
+hotel.bookHotel();
+
+Client simply does:
+
+public class Main {
+
+    public static void main(String[] args) {
+
+        BookingFacade facade = new BookingFacade();
+
+        facade.bookTrip();
+    }
+}
+
+
+
+Output
+Payment successful
+Flight booked
+Hotel booked
+Trip booked successfully
+
+
+Interview one-liner:
+Facade Pattern provides a simple unified interface to a complex subsystem, hiding the underlying complexity from the client.
+
+Remember:
+Facade = Simple interface → hides complex operations
+
+
+Used in:
+
+Microservices
+API Gateway
+Service layer
+
+
+
+
+
+
+
+
+
+
+11. Decorator Pattern
+
+Idea: Add new behavior to an object without modifying its original class.
+
+Example: Coffee ☕
+
+Start with:
+
+Coffee
+
+Add-ons:
+
+Coffee
+  ↓
+Milk
+  ↓
+Sugar
+  ↓
+Chocolate
+
+Instead of creating classes like:
+
+MilkCoffee
+SugarCoffee
+MilkSugarCoffee
+MilkSugarChocolateCoffee
+
+We wrap the original object with decorators.
+
+
+
+Decorator Pattern with the Coffee example, kept interview-friendly.
+
+1. Base Interface
+interface Coffee {
+    String getDescription();
+    double getCost();
+}
+
+
+2. Basic Coffee
+class SimpleCoffee implements Coffee {
+
+    public String getDescription() {
+        return "Coffee";
+    }
+
+    public double getCost() {
+        return 50;
+    }
+}
+
+
+3. Decorator
+abstract class CoffeeDecorator implements Coffee {
+
+    protected Coffee coffee;
+
+    CoffeeDecorator(Coffee coffee) {
+        this.coffee = coffee;
+    }
+}
+The decorator wraps another Coffee object.
+
+
+4. Milk Decorator
+class MilkDecorator extends CoffeeDecorator {
+
+    MilkDecorator(Coffee coffee) {
+        super(coffee);
+    }
+
+    public String getDescription() {
+        return coffee.getDescription() + ", Milk";
+    }
+
+    public double getCost() {
+        return coffee.getCost() + 10;
+    }
+}
+
+
+5. Sugar Decorator
+class SugarDecorator extends CoffeeDecorator {
+
+    SugarDecorator(Coffee coffee) {
+        super(coffee);
+    }
+
+    public String getDescription() {
+        return coffee.getDescription() + ", Sugar";
+    }
+
+    public double getCost() {
+        return coffee.getCost() + 5;
+    }
+}
+
+
+6. Usage
+public class Main {
+
+    public static void main(String[] args) {
+
+        Coffee coffee = new SimpleCoffee();
+
+        coffee = new MilkDecorator(coffee);
+
+        coffee = new SugarDecorator(coffee);
+
+        System.out.println(coffee.getDescription());
+        System.out.println(coffee.getCost());
+    }
+}
+
+Output:
+
+Coffee, Milk, Sugar
+65
