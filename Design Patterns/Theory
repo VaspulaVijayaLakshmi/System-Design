@@ -5,6 +5,11 @@ Structural Patterns →  They define how different classes and objects work toge
 Behavioral Patterns → Object communication/interaction
 
 
+__________________________________________________________
+
+Creationla Pattern
+
+
 1. Singleton Pattern 
 Problem:
 
@@ -47,14 +52,11 @@ class Logger {
 2. Factory Pattern 
 
 Problem:
-
 Avoid creating objects directly.
 
 Instead of:
 EmailNotification email = new EmailNotification();
-
 Client should not know implementation details.
-
 
 
 Example:
@@ -101,15 +103,17 @@ Loose coupling
 
 
 Example:
-
 Tomorrow:
-
 WhatsappNotification
 Just modify factory.
 
 
 
 3. Abstract Factor is factory of Factories
+
+
+
+
 
 
 4. Builder Pattern 
@@ -121,38 +125,79 @@ Constructor with many parameters.
 
 Example:
 
-User user =
-new User(
-"name",
-"email",
-"phone",
-"address",
-"age",
-"city"
-);
+class Notification {
 
-Hard to maintain.
+    private String title;
+    private String message;
+    private String imageUrl;
+    private String deepLink;
+    private String priority;
+    private boolean silent;
+
+    private Notification(Builder builder) {
+        this.title = builder.title;
+        this.message = builder.message;
+        this.imageUrl = builder.imageUrl;
+        this.deepLink = builder.deepLink;
+        this.priority = builder.priority;
+        this.silent = builder.silent;
+    }
+
+    public static class Builder {
+
+        private String title;
+        private String message;
+        private String imageUrl;
+        private String deepLink;
+        private String priority = "NORMAL";
+        private boolean silent = false;
+
+        public Builder title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public Builder message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        public Builder imageUrl(String imageUrl) {
+            this.imageUrl = imageUrl;
+            return this;
+        }
+
+        public Builder deepLink(String deepLink) {
+            this.deepLink = deepLink;
+            return this;
+        }
+
+        public Builder priority(String priority) {
+            this.priority = priority;
+            return this;
+        }
+
+        public Builder silent(boolean silent) {
+            this.silent = silent;
+            return this;
+        }
+
+        public Notification build() {
+            return new Notification(this);
+        }
+    }
+}
 
 
-Builder:
 
-User user =
-new User.Builder()
-.name("John")
-.email("abc@gmail.com")
-.age(25)
-.build();
+________________________________________________________
+________________________________________________________
 
 
+Behavioral Pattern
 
 
-
-
-
-
-
-
-5. Strategy Pattern 
+1. Strategy Pattern 
 One of the most important.
 
 Problem:
@@ -160,13 +205,13 @@ Multiple algorithms.
 
 Example:
 
-Payment:
 
 Payment
  |
  ----------------
  |       |       |
 Card   UPI    Paypal
+
 
 
 Bad:
@@ -188,7 +233,6 @@ void pay();
 }
 
 
-
 Implementations:
 
 class CardPayment implements PaymentStrategy{
@@ -199,6 +243,7 @@ public void pay(){}
 class UPIPayment implements PaymentStrategy{
 public void pay(){}
 }
+
 
 
 
@@ -218,79 +263,204 @@ Compression algorithms
 
 
 
+2. Observer Pattern 
 
+The Observer Pattern is a Behavioral Design Pattern.
+It defines a one-to-many dependency:
+When one object (Subject) changes its state, all dependent objects (Observers) are notified automatically.
 
-
-
-
-
-6. Observer Pattern 
-
-One object notifies many objects.
+A classic interview example is a Stock Price Notification System.
 
 Example:
 
-YouTube subscription.
+Problem without Observer
 
-Channel
+Suppose StockMarket has to notify:
 
- |
- ----------------
-Subscriber1
-Subscriber2
-Subscriber3
+Mobile App
+Email Service
+Dashboard
+
+Without Observer:
+
+class StockMarket {
+
+    MobileApp mobileApp = new MobileApp();
+    EmailService emailService = new EmailService();
+    Dashboard dashboard = new Dashboard();
+
+    void updatePrice(int price){
+        mobileApp.update(price);
+        emailService.update(price);
+        dashboard.update(price);
+    }
+}
 
 
-When video uploaded:
-notify()
+Problems
+Tight coupling.
+Every new subscriber requires modifying StockMarket.
+Violates Open-Closed Principle.
 
 
 
 
 
+Observer Pattern
+
+Step 1: Observer Interface
+interface Observer {
+    void update(int price);
+}
+
+
+Step 2: Concrete Observers
+
+class MobileApp implements Observer {
+
+    @Override
+    public void update(int price) {
+        System.out.println("Mobile: Stock price = " + price);
+    }
+}
+
+
+class EmailService implements Observer {
+
+    @Override
+    public void update(int price) {
+        System.out.println("Email sent: " + price);
+    }
+}
+
+
+class Dashboard implements Observer {
+
+    @Override
+    public void update(int price) {
+        System.out.println("Dashboard updated: " + price);
+    }
+}
+
+
+Step 3: Subject Interface
+interface Subject {
+
+    void subscribe(Observer observer);
+
+    void unsubscribe(Observer observer);
+
+    void notifyObservers();
+}
+
+
+Step 4: Concrete Subject
+
+class StockMarket implements Subject {
+
+    private List<Observer> observers = new ArrayList<>();
+
+    private int stockPrice;
+
+    @Override
+    public void subscribe(Observer observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void unsubscribe(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers() {
+
+        for (Observer observer : observers) {
+            observer.update(stockPrice);
+        }
+    }
+
+    public void setStockPrice(int price) {
+
+        this.stockPrice = price;
+
+        notifyObservers();
+    }
+}
+
+
+Step 5: Client
+public class Main {
+
+    public static void main(String[] args) {
+
+        StockMarket stockMarket = new StockMarket();
+
+        stockMarket.subscribe(new MobileApp());
+        stockMarket.subscribe(new EmailService());
+        stockMarket.subscribe(new Dashboard());
+
+        stockMarket.setStockPrice(250);
+        stockMarket.setStockPrice(300);
+    }
+}
+
+
+Output
+Mobile: Stock price = 250
+Email sent: 250
+Dashboard updated: 250
+
+Mobile: Stock price = 300
+Email sent: 300
+Dashboard updated: 300
+UML
+                 Observer
+                     ^
+      --------------------------------
+      |              |              |
+ MobileApp     EmailService     Dashboard
+
+                     ^
+                     |
+                  Subject
+                     ^
+                     |
+               StockMarket
+
+
+
+
+Real-world Examples:
+
+
+1. YouTube
+Subject → YouTube Channel
+Observers → Subscribers
+New video uploaded → Everyone gets notified.
+
+
+2. E-commerce
+Subject → Product
+Observers → Users who clicked "Notify me"
+Back in stock → Notification sent.
+
+
+3. Weather App
+Subject → Weather Station
+Observers → Mobile App, Website, TV
+Temperature changes → Everyone updates.
 
 
 
 
 
-
-7. State Pattern 
+3. State Pattern 
 
 Object behavior changes based on state.
 
 Example:
-
-Order:
-
-CREATED
-
- |
-PAID
-
- |
-SHIPPED
-
- |
-DELIVERED
-
-
-Instead of:
-
-if(status=="PAID")
-...
-else if(status=="SHIPPED")
-
-
-
-Create:
-
-OrderState
-
- |
---------------
-PaidState
-ShipState
-DeliveredState
+https://github.com/VaspulaVijayaLakshmi/System-Design/tree/main/Design%20Patterns/Behavioural/State%20Pattern
 
 Used in:
 
@@ -302,9 +472,7 @@ Order systems
 
 
 
-
-
-8. Template Method 
+4. Template Method 
 
 Define algorithm skeleton, subclasses customize steps.
 
