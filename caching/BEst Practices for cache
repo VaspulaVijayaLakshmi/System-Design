@@ -3,14 +3,21 @@ Best Practices for Implementing Distributed Caching/ CAching
 
 To get the most out of your distributed caching system, consider the following best practices:
 
-Cache Judiciously: Not all data benefits from caching. Focus on frequently accessed, relatively static data.
+-> Cache Judiciously: Not all data benefits from caching. Focus on frequently accessed.
+-> Set Appropriate TTLs: Use Time-To-Live (TTL) values to automatically expire cached data and reduce staleness.
+-> Monitor and Tune: Regularly monitor cache hit rates, memory usage, and network traffic to optimize performance.
+-> Plan for Failure: Design your system to gracefully handle cache node failures without significant impact on the application.
+-> Implement Cache Warming: Develop strategies to pre-populate critical data in the cache to avoid cold starts.
 
-Set Appropriate TTLs: Use Time-To-Live (TTL) values to automatically expire cached data and reduce staleness.
+-> Implement Cache-Aside Pattern: Load data into the cache only when it's requested, to avoid unnecessary caching.
 
-Implement Cache-Aside Pattern: Load data into the cache only when it's requested, to avoid unnecessary caching.
+Write Aside cache pattern
 
-Monitor and Tune: Regularly monitor cache hit rates, memory usage, and network traffic to optimize performance.
 
-Plan for Failure: Design your system to gracefully handle cache node failures without significant impact on the application.
+When a datais updated , update data and delete from cache if it exists.
 
-Implement Cache Warming: Develop strategies to pre-populate critical data in the cache to avoid cold starts.
+Write to DB -> delete from cache -> even if delete fails , the key will be removed will TTL
+Now when next time the key is used , Hit DB then cache it.
+
+So this will save us from :
+Updating to DB passed but cache fails.
