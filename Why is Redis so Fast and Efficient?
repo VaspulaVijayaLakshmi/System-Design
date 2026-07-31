@@ -23,7 +23,11 @@ You can also shard your dataset across a Redis Cluster.
 ______
 
 Redis can persist data to disk 
-Redis is often used as an in-memory cache, but it can also act as a durable data store depending on the persistence mode(2 modes - RDB and AOF) you choose.
+Redis is often used as an in-memory cache, 
+but it can also act as a durable data store 
+
+We have 2 persistence modes : 
+(RDB or AOF)
 
 
 1. RDB (Redis Database Snapshot)
@@ -35,8 +39,8 @@ Good for backups or systems that can tolerate some data loss.
 
 2.AOF (Append-Only File)
 Logs every write operation to disk
-
-These persistence methods are designed to run asynchronously, so the main thread never blocks.
+These persistence methods are designed to run asynchronously, 
+so the main thread never blocks.
 
 
 __________
@@ -45,22 +49,23 @@ __________
 SINGLE THREADED :
 
 Why Single-Threaded Works So Well
-By sticking to a single-threaded execution model, Redis avoids the typical overhead that comes with multithreaded systems:
+By sticking to a single-threaded execution model, 
+Redis avoids the typical overhead that comes with multithreaded systems:
 
 No context switching
 No thread scheduling
 No locks, mutexes, or semaphores
 No race conditions or deadlocks
 
-This means Redis spends almost all its CPU time doing actual work rather than wasting cycles coordinating between threads.
-
+This means Redis spends almost all its CPU time doing actual work rather
+than wasting cycles coordinating between threads.
 
 
 Operations are inherently atomic:
 
-No two clients can update the same key at the same time
-You don’t need locks to ensure safety
-You don’t get partial updates due to concurrency bugs
+No two clients can update the same key at the same time.
+You don’t need locks to ensure safety.
+You don’t get partial updates due to concurrency bugs.
 
 
 
@@ -197,15 +202,13 @@ __________
 
 REDIS has Optimized Data structures :  
 
-
-
 HASH
 SET
 LIST
 
-
 Sorted Sets
-Backed by a hybrid of a skiplist and a hashtable, allowing fast score-based queries and O(log N) operations
+Backed by a hybrid of a skiplist and a hashtable, 
+allowing fast score-based queries and O(log N) operations
 
 
 Sorted Set Internals
