@@ -4,13 +4,229 @@ What happens when you type google .com into a browser?
 
 1 - First up, you type the website address in the browser’s address bar.
 2 - The browser checks its cache first. If there’s a cache miss, it must find the IP address.
-3 - DNS lookup begins . The request goes through different DNS servers (root, TLD, and authoritative). Finally, the IP address is retrieved.
+3 - DNS lookup begins . The request goes through different DNS servers (root, TLD, and authoritative). 
+Finally, the IP address is retrieved.
 
-4 - Next, your browser initiates a TCP connection like a handshake. 
-For example, in the case of HTTP 1.1, the client and server perform a TCP three-way handshake with SYN, SYN-ACK, and ACK messages.
+4 - Browser connects to that IP.
+
+Your browser initiates a TCP connection.
+
+For HTTPS:
+
+1.TCP 3-way handshake
+2. TLS handshake for secure communication
+
+For example, in the case of HTTP 1.1, the client and server 
+perform a TCP three-way handshake with SYN, SYN-ACK, and ACK messages.
 
 
-5 - Once the handshake is successful, the browser makes an HTTP request to the server and the server responds with HTML, CSS, and JS files.
-6 - Finally, the browser processes everything. It parses the HTML document and creates DOM.
-7 - The browser executes the JavaScript and renders the page 
-8 - Finally, the webpage appears on your screen.
+DNS
+ ↓
+TCP handshake → Connection
+ ↓
+TLS handshake → Security
+ ↓
+HTTP request → Actual communication
+
+
+
+
+
+5. Load Balancer
+
+Request may reach a load balancer:
+
+Browser
+   ↓
+DNS
+   ↓
+Load Balancer
+   ↓
+ ┌───────┬───────┐
+ ↓       ↓       ↓
+App 1   App 2   App 3
+
+The load balancer chooses an available application server.
+
+
+
+6. Application Server
+
+The backend processes the request.
+It might check:
+
+Redis Cache
+    ↓ (cache miss)
+Database
+
+
+
+7. Server sends response
+
+For example:
+HTTP 200 OK
+HTML
+CSS
+JavaScript
+Images
+
+
+
+8. Browser renders
+
+The browser parses the HTML, downloads required CSS/JS/images, 
+builds the DOM and CSSOM, and finally renders the webpage on your screen.
+
+
+____________________________________________________
+Extra KNowledge: 
+
+
+
+DNS = Domain Name System.
+It translates domain names → IP addresses.
+Example: google.com → 142.250.x.x
+
+
+
+When your browser knows the server's IP, it needs to establish a connection.
+
+
+1. What is TCP?
+
+TCP = Transmission Control Protocol
+TCP's job is to provide reliable communication between two machines.
+
+It ensures:
+
+Data reaches the destination
+Data arrives in the correct order
+Lost packets are retransmitted
+The connection is established before sending data
+
+Think of TCP as:
+
+"Let's establish a reliable communication channel."
+
+
+
+
+TCP 3-Way Handshake
+
+Suppose your browser wants to connect to a server.
+
+Step 1: SYN
+Browser → Server:
+SYN
+
+
+Meaning:
+"Hey server, I want to establish a connection."
+
+Step 2: SYN-ACK
+Server → Browser:
+SYN + ACK
+
+Meaning:
+"Yes, I received your request, and I'm ready to connect."
+
+Step 3: ACK
+Browser → Server:
+ACK
+
+Meaning:
+"Great, I received your response. Connection established."
+
+Now:
+
+Browser  ←──── TCP Connection ────→  Server
+They can now reliably exchange data.
+
+
+
+2. What is TLS?
+
+TLS = Transport Layer Security
+TLS provides security/encryption.
+
+Without TLS:
+
+Browser ────────────────→ Server
+          Plain text
+
+Someone intercepting the communication could potentially read sensitive data.
+
+With TLS:
+
+Browser ────────────────→ Server
+          Encrypted data
+
+
+So TLS provides:
+
+🔒 Encryption → Others can't easily read the data
+✅ Authentication → Verify you're talking to the real server
+🛡️ Integrity → Data isn't secretly modified in transit
+
+
+
+
+3. TLS Handshake
+
+After TCP connection is established, the browser and server perform a TLS handshake.
+
+Simplified:
+
+Browser                         Server
+   |                              |
+   | ---- ClientHello ----------> |
+   |                              |
+   | <---- ServerHello ----------- |
+   | <---- Certificate ----------- |
+   |  
+   | validate cert
+
+   |  Agree on encryption keys    |
+   |                              |
+   | ===== Encrypted channel =====|
+
+The important thing is:
+
+Browser and server agree on how to securely communicate and establish encryption keys.
+
+The server also sends a digital certificate.
+The browser verifies that the certificate is valid and trusted,
+helping ensure that the server is actually example.com and not an attacker pretending to be it.
+
+
+
+
+
+
+
+
+
+4. Then HTTP happens
+
+Once TCP + TLS are ready:
+
+Browser
+   |
+   | HTTP Request
+   | GET / HTTP/1.1
+   | Host: example.com
+   ↓
+Server
+
+The response is sent over the encrypted TLS connection:
+
+Server
+   |
+   | Encrypted HTTP Response
+   ↓
+Browser
+
+This is why:
+
+HTTP  → Not encrypted
+HTTPS → HTTP + TLS
