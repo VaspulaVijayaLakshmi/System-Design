@@ -1,14 +1,308 @@
-Elasticsearch is a powerful search engine that excels in full-text search, complex query execution, 
+Elasticsearch is a powerful distributed search and analytics engine that excels in full-text search, complex query execution, 
 and handling high-volume traffic efficiently. 
 
+It is commonly used when you need:
 
-At its core, Elasticsearch operates using inverted indexes, a key feature that makes it highly 
-efficient for search operations.
+Full-text search
+Autocomplete
+Fuzzy search
+Filtering
+Ranking/relevance
+Aggregations
+Log analytics
 
-Inverted indexes allow Elasticsearch to quickly locate and retrieve data by mapping each unique
-word to the documents or records it appears in, significantly speeding up search queries.
 
 
+2. Elasticsearch vs MySQL
+
+Suppose you have 10 million products.
+
+In MySQL, you might have:
+
+SELECT *
+FROM products
+WHERE name LIKE '%running shoes%';
+
+This isn't ideal for sophisticated search.
+
+You may want:
+
+running matching run
+shoe matching shoes
+Typo tolerance: nik → nike
+Ranking results by relevance
+Searching across title + description + brand
+Filters like price, category, rating
+
+Elasticsearch is designed specifically for these kinds of searches.
+
+
+
+
+
+3. The most important concept: Inverted Index
+
+Suppose we have:
+
+Doc 1: "Nike running shoes"
+Doc 2: "Adidas running shoes"
+Doc 3: "Nike casual shoes"
+
+Elasticsearch creates an inverted index:
+
+nike     → Doc 1, Doc 3
+running  → Doc 1, Doc 2
+shoes    → Doc 1, Doc 2, Doc 3
+adidas   → Doc 2
+casual   → Doc 3
+
+Now search:
+
+"nike shoes"
+
+Elasticsearch finds:
+
+nike  → Doc 1, Doc 3
+shoes → Doc 1, Doc 2, Doc 3
+
+Intersection:
+
+Doc 1, Doc 3
+
+Then Elasticsearch calculates relevance scores and ranks them.
+
+
+
+Inverted Index
+
+An inverted index is a data structure used by search engines like Elasticsearch to quickly 
+find which documents contain a particular word.
+
+
+Why is it called "inverted"?
+
+Because instead of:
+Document → Words
+
+we invert it into:
+Word → Documents
+
+
+
+
+4. Elasticsearch Architecture
+
+At a high level:
+
+                Elasticsearch Cluster
+                       |
+        ┌──────────────┼──────────────┐
+        |              |              |
+      Node 1         Node 2         Node 3
+        |              |              |
+      Shards         Shards         Shards
+
+An Elasticsearch cluster consists of multiple nodes.
+
+An index is logically similar to a database/table concept, although the mapping isn't exact.
+
+Think:
+
+MySQL                    Elasticsearch
+
+Database                 Cluster
+Table                    Index
+Row                      Document
+Column                   Field
+
+
+
+
+5. Index
+
+Suppose you're building an e-commerce search system.
+
+You might have:
+
+products
+
+as an Elasticsearch index.
+
+Documents:
+
+{
+  "id": 123,
+  "name": "Nike Running Shoes",
+  "brand": "Nike",
+  "price": 5000,
+  "category": "Shoes"
+}
+
+Another product is another document.
+
+products index
+
+Document 1
+Document 2
+Document 3
+...
+Document 10 million
+
+But Elasticsearch doesn't necessarily keep all 10 million documents on one machine.
+
+
+
+6. Shards
+
+Suppose you have 10 million documents.
+
+You can divide them into shards:
+
+Products Index
+
+        10 Million Documents
+                |
+       ┌────────┼────────┐
+       ↓        ↓        ↓
+    Shard 0  Shard 1  Shard 2
+       3.3M     3.3M     3.4M
+
+
+
+Now you can distribute shards across nodes:
+
+Elasticsearch Cluster
+│
+├── Node 1
+│    ├── Primary Shard 0
+│    ├── Replica Shard 1
+│    └── Cluster/Node metadata
+│
+├── Node 2
+│    ├── Primary Shard 1
+│    ├── Replica Shard 2
+│    └── Cluster/Node metadata
+│
+└── Node 3
+     ├── Primary Shard 2
+     ├── Replica Shard 0
+     └── Cluster/Node metadata
+
+
+
+Cluster state / metadata
+Information about the cluster, indexes, shard allocation, 
+node membership, etc. Cluster-manager-eligible nodes participate in managing this state.
+
+
+
+
+            Elasticsearch Cluster
+                           |
+          ┌────────────────┼────────────────┐
+          |                |                |
+          ↓                ↓                ↓
+       Node 1           Node 2           Node 3
+          |                |                |
+       ┌──┴──┐          ┌──┴──┐          ┌──┴──┐
+       |     |          |     |          |     |
+      P0    R1         P1    R2         P2    R0
+
+
+Suppose we have 3 primary shards and 1 replica for each:
+
+P0 → Primary Shard 0
+R0 → Replica of Shard 0
+
+P1 → Primary Shard 1
+R1 → Replica of Shard 1
+
+P2 → Primary Shard 2
+R2 → Replica of Shard 2
+
+A primary shard and its own replica cannot be placed on the same node.
+
+Otherwise:
+
+Node 1
+├── Primary Shard 0
+└── Replica Shard 0  ❌
+
+If Node 1 crashes, you lose both copies.
+
+Instead:
+
+Node 1                Node 2
+Primary Shard 0  →    Replica Shard 0
+
+
+
+
+
+
+
+
+8. How does a search request work?
+
+Suppose we have:
+
+3 nodes
+6 shards
+
+The user searches:
+"nike shoes"
+
+Request comes to Elasticsearch:
+
+
+
+Client
+   |
+   ↓
+Node 1
+
+Node 1 becomes the coordinating node for this request.
+
+It sends the query to relevant shards:
+
+             Node 1
+          Coordinating Node
+                |
+       ┌────────┼────────┐
+       ↓        ↓        ↓
+    Shard 0  Shard 2  Shard 4
+       ↓        ↓        ↓
+    Results   Results   Results
+       └────────┼────────┘
+                ↓
+          Merge + Rank
+                ↓
+             Response
+
+Each shard searches its local inverted index.
+
+Then Elasticsearch:
+
+Gets results from shards
+Merges results
+Calculates/ranks relevance
+Returns top N results
+
+This is called the distributed search process.
+
+
+
+
+
+
+
+
+
+
+
+
+
+_______________________________________________________
 
 
 Lets say the elastic is set up along with some DB - we need to sync the changes.
@@ -17,10 +311,191 @@ To make sure the data in Elasticsearch is always in sync with the data in our SQ
 we can use change data capture (CDC) for real-time or near-real-time data synchronization 
 from PostgreSQL to Elasticsearch. 
 
-
 This setup captures changes in the PostgreSQL database, such as inserts, updates, and deletes, and replicates them to the Elasticsearch index.
 
 
-We can enable fuzzy search functionality with Elasticsearch, which allows for error tolerance in search queries. 
-This is way we can handle typos and slight variations in spellings such as "Taylor Swift" vs "Tayler Swift".
-This is something that would be very difficult to do with SQL alone.
+
+CDC = Change Data Capture
+
+CDC is a mechanism to detect changes happening in a database and capture those changes as events.
+
+
+Suppose you have:
+
+PostgreSQL
+    |
+    | INSERT / UPDATE / DELETE
+    ↓
+   CDC
+    |
+    ↓
+Change Events
+    |
+    ↓
+Kafka
+    |
+    ├──> Elasticsearch
+    ├──> Data Warehouse
+    └──> Analytics
+
+
+
+Example
+
+Suppose your product is stored in PostgreSQL:
+
+Product
+id = 101
+name = "Nike Shoes"
+price = 5000
+
+Someone changes the price:
+
+UPDATE products
+SET price = 4500
+WHERE id = 101;
+
+CDC captures this change:
+
+{
+  "operation": "UPDATE",
+  "productId": 101,
+  "oldPrice": 5000,
+  "newPrice": 4500
+}
+
+That event can be published to Kafka:
+
+Postgres
+    |
+    | Price updated
+    ↓
+CDC Tool
+(Debezium)
+    |
+    ↓
+Kafka
+    |
+    ↓
+Elasticsearch
+    |
+    ↓
+Search now shows ₹4500
+
+
+
+
+
+How does CDC know about changes?
+
+The common approach is log-based CDC.
+
+For example, PostgreSQL maintains a Write-Ahead Log (WAL).
+
+Application
+     |
+     | UPDATE
+     ↓
+PostgreSQL
+     |
+     ├── Update Database
+     |
+     └── Write to WAL
+             |
+             ↓
+       CDC Connector
+             |
+             ↓
+           Kafka
+
+A CDC tool like Debezium reads the database's transaction log/WAL and converts changes into events.
+
+
+
+
+
+Why use CDC?
+1. Keep Elasticsearch synchronized
+Postgres (Source of Truth)
+        |
+        ↓
+       CDC
+        |
+        ↓
+      Kafka
+        |
+        ↓
+ Elasticsearch
+
+Instead of your application doing:
+
+Update Postgres
+Update Elasticsearch
+
+you only update Postgres:
+
+Update Postgres
+      ↓
+CDC captures change
+      ↓
+Kafka
+      ↓
+Elasticsearch updated
+
+This reduces coupling.
+
+
+
+
+
+2. Analytics
+Postgres
+    ↓
+   CDC
+    ↓
+  Kafka
+    ├──> Data Warehouse
+    ├──> ClickHouse
+    └──> Analytics
+
+You can stream database changes into analytical systems.
+
+
+
+
+
+
+CDC vs Event-Driven Architecture
+
+They are related but not the same.
+
+Event-driven architecture
+Your application explicitly publishes a business event:
+
+Order Service
+     |
+     | publish OrderCreated
+     ↓
+   Kafka
+     |
+    CDC
+
+The database change is captured automatically:
+
+Order Service
+     |
+     | INSERT
+     ↓
+Postgres
+     |
+     ↓
+    CDC
+     |
+     ↓
+Kafka
+Interview distinction
+
+CDC captures changes from a database and publishes them as events. 
+Event-driven architecture is the broader architectural pattern where services communicate through events. 
+CDC can be one mechanism used to implement event-driven systems.
+
