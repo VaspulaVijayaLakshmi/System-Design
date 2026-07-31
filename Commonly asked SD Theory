@@ -130,35 +130,195 @@ Why if leader goes down
 One of the follower will be elected a leader - who would be tht
 The one will all uptodate with leader. 
 
+Which follower?
+Usually, the follower with the most up-to-date replicated data (highest replication log/index/term) is preferred. 
+But the exact election algorithm depends on the system.
+
+
 But why if leader is not down completely, it was facing some temp intermittent issues
 
+
+This is the split-brain problem.
 Then now when it comes up system will have 2 leader - 
 So we need to use versioning in this scenario
 
+Interview one-liner
 
-So tht old leader will understand tht new leader has come up and joins as a follower
+"To prevent split-brain.
+Every leader is associated with a term. 
+SO the new leader will be given new TERM/epoch/version number.
+
+If an old leader comes back after a new leader has been elected, 
+it discovers a higher term and steps down to follower, ensuring only the latest leader can serve writes."
+
 
 
 
 
 Leaderless Pattern
 
-No biased responsibility, everyone has same set of responsibilities
+No biased responsibility, everyone has same set of responsibilities.
 And they commnunicate with each other - Gossip protocol
 
-Each server will randomly communicate, with some k servers to take updates and health checks (like checking on each other)
+Each server will randomly communicate, with some k servers to take updates 
+and health checks (like checking on each other)
 
+Hinted - HandOff:
 And if a server has failed, others will receive the updates, once the server comes up, they will
-Pass this info over  
+Pass this info over.   
 
 The servers actually write the information along with the real recipient of tht data, so when tht
-Server come sup, they know who’s data is this and sends to it
+Server come sup, they know who’s data is this and sends to it.
+
+
+Membership information = knowledge about which nodes currently belong to the cluster and their status.
+
+Example:
+
+Cluster has:
+
+N1 → UP
+N2 → UP
+N3 → DOWN
+N4 → UP
+
+Each node may maintain information like:
+
+Node ID    IP        Status
+N1         10.0.0.1  UP
+N2         10.0.0.2  UP
+N3         10.0.0.3  DOWN
+N4         10.0.0.4  UP
+
+This is membership information.
+
+How does Gossip help?
+
+N1 checks N3 and finds it isn't responding:
+
+N1 → N3: "Are you alive?"
+N3 → No response
+
+N1 suspects N3 is down.
+
+Then N1 tells other nodes:
+
+N1 → N2: "I think N3 is down."
+N2 → N4: "N3 seems to be down."
+
+Eventually, most nodes learn:
+
+N3 = DOWN
+
+This is gossip-based failure detection.
+
+
+
+
+The client sends the request to any available node. 
+That node becomes the coordinator. 
+The coordinator uses the partitioning algorithm to determine the replica set for the key. 
+If one of the intended replicas is unavailable, the coordinator temporarily stores the write on another available node 
+with a hint identifying the intended replica. 
+
+When the failed replica recovers, the temporary node forwards the data to it.
+
+
+The coordinator doesn't necessarily have to be N1 because N1 owns the data. 
+N1 is simply the node that received the request. 
+Any node can act as coordinator in a leaderless architecture.
+
+
+
+
+                1. Write
+Client ─────────────────────────> N1
+                                  |
+                                  | Coordinator
+                                  |
+                         2. Hash key
+                                  |
+                                  v
+                         Partition = 42
+                                  |
+                       Replicas = N2,N3,N4
+                                  |
+                     ┌────────────┼─────────────┐
+                     |            |             |
+                     v            v             v
+                  N2 DOWN       N3 UP         N4 UP
+                     |            |             |
+                     |            |             |
+                  HINT           ABC           ABC
+                     |            |             |
+                     v            |             |
+                    N1 <----------+-------------+
+                  "ABC belongs
+                   to N2"
+
+                     Later...
+
+                  N2 comes UP
+                     |
+                     v
+                  N1 ──────> N2
+                   ABC
+                (handoff)
+
 
 
 Anti-Entropy.
 * When a previously failed server rejoins, it is missing updates that happened while it was down.
 * Other nodes detect this discrepancy and initiate a state synchronization.
 * The updates are gossiped back to the recovered node to bring it up to date.
+
+
+Node N1                         Node N2
+   Root Hash                      Root Hash
+      /   \                          /   \
+     A     B                        A     B
+    / \   / \                      / \   / \
+   A1 A2 B1 B2                    A1 A2 B1 B2
+Step 1: Compare root
+Root(N1) == Root(N2)
+
+Then:
+
+All data represented by this tree is the same.
+Nothing needs to be synchronized.
+
+Step 2: Root is different
+Root(N1) != Root(N2)
+
+Go down the tree:
+
+       Root ❌
+       /    \
+      A      B
+     ✅     ❌
+
+We know:
+
+Left subtree A → same
+Right subtree B → different
+
+So we don't need to inspect/synchronize A.
+
+Step 3: Continue only with different subtree
+       B ❌
+      /   \
+    B1     B2
+    ✅     ❌
+
+Now we know only B2 contains differences.
+
+Eventually, we identify the specific data range/partition that differs.
+
+N1: B2 → old data
+N2: B2 → newer data
+
+Then synchronize only that range instead of comparing the entire dataset.
+
 
 
 ___________
@@ -168,14 +328,55 @@ Conflict Resolution in Distributed Systems
 
 Interviewer: “How do you handle conflicting writes in distributed databases?”
 
-Use techniques like vector clocks or timestamps to track versions of data.
+In distributed databases, conflicting writes can happen when multiple replicas accept writes concurrently. 
+How we resolve them depends on the consistency requirement.
 
-Vector clocks, versioning
+In a leaderless system like Dynamo-style databases, we can use versioning such as vector clocks or 
+timestamps to detect concurrent versions. If two versions conflict, we can either:
+
+Last Write Wins (LWW) — choose the value with the latest timestamp. Simple, but can lose updates.
+Application-level conflict resolution — return both versions to the application and let business logic decide. For example, in a shopping cart, we may merge items from both versions.
+CRDTs — use data structures designed to automatically merge concurrent updates.
+
+After resolving the conflict, the correct value is propagated to other replicas
 
 
 
+For strong consistency systems, we can avoid many conflicting writes by routing writes through a single leader 
+and using consensus/quorum mechanisms to establish a single ordering of writes.
 
- 
+
+
+"Consensus is the process by which distributed nodes agree on a single value or decision,
+even in the presence of node failures or network issues."
+
+
+ Example: Leader Election
+
+Initially:
+
+N1 = Leader
+
+N1 crashes.
+
+Now N2, N3, N4, N5 need to agree:
+
+Who becomes the new leader?
+
+Using a consensus algorithm like Raft:
+
+N2 → "I want to become leader"
+N3 → YES
+N4 → YES
+N5 → YES
+
+Majority agrees:
+
+3/5 or more → N2 becomes Leader
+
+Now everyone agrees:
+
+N2 = Leader
 
  
 
