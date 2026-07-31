@@ -7,15 +7,148 @@ Challenges and Considerations:
 
 2. Cache Invalidation: Determining when and how to update or remove stale data from the cache.
 
-3. Cold Start: Handling scenarios when the cache is empty, such as after a system restart.
+3. Cache Eviction Policies: Deciding which items to remove when the cache reaches capacity (e.g., Least Recently Used, Least Frequently Used).
 
-4. Cache Eviction Policies: Deciding which items to remove when the cache reaches capacity (e.g., Least Recently Used, Least Frequently Used).
+4. Cache Penetration: Preventing malicious attempts to repeatedly query for non-existent data, potentially overwhelming the backend.
 
-5. Cache Penetration: Preventing malicious attempts to repeatedly query for non-existent data, potentially overwhelming the backend.
+5. Cold Start: Handling scenarios when the cache is empty, such as after a system restart.
+
+During cold start, many requests go to the database/backend simultaneously, causing:
+
+Higher latency
+Increased database load
+Possible thundering herd problem if traffic is high
+
+
+How do we handle it?
+
+Common approaches:
+
+1. Cache warming → Preload frequently accessed data when the application starts.
+
+
+
+2. Request coalescing → If 100 requests ask for the same missing key, 
+           only one request fetches from DB; others wait for that result.
+
+
+Without request coalescing
+
+100 users request:
+GET product:Nike
+
+Cache misses for everyone:
+
+100 requests
+     ↓
+Cache MISS
+     ↓
+100 DB queries 
+
+
+
+With request coalescing
+
+We maintain an in-flight request map:
+
+key → Future/Promise
+
+For example:
+inFlight["product:Nike"] = Future
+
+
+___________________________________________________
+
+
+Request 1 ──→ Cache MISS ──→ No request in progress
+                              ↓
+                         Create Future
+                              ↓
+                         Query DB
+                              ↓
+                         Put in Cache
+                              ↓
+                         Complete Future
+                              ↓
+                         All requests get result
+
+
+Request 2 ──→ Cache MISS ──→ Request already in progress
+                              ↓
+                         Wait for Future
+
+Request 3 ──→ Cache MISS ──→ Request already in progress
+                              ↓
+                         Wait for Future
+
+___________________________________________________
+
+100 incoming requests
+        ↓
+   Cache MISS
+        ↓
+┌───────────────────┐
+│ Request 1         │ → DB (ONLY ONE)
+└───────────────────┘
+        ↓
+   Result returned
+        ↓
+   Cache populated
+        ↓
+Requests 2-100 get same result
+
+
+___________________________________________________
+
+
+In Java
+
+You can achieve this with CompletableFuture + ConcurrentHashMap:
+
+ConcurrentHashMap<String, CompletableFuture<Product>> inFlight;
+
+CompletableFuture<Product> future =
+    inFlight.computeIfAbsent(key, k -> fetchFromDBAsync(k));
+
+return future;
+
+
+computeIfAbsent() essentially means:
+
+"If this key is already present, give me the existing value.
+Otherwise, create a new value and put it in the map."
+
+___________________________________________________
 
 
 
 
+
+
+3. TTL management → Avoid having a large number of popular keys expire at exactly the same time.
+
+Imagine you have 1 million cache keys, and all of them have:
+
+TTL = 1 hour
+
+If they were all inserted around the same time:
+
+10:00 AM → 1 million keys inserted
+11:00 AM → 1 million keys expire
+             ↓
+      Cache becomes empty
+             ↓
+1 million requests → Cache MISS
+             ↓
+        Database
+             ↓
+      DB gets overloaded
+
+This is called a cache stampede or thundering herd problem.
+
+
+_______________________________________________________________________________________________________
+_______________________________________________________________________________________________________
 
 Best Practices for Implementing Caching:
 
