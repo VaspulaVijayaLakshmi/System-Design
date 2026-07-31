@@ -7,7 +7,7 @@ Behavioral Patterns → Object communication/interaction
 
 __________________________________________________________
 
-Creationla Pattern
+Creational Pattern
 
 
 1. Singleton Pattern 
@@ -492,21 +492,14 @@ orchestrators
 
 
 
+________________________________________________________
+________________________________________________________
+
+Structural Pattern:
 
 
 
-
-
-
-
-
-
-
-
-
-
-9. Adapter Pattern 
-Very common.
+1. Adapter Pattern 
 
 
 Problem:
@@ -702,16 +695,9 @@ The important part to understand:
 
 
 
-
-
-
-
-10. Facade Pattern 
-
-Provide simple interface over complex system.
+2. Facade Pattern 
 
 Idea: Provide a simple interface to hide a complex subsystem.
-
 Let's use a Travel Booking example.
 
 Without Facade, the client needs to call multiple services:
@@ -778,12 +764,11 @@ class BookingFacade {
         paymentService = new PaymentService();
     }
 
+
     public void bookTrip() {
 
         paymentService.makePayment();
-
         flightService.bookFlight();
-
         hotelService.bookHotel();
 
         System.out.println("Trip booked successfully");
@@ -793,16 +778,8 @@ class BookingFacade {
 
 
 Client
-
 Instead of doing this:
 
-FlightService flight = new FlightService();
-HotelService hotel = new HotelService();
-PaymentService payment = new PaymentService();
-
-payment.makePayment();
-flight.bookFlight();
-hotel.bookHotel();
 
 Client simply does:
 
@@ -842,16 +819,11 @@ Service layer
 
 
 
-
-
-
-
-
-11. Decorator Pattern
+3. Decorator Pattern
 
 Idea: Add new behavior to an object without modifying its original class.
 
-Example: Coffee ☕
+Example: Coffee 
 
 Start with:
 
