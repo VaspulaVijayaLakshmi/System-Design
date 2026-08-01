@@ -1,0 +1,273 @@
+Message Queue (MQ) = one message → usually one consumer processes it
+Pub/Sub = one message → multiple subscribers can receive it
+Kafka = a distributed, persistent, high-throughput event streaming platform that can behave like both.
+
+1. Message Queue
+
+Example: Order processing
+
+Order Service
+     |
+     v
+   Queue
+  /  |  \
+ v   v   v
+Worker Worker Worker
+
+Suppose you have:
+Order #123
+
+You want only one worker to process it.
+
+Worker 1 picks it up → processes it → message is acknowledged/removed.
+If Worker 1 crashes, another worker can process it.
+
+Use case:
+
+Email sending
+Image processing
+Payment processing
+Background jobs
+
+Examples: RabbitMQ, Amazon SQS.
+
+
+
+
+
+2. Pub/Sub
+
+Now suppose an order is placed.
+
+                 Order Created
+                      |
+                      v
+                    Topic
+                  /   |   \
+                 /    |    \
+                v     v     v
+          Email Service Inventory Analytics
+
+All three services get the event.
+
+OrderCreated
+    |
+    +----> Email Service
+    |
+    +----> Inventory Service
+    |
+    +----> Analytics Service
+
+This is fan-out.
+Each subscriber independently receives the message.
+
+Use case:
+
+User registered → send welcome email + update analytics + create recommendation profile
+Order placed → notify inventory + payment + analytics
+
+
+
+
+
+3. Kafka
+
+Kafka combines these ideas with a persistent distributed log.
+
+                    Kafka Topic
+                         |
+             +-----------+-----------+
+             |                       |
+        Consumer Group A        Consumer Group B
+             |                       |
+       Order Service           Analytics Service
+        C1    C2                 C3    C4
+
+Suppose:
+
+Topic: orders
+
+Partition 0:  O1 O4 O7
+Partition 1:  O2 O5 O8
+Partition 2:  O3 O6 O9
+
+Kafka stores these messages for a configured retention period.
+A consumer reads messages and maintains an offset.
+
+
+So:
+
+Consumer reads O1
+Consumer crashes
+Consumer restarts
+      |
+      v
+Reads again from last committed offset
+
+
+
+
+You can also have:
+
+Consumer Group A  -> processes orders
+
+Consumer Group B   -> processes analytics
+
+Consumer Group C -> processes fraud detection
+
+Each consumer group independently reads the same Kafka topic.
+That's why Kafka can give you Pub/Sub-like behavior while also supporting queue-like load balancing inside a consumer group.
+
+
+The key distinction for interviews
+
+Imagine:
+
+                OrderCreated
+                     |
+                  Kafka Topic
+                 /     |     \
+                /      |      \
+               v       v       v
+          Email CG  Inventory CG  Analytics CG
+
+Each consumer group gets the event.
+But inside one consumer group:
+
+Inventory Consumer Group
+
+Partition 0 ---> Consumer 1
+Partition 1 ---> Consumer 2
+Partition 2 ---> Consumer 3
+
+The consumers share the work.
+
+So remember:
+
+Different consumer groups → Pub/Sub behavior
+Consumers within the same group → Queue/load-balancing behavior
+
+Interview one-liner
+MQ is primarily for distributing work among consumers, Pub/Sub is for broadcasting events to multiple independent subscribers, 
+while Kafka is a distributed persistent event log that supports both patterns through partitions and consumer groups,
+with strong replay and high-throughput capabilities.
+
+
+
+in a traditional Message Queue, a message is removed after successful processing and acknowledgment.
+
+Example:
+
+Producer
+   |
+   v
+  Queue
+   |
+   v
+Consumer
+   |
+   | process message
+   v
+ACK
+   |
+   v
+Message removed
+
+But there's an important detail:
+
+
+
+
+What if consumer crashes?
+
+Queue
+  |
+  v
+Consumer gets message
+  |
+  X  Consumer crashes
+  |
+  v
+Message becomes available again
+
+
+So the message is not necessarily deleted immediately when consumed. Usually, it is deleted after the consumer successfully processes it and sends an ACK.
+
+
+
+
+Traditional MQ:
+Message → Consumer → ACK → Deleted
+
+Kafka:
+Message → Consumer → Offset committed
+                      ↓
+                 Message remains
+                 until retention expires
+
+That's why Kafka allows replay—you can reset the consumer offset and read old messages again.
+
+
+
+
+
+|                   | RabbitMQ                      | Kafka                                   |
+| ----------------- | ----------------------------- | --------------------------------------- |
+| Primary use       | Message queue / messaging     | Event streaming                         |
+| Message model     | Queue-based                   | Log-based                               |
+| After consumption | Usually ACK → message removed | Message remains until retention expires |
+| Replay            | Not the main use case         | **Core feature**                        |
+| Throughput        | High                          | **Very high**                           |
+| Ordering          | Queue-level ordering          | **Within a partition**                  |
+| Scaling           | Queues + consumers            | Partitions + consumer groups            |
+| Best for          | Task processing               | Event pipelines                         |
+| Example           | Send email job                | OrderCreated event                      |
+
+
+
+
+When would I choose which?
+
+Choose RabbitMQ when:
+
+You have background jobs/tasks.
+Each task should generally be processed once by one worker.
+You need flexible routing patterns.
+You need traditional message acknowledgment and delivery semantics.
+
+Choose Kafka when:
+
+You have huge event volumes.
+Multiple independent systems need the same events.
+You need event replay.
+You need long-lived event history.
+You are building data pipelines or event-driven architectures.
+
+
+
+
+
+
+Kafka (no native priority queue)
+
+Kafka doesn’t natively support message priorities because it’s a log-based system (append-only ordered by offset).
+Ways to handle it anyway:
+
+Option 1: Separate Topics by Priority
+topic-high-priority
+topic-normal
+topic-low-priority
+
+Consumer logic:
+Poll high-priority topic first → then normal → then low.
+Very common and scalable approach.  
+
+
+Option 2: Priority Embedded in Message
+Include priority in the message itself.
+Consumer reads a batch → sorts messages by priority → processes high first.  
+
+
+Standard SQS(Simple Queue Service) doesn’t have built-in priority, but you can:
+Use multiple queues (high, medium, low),
+Use a dispatcher service that polls high first.  
