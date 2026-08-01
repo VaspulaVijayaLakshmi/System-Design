@@ -3,40 +3,108 @@ https://www.linkedin.com/feed/update/urn:li:activity:7230189898459230208/
 
 𝐇𝐨𝐰 𝐭𝐨 𝐢𝐦𝐩𝐫𝐨𝐯𝐞 𝐝𝐚𝐭𝐚𝐛𝐚𝐬𝐞 𝐩𝐞𝐫𝐟𝐨𝐫𝐦𝐚𝐧𝐜𝐞?
 
+-> Indexing
+Limit indexing - Index Optimisations  - as to to not overwhelm the indexes
 
 
-Indexing
-Limit indexing - index optimisations  - as to to not overwhelm the indexes
+-> DB caching : MateriliaZED VIEWS
+
+A materialized view is basically a precomputed result of a query that is stored physically so that future reads are much faster.
+Think of it as caching the result of an expensive query.
 
 
-DB caching
-MateriliaZED VIEWS
+Materialized View
+SELECT * FROM materialized_view
+       ↓
+Read precomputed result
+       ↓
+Return result
+
+The result is already stored.
 
 
-Denormalization
 
-Sharding
- partitioning
+The tradeoff
+The problem is stale data.
 
-Denormalization
+Suppose:
 
-Query optimisation
+Materialized View:
+Today's Sales = ₹10,00,000
 
-Replication
+Then a new ₹5,000 order comes in:
 
-𝐂𝐨𝐧𝐧𝐞𝐜𝐭𝐢𝐨𝐧 𝐏𝐨𝐨𝐥𝐢𝐧𝐠: Reduce the overhead of opening/closing database connections by reusing existing ones, improving performance under heavy traffic.
+Actual Sales = ₹10,05,000
+Materialized View = ₹10,00,000 
+
+So you need to refresh the materialized view.
 
 
+
+You can refresh:
+
+Periodically → every 5 minutes/hour/day
+On demand → manually refresh
+Incrementally → update only changed data
+
+
+
+
+-> Denormalization
+-> Sharding
+-> Partitioning
+-> Query optimisation
+-> Replication
+
+
+
+-> 𝐂𝐨𝐧𝐧𝐞𝐜𝐭𝐢𝐨𝐧 𝐏𝐨𝐨𝐥𝐢𝐧𝐠: Reduce the overhead of opening/closing database connections by reusing existing ones, 
+                    improving performance under heavy traffic.
+
+_________________________________________________________
 
 
 What Makes Databases Durable (Even After Crashes)?
 
-WAL - write ahead log - durable  Sequential file log  -  which records DB operations sequentially
+-> WAL - write Ahead Log - Durable Sequential File log  -  which records DB operations sequentially
                                          In the event of crash, this can be replayed to get back to the state 
-                                        Db state.
+                                       
+
+-> Checkpointing -  Add checkpoints in DB to flush the db state to disk, cause overtime this WAL grows.
+                    And it takes in consuming to replay so much.
+
+-> Replication
 
 
-Checkpointing - add checkpoints in db to flush the db state to disk, cause overtime this WAL grows.
-                            And its tome consuming to replay so much…
+_________________________________________________________
 
-Replication
+Real-world example: E-commerce
+
+Imagine Amazon-like system.
+You have millions of orders:
+
+Orders
+   ↓
+Complex aggregation
+   ↓
+Materialized View
+   ↓
+"Top 10 products sold today"
+
+Instead of calculating this every time someone opens the dashboard:
+
+SELECT product_id, COUNT(*)
+FROM orders
+GROUP BY product_id
+ORDER BY COUNT(*) DESC
+LIMIT 10;
+
+You precompute:
+
+Materialized View
+
+1. Nike Shoes       → 50,000 sold
+2. Adidas Shoes     → 45,000 sold
+3. Puma Shoes       → 40,000 sold
+
+Dashboard reads directly from the materialized view.
