@@ -1,20 +1,16 @@
 Strategies to Reduce Latency of a System:
 
 
-Caching : 
+-> Caching : 
 Server side 
 Client side
 
 
-Asynchronous Procssing - Handle non-critical tasks in the background to improve responsiveness.
+-> Asynchronous Procssing - Handle non-critical tasks in the background to improve responsiveness.
+-> Persistent Connections: Reuse existing connections instead of creating new ones for each request.
+-> CDNs
 
-Persistent Connections: Reuse existing connections instead of creating new ones for each request.
-
-
-
-CDNs
-
-Load balancing - to prevent hot-spot servers 
+-> Load balancing - to prevent hot-spot servers 
 
 
 DB optimisations : 
@@ -28,4 +24,62 @@ query optimisations
 
 
 
+
+Denornalization:
+
+Normalization
+→ Less duplicate data
+→ More joins
+→ Better write consistency
+
+Denormalization
+→ More duplicate data
+→ Fewer joins
+→ Faster reads
+→ More complicated updates
+
+
+NORMALIZED
+
+Users ──── Orders ──── Products
+   \          |           /
+    \________ JOIN ______/
+
+More joins
+Less duplication
+
+
+DENORMALIZED
+
+             Orders
+    ┌──────────────────────┐
+    │ user_name            │ -> Not FK -> directly store in table
+    │ product_name         │-> Not FK
+    │ price                │
+    │ seller_name          │
+    │ rating               │
+    └──────────────────────┘
+
+Fewer joins
+More duplication
+Faster reads
+
+
+
+Normalization optimizes for data consistency; denormalization optimizes for read performance.
+
+
+
+
+
+When do we use denormalization?
+
+Commonly in:
+
+Read-heavy applications
+High-traffic systems
+Distributed databases
+NoSQL databases
+Search systems like Elasticsearch
+CQRS read models - Refer CQRS Patten in this repo
 
