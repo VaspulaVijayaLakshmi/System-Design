@@ -119,7 +119,145 @@ it’s returned to the application. If not (a cache miss), the data is fetched f
 
 
 
+Distributed Locking:
+
+Imagine this architecture
+                 100 user requests
+                        |
+                        ↓
+                 Load Balancer
+                 /            \
+                ↓              ↓
+          App Server 1    App Server 2
+                |              |
+                +------+-------+
+                       |
+                       ↓
+                 Redis Cluster
+              /        |        \
+             ↓         ↓         ↓
+          Node 1     Node 2     Node 3
+
+Now suppose all 100 requests ask for:
+GET product:123
+
+The important thing is:
+
+The 100 requests are not necessarily hitting different cache nodes.
+Redis uses the key to determine where product:123 lives.
+
+product:123
+     ↓
+Hash(key)
+     ↓
+Node 2
+
+So:
+
+App 1 ──┐
+App 2 ──┤
+App 3 ──┤
+App 4 ──┼──────> Redis Node 2
+App 5 ──┤
+   ...  │
+App 100 ┘
+
+
+Now the cache miss happens
+Assume product:123 is not in Node 2.
+
+All requests see:
+Cache MISS
+
+Without a lock:
+
+App 1 ──→ DB
+App 2 ──→ DB
+App 3 ──→ DB
+App 4 ──→ DB
+...
+App 100 ─→ DB
+
+💥 Database gets 100 requests.
 
 
 
 
+The key thing to remember
+
+There are two different things:
+
+Application Servers
+        ↓
+   Multiple threads
+        ↓
+   Shared Redis Cluster
+        ↓
+  Multiple Redis Nodes
+
+The lock is not a Java synchronized lock sitting inside App Server 1.
+
+If you use:
+synchronized
+
+that only coordinates threads inside one JVM.
+
+Instead, a distributed lock is stored in a shared system such as Redis, so that:
+
+App Server 1 ──┐
+App Server 2 ──┼──→ Same distributed lock
+App Server 3 ──┘
+
+All application servers can see that only one of them owns the lock.
+
+
+
+
+
+
+
+
+Where is the lock?
+
+The lock itself is stored in a shared distributed system, commonly Redis.
+
+For example:
+Redis Node 2
+product:123 → NOT FOUND
+lock:product:123 → Thread 1
+
+
+App 1 executes something like:
+SET lock:product:123 App1/Thread1 NX EX 10
+
+Redis atomically checks:
+"Does lock:product:123 already exist?"
+
+If NO → App 1/Thread X gets the lock.
+
+App 1 ───────→ 🔒 lock:product:123
+
+
+Now:
+
+App 1
+  ↓
+Fetch from DB
+  ↓
+Store product:123 in Redis
+  ↓
+Delete lock:product:123
+
+
+Other requests:
+
+App 2 ──→ Try lock → ❌ Already exists → Wait/Retry
+App 3 ──→ Try lock → ❌ Already exists → Wait/Retry
+App 4 ──→ Try lock → ❌ Already exists → Wait/Retry
+
+
+After App 1 fills the cache:
+
+App 2 → Cache HIT ✅
+App 3 → Cache HIT ✅
+App 4 → Cache HIT ✅
