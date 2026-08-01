@@ -1,3 +1,117 @@
+# Kafka
+
+## 1. Core Concepts
+- Producer
+- Consumer
+- Broker
+- Topic
+- Partition
+- Offset
+- Consumer Group
+- Cluster
+- ZooKeeper (legacy) / KRaft
+
+---
+
+## 2. Internal Architecture
+- Partition Leader
+- Followers
+- ISR (In-Sync Replicas)
+- Replication Factor
+- Controller
+- Leader Election
+
+---
+
+## 3. Producer
+- Partitioning
+- Key-based partitioning
+- Round Robin
+- Custom Partitioner
+- Acks (0, 1, all)
+- Idempotent Producer
+- Compression
+- Batching (batch.size, linger.ms)
+
+---
+
+## 4. Consumer
+- Consumer Groups
+- Offset Management
+- Auto Commit vs Manual Commit
+- Rebalancing
+- Poll Loop
+- Heartbeats
+- Static Membership
+
+---
+
+## 5. Delivery Guarantees
+- At-most-once
+- At-least-once
+- Exactly-once
+- Transactions
+
+---
+
+## 6. Ordering
+- Ordering within a partition
+- Why ordering across partitions isn't guaranteed
+- Message keys
+- Sticky partitioning
+
+---
+
+## 7. Failure Handling
+- Broker Failure
+- Leader Failure
+- Consumer Failure
+- Producer Retries
+- Dead Letter Queue (DLQ)
+- Retry Topics
+- Backoff
+
+---
+
+## 8. Performance
+- Batching
+- Compression
+- Zero Copy
+- Sequential Disk Writes
+- Page Cache
+- Pull Model
+
+---
+
+## 9. Scaling
+- Increasing Partitions
+- Horizontal Scaling
+- Consumer Parallelism
+- Partition Reassignment
+
+---
+
+## 10. Data Management
+- Retention
+- Log Compaction
+- Segment Files
+- Cleanup Policies
+- Tombstone Records
+
+---
+
+## 11. Kafka Ecosystem
+- Kafka Connect
+- Kafka Streams
+- MirrorMaker
+- Schema Registry
+- Avro / Protobuf / JSON Schema
+
+---
+
+
+
+
 Producer Acknowledgments (acks setting) : 
 
 
