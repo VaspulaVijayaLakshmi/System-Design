@@ -1,0 +1,527 @@
+Idempotency Key — Most Important for Interviews
+Used when a client may retry the same request.
+
+
+
+eg: 
+             RETRIES
+                │
+                ▼
+       ┌─────────────────┐
+       │ Could execute   │
+       │ multiple times? │
+       └────────┬────────┘
+                │
+                ▼
+          Need Idempotency
+                │
+       ┌────────┴─────────┐
+       │                  │
+       ▼                  ▼
+     APIs             Consumers
+       │                  │
+       ▼                  ▼
+Idempotency Key      Event ID
+       │                  │
+       ▼                  ▼
+ Redis / DB          Processed Events
+       │                  │
+       └────────┬─────────┘
+                ▼
+        Safe Retry / Duplicate
+
+___________________________________________________________
+___________________________________________________________
+
+
+
+Usually, the idempotency store is Redis or a database, depending on the use case.
+
+
+For an API like Payment
+Client
+   │
+   │ POST /payment
+   │ Idempotency-Key: abc123
+   ▼
+Payment Service
+   │
+   ▼
+Redis / DB  ← Idempotency Store
+   │
+   ├── abc123 exists?
+   │       ├── YES → Return saved response
+   │       └── NO
+   │
+   ▼
+Process Payment
+   │
+   ▼
+Store result
+Redis : abc123 → SUCCESS, transactionId=789
+DB : Payment Record
+    
+
+
+
+
+Option 1: Redis — common choice
+
+Redis
+Key: idempotency:abc123
+Value: {
+    status: SUCCESS,
+    transactionId: 789
+}
+TTL: 24 hours
+
+Why Redis?
+
+Very fast
+Easy SET NX for atomic "create only if absent"
+TTL automatically removes old keys
+
+Good when you need idempotency for a limited period.
+
+
+
+
+Option 2: Database — when durability matters
+idempotency_keys
+
+key        status      response
+abc123     SUCCESS     {...}
+
+Add:
+
+UNIQUE(idempotency_key)
+
+This is useful when the idempotency record needs to be durable and tied to the same DB transaction 
+as the business operation.
+
+
+
+
+"We can use either Redis or a database as the idempotency store. 
+For a high-throughput API where idempotency is required only for a limited window, 
+I'd use Redis with TTL. For critical operations like payments, where the idempotency record 
+needs to be durable and consistent with the business transaction,
+I'd use a database with a unique constraint on the idempotency key."
+
+
+Using Redis does not mean the payment itself is stored in Redis. 
+Redis only tracks the idempotency key/result. The actual payment data still lives in the payment DB or payment provider.
+
+
+Examples:
+
+Redis with a TTL is commonly used.
+
+Example 1: Payment API (24 hours)
+
+Suppose the client sends:
+
+POST /payments
+Idempotency-Key: abc123
+
+You store in Redis:
+
+abc123 → SUCCESS
+TTL = 24 hours
+
+Timeline:
+
+10:00 AM  Payment succeeds
+10:00 AM  Store abc123 in Redis
+
+10:01 AM  Client retries
+           ↓
+Found in Redis
+Return previous response ✅
+
+10:10 AM  Client retries again
+           ↓
+Found in Redis
+Return previous response ✅
+
+Next day 10:01 AM
+TTL expired
+Redis deletes abc123
+
+Because it's very unlikely the client will retry after 24 hours. The idempotency key only needs to protect against retries caused by:
+
+Network timeout
+Client retry
+Load balancer retry
+Temporary service failure
+
+These usually happen within seconds or minutes, not days.
+
+
+Example 2: File Upload
+POST /upload
+Idempotency-Key: xyz789
+
+Suppose the upload succeeds but the response is lost.
+
+The client retries within 5 minutes.
+
+A TTL of 1 hour is enough.
+
+You don't need to remember that upload forever.
+
+
+Example 3: Notification API
+
+Suppose a service sends:
+
+Send SMS to user
+Idempotency-Key: sms123
+
+Retries happen within a few minutes.
+
+A TTL of 30 minutes is sufficient.
+
+
+
+
+
+When Redis is NOT enough
+
+Consider a bank transfer.
+
+Transfer ₹1,00,000
+Idempotency-Key: abc123
+
+Redis stores:
+
+abc123
+TTL = 24 hours
+
+After 24 hours:
+
+Redis deletes key
+
+Now imagine, due to a bug or a malicious client, the same request is sent again with the same idempotency key.
+
+Redis says:
+
+Key not found
+
+If your only protection was Redis, the payment could be processed again. ❌
+
+For critical financial operations, you typically want a durable record in the database
+(or another persistent store), often with a unique constraint, so duplicate business operations are prevented 
+even after Redis data expires.
+
+___________________________________________________________
+
+"Redis is ideal when duplicate requests are expected only during a short retry window. 
+If the business requires protection against duplicates for a much longer period or needs transactional guarantees, 
+I'd store the idempotency record in the database."
+
+___________________________________________________________
+
+
+
+********
+
+Interview answer
+
+Interviewer: "Who generates the idempotency key?"
+
+Answer:
+
+"Typically the client generates a unique UUID before making the request.
+If the request has to be retried due to a timeout or network failure, the client reuses the same idempotency key.
+The server stores that key in Redis or a database and, on subsequent requests with the same key, 
+returns the original result instead of executing the operation again."
+
+
+
+Why does the same key come in retries?
+
+Because the client reuses the same key for the same logical operation.
+
+Example:
+
+First attempt
+Generate UUID
+
+8f2d-91ab-xyz
+
+Send:
+
+POST /payments
+
+Idempotency-Key: 8f2d-91ab-xyz
+
+The payment succeeds, but the response is lost.
+
+Retry
+
+The client does not generate a new UUID.
+
+It retries using:
+
+POST /payments
+
+Idempotency-Key: 8f2d-91ab-xyz
+
+The server sees:
+
+8f2d-91ab-xyz
+
+already exists and returns the previous result.
+
+
+
+
+
+
+
+___________________________________________________________
+___________________________________________________________
+
+
+1. Idempotent API
+
+An operation is idempotent if calling it multiple times produces the same final result as calling it once.
+
+Example:
+
+PUT /users/123
+{
+  "name": "Alice"
+}
+
+Calling it 10 times → user is still named Alice.
+
+Naturally idempotent HTTP methods:
+
+GET → yes
+PUT → yes, generally
+DELETE → yes, generally
+POST → not necessarily
+
+
+
+
+2. Idempotency Key
+
+Example: Payment API
+
+POST /payments
+Idempotency-Key: abc123
+
+Request:
+
+User clicks Pay
+        ↓
+Payment processed
+        ↓
+Network timeout
+        ↓
+Client doesn't know result
+        ↓
+Client retries
+
+Without idempotency:
+
+₹100 deducted
+₹100 deducted again ❌
+
+With idempotency:
+
+First request:
+abc123 → Process payment → SUCCESS
+
+Retry:
+abc123 → Already processed → Return previous SUCCESS
+
+Typically stored in Redis/DB:
+
+idempotency_key → response/result
+abc123           → PaymentSuccess(transactionId=789)
+
+
+
+
+
+
+
+
+3. Idempotent Consumers
+
+Very important with Kafka / RabbitMQ / SQS.
+
+Imagine:
+
+Producer
+   ↓
+Message Queue
+   ↓
+Consumer
+
+
+
+Consumer receives:
+
+OrderCreated(orderId=123)
+Consumer updates DB:
+order 123 → CONFIRMED
+
+Then consumer crashes before acknowledging the message.
+The queue delivers the message again.
+
+OrderCreated(123)
+        ↓
+Consumer
+        ↓
+OrderCreated(123) again
+
+Your consumer should safely process it twice.
+
+
+
+
+Solution:
+
+Process message
+     ↓
+Check eventId/orderId
+     ↓
+Already processed?
+   /        \
+ Yes         No
+ ↓            ↓
+Skip       Process
+             ↓
+       Mark processed
+
+
+
+
+Example:
+
+processed_events
+
+event_id
+--------
+abc123
+
+On receiving abc123 again:
+
+if eventId exists:
+    skip
+else:
+    process
+    insert eventId
+
+
+
+
+
+3. Idempotent Database Operations
+
+Good:
+
+UPDATE users
+SET status = 'ACTIVE'
+WHERE id = 123;
+
+Running this 10 times → same final state.
+
+
+
+Potentially non-idempotent:
+
+UPDATE accounts
+SET balance = balance + 100
+WHERE id = 123;
+
+Run twice:
+
+100 → 200 → 300
+
+If the operation represents a retry, that's a problem.
+
+
+
+Instead, use a unique transaction ID:
+
+transaction_id = abc123
+And enforce:
+
+UNIQUE(transaction_id)
+
+So the same transaction cannot be applied twice.
+
+
+
+
+4. Idempotency + Message Queues
+
+Queues often provide at-least-once delivery.
+
+Meaning:
+
+Message will be delivered
+at least once
+
+But potentially:
+
+Message A
+Message A  ← duplicate
+Message A  ← duplicate
+
+Therefore:
+
+At-least-once delivery + idempotent consumer = reliable processing
+
+
+5.  Retry + Idempotency
+
+Retry
+  +
+Idempotency
+  =
+Safe retries
+
+
+6. Idempotency vs Exactly-Once
+
+This is a common interview trap.
+
+People often say:
+"Kafka gives exactly-once processing."
+
+
+
+But in a distributed system, end-to-end exactly-once is difficult.
+
+
+A common practical approach is:
+
+At-least-once delivery
+        +
+Idempotent consumer
+        +
+Deduplication
+        =
+Effectively-once business outcome
+
+
+
+___________________________________________________________
+
+
+Idempotency vs Deduplication
+
+They are related but different.
+
+Deduplication:
+Detect duplicate requests/messages.
+
+Idempotency:
+Ensure duplicate execution doesn't change the final result.
