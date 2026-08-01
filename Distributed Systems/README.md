@@ -301,12 +301,12 @@ ___
 
 These define **how the application interacts with the cache**.
 
-| Pattern | Purpose |
-|---------|---------|
-| **Cache-Aside (Lazy Loading)** | Application checks cache first, then database on a miss. |
-| **Read-Through** | Cache automatically loads missing data from the database. |
-| **Write-Through** | Every write goes to the cache and database synchronously. |
-| **Write-Behind (Write-Back)** | Write to cache first, then asynchronously persist to the database. |
+| Pattern |
+|---------|
+| **Cache-Aside (Lazy Loading)** 
+| **Read-Through** 
+| **Write-Through** 
+| **Write-Behind (Write-Back)** 
 
 ---
 
