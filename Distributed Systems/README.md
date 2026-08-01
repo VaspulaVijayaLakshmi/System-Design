@@ -148,6 +148,18 @@ Caching    Consistent    Leader    Majority  Read/Write
 
 ---
 
+
+
+# Kafka Delivery Semantics
+
+| Delivery Semantics | Kafka Configuration / Pattern | One-line Explanation |
+|--------------------|-------------------------------|----------------------|
+| **At-most-once** | Commit offset **before** processing (`enable.auto.commit=true` or early manual commit) | Messages are **never reprocessed**, but may be **lost** if the consumer crashes before processing. |
+| **At-least-once** | Process message first, then commit offset only after successful processing | Messages are **never lost**, but may be **processed multiple times** if a crash occurs before committing the offset. |
+| **Exactly-once** | Idempotent producer + Kafka transactions + atomic offset commits (or Kafka Streams EOS) | Each message is **processed exactly once**, with **no duplicates and no message loss**, even during failures. |
+
+
+
 # Interview Tip
 
 When asked **"Which delivery semantic do you usually use?"**
