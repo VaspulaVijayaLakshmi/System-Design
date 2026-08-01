@@ -1,0 +1,356 @@
+Prioroty is intriduced how would you handle it.
+
+
+Option 1: One Kafka Topic + Priority in Message
+
+Notification API
+      |
+      v
+Kafka Topic: notifications
+      |
+      v
+  Consumer/workers 
+      |
+      v
+Priority Queue - IN-MEMORY
+  |       |       |
+ HIGH   MEDIUM    LOW
+      |
+      v
+Channel Routing
+  |       |       |
+Email    SMS     Push
+
+
+(one Kafka topic → one in-memory priority queue) is generally not the approach I'd choose at scale.
+The reason is that a single priority queue becomes a central bottleneck and can become a single point of failure unless you build a distributed queue around it.
+
+
+
+Option 2:
+
+
+Kafka → Separate Channel Queues
+
+This is the approach I personally like for a notification system.
+
+                     Kafka
+                       |
+                       v
+                Notification Consumer
+                       |
+              Check User Preference
+                       |
+              ---------------------
+              |         |         |
+              v         v         v
+           EMAIL       SMS       PUSH
+              |         |         |
+              v         v         v
+          Email Queue SMS Queue Push Queue -  So each channel has its own priority queue.("Each channel has a priority message queue.  this prirortuy queue can be backed by a broker
+                                              The worker always consumes higher-priority messages first.")
+              |         |         |
+              v         v         v
+            Worker    Worker    Worker
+
+Each message contains:
+
+channel = EMAIL
+priority = HIGH
+
+
+Kafka
+  |
+  v
+Notification Consumer
+  |
+  | channel = EMAIL
+  v
+Email Priority Queue
+  |
+  +-- HIGH
+  +-- MEDIUM
+  +-- LOW
+  |
+  v
+Email Worker
+  |
+  v
+Email Provider
+
+
+
+___________________________________
+
+
+Our flow is:
+
+Notification API
+      ↓
+Notification Topic
+      ↓
+Notification Router
+      ↓
+ ┌──────────┬──────────┬──────────┐
+ ↓          ↓          ↓
+Email      SMS        Push
+Topic      Topic      Topic
+ ↓          ↓          ↓
+Consumer   Consumer   Consumer
+ ↓          ↓          ↓
+Provider   Provider   Provider
+
+
+
+
+For retries:
+
+Email Consumer
+      ↓
+Email Provider 
+      ↓
+    -----
+      ↓
+Retry Consumer
+      ↓
+Exponential Backoff
+      ↓
+Email Provider
+      ↓
+❌ Max retries
+      ↓
+Email DLQ
+
+
+
+The consumer retries K times with exponential backoff:
+
+Attempt 1 → Fail → Wait 1 sec
+Attempt 2 → Fail → Wait 2 sec
+Attempt 3 → Fail → Wait 4 sec
+...
+Attempt K → Fail
+
+The exponential backoff is important because if the provider is already overloaded or temporarily down, we don't want thousands of consumers continuously retrying immediately, which could make the problem worse.
+
+After K retries, if the notification still cannot be delivered:
+
+Email Consumer
+      ↓
+K retries + Exponential Backoff
+      ↓
+Still Failed
+      ↓
+DLQ
+
+So our design has:
+
+Retry → Try again
+Exponential Backoff → Wait progressively longer between retries
+DLQ → Store messages that failed after all retries for later investigation/reprocessing.
+
+
+______________
+
+Now let's say the Email Consumer successfully sends the email, but before it commits the Kafka offset, the consumer crashes.
+
+When it restarts, Kafka delivers the same notification again.
+
+The user receives the same email twice.
+
+How would you prevent duplicate notifications?
+
+
+
+
+We need idempotency.
+
+But I want you to explain the implementation.
+
+Suppose we have:
+
+notificationId = N123
+channel = EMAIL
+
+The Email Consumer receives it.
+
+First attempt:
+
+N123 + EMAIL
+    ↓
+Check Idempotency Store → Not found
+    ↓
+Send Email ✅
+    ↓
+Consumer crashes ❌
+
+The Kafka offset wasn't committed, so the message is delivered again.
+
+Now:
+
+N123 + EMAIL
+    ↓
+Check Idempotency Store
+    ↓
+Already processed?
+    ↓
+YES → Don't send email again
+
+
+
+This Idempotency store can be redis in case of Notiifcation System with short ttl.
+
+But what if consumer fails sent mail but writing to redis failed.so now we dont have idempotency in redis..we wil still prcoes again.
+
+
+
+HAve idempotency at provider Level
+
+
+"We'll use an idempotency key derived from notificationId and channel, such as notificationId + channel. 
+The consumer sends this idempotency key to the provider. 
+If the consumer crashes after the provider successfully sends but before committing the Kafka offset, the same event is reprocessed, but the provider recognizes the 
+same idempotency key and doesn't send the notification again. We can also maintain an idempotency record in Redis on our side to avoid duplicate processing."
+
+
+
+
+
+
+
+Suppose the Email Provider has a limit:
+
+Maximum 10,000 emails per minute
+But suddenly we receive 50,000 notification requests per minute.
+Our Email Consumers are consuming from Kafka and trying to send all of them.
+How would you ensure we don't exceed the Email Provider's rate limit?
+
+
+
+We can introduce a distributed rate LImiter at the consuemr level
+
+               Kafka
+                  ↓
+        ┌─────────┼─────────┐
+        ↓         ↓         ↓
+    Consumer 1 Consumer 2 Consumer 3
+        \         |         /
+         \        |        /
+          ↓       ↓       ↓
+        Redis Distributed
+          Rate Limiter
+                ↓
+         Email Provider
+         (10K requests/min)
+
+1. Consume message from Kafka
+2. Ask distributed rate limiter: "Can I send?"
+3. If allowed → Call Email Provider
+4. If not allowed → Wait / don't process yet
+
+
+Since we have multiple consumer instances, the rate limit state needs to be shared across instances, 
+so we can use Redis to implement the distributed rate limiter."
+
+
+
+
+________________
+
+
+We suddenly receive 100,000 notifications per second.
+One Email Consumer instance can process only 1,000 notifications/second.
+How would you scale the Email Consumer to handle this increased load?
+
+
+If a Kafka topic has 10 partitions, a single consumer group can have at most 10 actively consuming consumers for that topic.
+
+
+10 Partitions
+      ↓
+10 Consumers → Each consumer gets 1 partition
+
+
+
+If you have 20 consumers:
+
+10 Consumers → Active
+10 Consumers → Idle
+
+So to scale consumers beyond 10, you need to increase the number of partitions.
+One nuance: the number of consumers does not have to equal the number of partitions. 
+You can have fewer consumers than partitions, and each consumer will handle multiple partitions.
+
+
+
+
+If the current Email Topic has:
+
+10 partitions
+
+and you need more parallel consumers, you can increase the number of partitions:
+
+10 partitions
+      ↓
+Increase
+      ↓
+50 partitions
+      ↓
+Up to 50 active consumers
+
+So:
+
+Email Topic
+├── P0 → Consumer 1
+├── P1 → Consumer 2
+├── P2 → Consumer 3
+├── ...
+└── P49 → Consumer 50
+
+
+
+Kafka automatically handles partition assignment/rebalancing when consumers join or leave a consumer group.
+
+
+_______________________
+
+"How would you track notification activity for a user?"
+
+For example, tracking:
+
+Notification sent
+Delivered
+
+
+
+We can write it to another topic -> Activity topic/Analytics TOpics
+
+
+Notification created
+        ↓
+PENDING
+        ↓
+Email Consumer processes
+        ↓
+SENT
+        ↓
+Provider confirms delivery
+        ↓
+DELIVERED
+
+
+
+And if it fails:
+
+SENT
+  ↓
+Provider failure
+  ↓
+FAILED / RETRYING
+  ↓
+Retry K times
+  ↓
+DLQ
+
+SENT → Our consumer successfully handed the notification to the provider.
+DELIVERED → The provider later confirmed that it was delivered to the user's email/SMS/push endpoint.
