@@ -261,3 +261,45 @@ After App 1 fills the cache:
 App 2 → Cache HIT ✅
 App 3 → Cache HIT ✅
 App 4 → Cache HIT ✅
+
+
+____________________________________________________
+The App Server does this:
+
+// 1. Try to acquire lock
+boolean acquired = redis.setIfAbsent(
+    "lock:product:123",
+    "server-1",
+    10 seconds
+);
+
+if (acquired) {
+
+    // 2. Fetch from DB
+    Product product = db.getProduct(123);
+
+    // 3. Put in cache
+    redis.set("product:123", product);
+
+    // 4. Release lock
+    redis.delete("lock:product:123");
+
+} else {
+
+    // Someone else is already fetching it
+    // Wait / retry / check cache again
+}
+
+
+
+
+____________________________________________________
+
+
+App Server
+│
+├── Thread 1 ── product:123 ── 🔒 lock:product:123
+│
+├── Thread 2 ── product:456 ── 🔒 lock:product:456
+│
+└── Thread 3 ── product:123 ── waits for lock:product:123
