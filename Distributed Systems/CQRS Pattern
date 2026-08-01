@@ -1,1 +1,292 @@
+CQRS = Command Query Responsibility Segregation
+
+The main idea is:
+Separate the model used for writing data from the model used for reading data.
+
+
+With CQRS
+
+We separate write and read models.
+
+                    Application
+                   /           \
+                  ↓             ↓
+              WRITE           READ
+                |               |
+                ↓               ↓
+          Write Database    Read Database
+                |               |
+                ↓               ↓
+           Normalized       Denormalized
+              Model            Model
+
+
+
+"In a CQRS architecture, we separate the command and query sides. Writes go through the command service and are persisted in a normalized write database, 
+which is the source of truth. After the write transaction commits, an event is published to a message broker such as Kafka. 
+
+The read model consumers consume these events and update a denormalized read database optimized for queries.
+We typically use the transactional outbox pattern to ensure that database updates and event creation happen atomically. 
+The read model is therefore eventually consistent with the write model. 
+
+Consumers should be idempotent to handle duplicate events, 
+and partitioning by entity ID can preserve event ordering."
+
+
+
+                              CLIENT
+                                |
+                 +--------------+--------------+
+                 |                             |
+                 ↓                             ↓
+          COMMAND API                    QUERY API
+                 |                             |
+                 ↓                             ↓
+          WRITE SERVICE                  READ SERVICE
+                 |                             |
+                 ↓                             ↓
+          +-------------+              +--------------+
+          |  WRITE DB   |              |   READ DB    |
+          | PostgreSQL  |              | Elasticsearch|
+          +------+------+              +--------------+
+                 |
+                 | Same Transaction
+                 |
+          +------+------+
+          |             |
+          ↓             ↓
+       Orders         Outbox Tbale
+         Table          |
+                         ↓
+                  Outbox Publisher
+                         |
+                         ↓
+                       Kafka
+                         |
+                 +-------+-------+
+                 |               |
+                 ↓               ↓
+          Read Consumer     Other Consumers
+                 |
+                 ↓
+             Read DB
+
+
+
+
+We do:
+
+Write DB
+   |
+   +---- Orders Table
+   |
+   +---- Outbox Table
+
+Both are updated in the same DB transaction.
+
+Transaction
+BEGIN TRANSACTION
+
+INSERT INTO Orders
+INSERT INTO Outbox
+
+COMMIT
+
+Both succeed together.
+
+
+
+
+                WRITE
+                   ↓
+              Write DB
+             (Source of Truth)
+                   ↓
+                 Event
+                   ↓
+                 Kafka
+                   ↓
+               Consumer
+                   ↓
+                Read DB
+             (Optimized View)
+                   ↓
+                  READ
+
+
+Write DB = Truth
+Kafka = Synchronization mechanism
+Read DB = Fast, denormalized projection
+Outbox = Reliable bridge between Write DB and Kafka
+Eventual consistency = Read DB may lag behind Write DB briefly
+
+
+
+
+
+Write side
+
+Optimized for:
+Data consistency
+Transactions
+Updates
+
+
+Example:
+Orders
+Customers
+Products
+Payments
+
+
+Read side
+Optimized for:
+
+Fast queries
+Specific use cases
+Denormalized data
+
+
+The important tradeoff: Eventual Consistency
+
+
+
+
+When should you use CQRS?
+
+CQRS is useful when:
+
+Reads and writes have very different requirements
+System is read-heavy
+Read queries are very complex
+You need highly optimized read models
+You want to scale read and write independently
+You have event-driven architecture
+
+
+
+You can scale them separately:
+
+                Application
+                /         \
+               ↓           ↓
+          Write Service   Read Service
+               |             |
+               ↓             ↓
+           Write DB       Read DB
+               3 nodes     20 nodes
+
+
+Interview one-liner
+
+CQRS separates the write model from the read model. The write model is optimized for transactional consistency, 
+while the read model is optimized for fast queries and is often denormalized. 
+The read model can be updated asynchronously from events, which provides scalability at the cost of eventual consistency.
+
+
+
+
+What if the Consumer Processes the Same Event Twice?
+
+This can happen.
+
+For example:
+
+Consumer receives OrderCreated
+      ↓
+Updates Read DB
+      ↓
+Crashes before acknowledging Kafka
+      ↓
+Kafka sends event again
+
+Now the same event is processed twice.
+
+So the consumer should be idempotent.
+
+
+
+
+For example:
+
+Event ID = 001
+
+
+Store processed event IDs: 
+SOmethong LIke this
+
+ProcessedEvents
+----------------
+001
+002
+003
+
+
+
+When the same event arrives again:
+__________
+Event 001
+   ↓
+Already processed?
+   ↓
+YES
+   ↓
+Ignore
+________
+
+Or use an upsert:
+
+UPSERT OrderView
+WHERE order_id = 123
+
+So processing the same event twice produces the same final state.
+
+
+_________________________________
+
+
+
+What if Events Arrive Out of Order?
+
+Suppose:
+
+Event 1:
+OrderCreated
+
+Event 2:
+OrderShipped
+
+
+But the consumer receives:
+
+OrderShipped
+OrderCreated
+
+That can cause problems.
+
+Solutions include:
+
+Kafka partitioning by orderId
+Sequence numbers
+Event versions
+Consumer-side ordering
+
+
+
+For example:
+
+Kafka partition key = orderId
+
+Then:
+
+Order 123
+   ↓
+Partition 5
+
+OrderCreated
+OrderPaid
+OrderShipped
+
+Kafka maintains order within that partition.
+
 
