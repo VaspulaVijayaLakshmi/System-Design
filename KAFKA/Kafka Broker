@@ -1,0 +1,45 @@
+Kafka Cluster
+│
+├── Broker 1 (Server)
+├── Broker 2 (Server)
+├── Broker 3 (Server)
+└── Broker 4 (Server)
+
+
+
+
+What does a broker do?
+
+A broker is responsible for:
+
+Storing partitions on disk
+Receiving messages from producers
+Serving messages to consumers
+Replicating data to other brokers
+Participating in leader elections
+
+
+
+Example
+
+Suppose you have:
+
+3 Brokers
+1 Topic
+3 Partitions
+Replication Factor = 2
+                  Kafka Cluster
+
+        Broker 1        Broker 2        Broker 3
+      ┌──────────┐    ┌──────────┐    ┌──────────┐
+      │ P0 (L)   │    │ P1 (L)   │    │ P2 (L)   │
+      │ P1 (F)   │    │ P2 (F)   │    │ P0 (F)   │
+      └──────────┘    └──────────┘    └──────────┘
+
+Here:
+
+Broker 1 stores two partition replicas.
+Broker 2 stores two partition replicas.
+Broker 3 stores two partition replicas.
+
+Each broker is just storing the partition replicas assigned to it.
