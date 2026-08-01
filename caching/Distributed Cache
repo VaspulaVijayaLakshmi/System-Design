@@ -7,19 +7,76 @@ This allows the cache to scale horizontally and accommodate the needs of large-s
 Distributed caching allows applications to scale horizontally by adding more cache nodes.
 This helps manage more traffic without a significant drop in performance.
 
-
-
 2. Fault Tolerance
 Since data is spread across multiple nodes, the failure of a single node doesn’t result in the loss of the entire cache.
 Remaining nodes can continue to serve requests allowing the system to recover gracefully.
-
 
 3. Load Balancing
 By distributing the cache across several nodes, the load is spread evenly.
 This helps prevent any single node becoming a bottleneck.
 
 
+Why use distributed caching?
+Improves performance: Frequently accessed data is served from memory instead of querying a database.
+Reduces database load: Fewer database reads result in better scalability.
+Supports multiple application instances: All instances share the same cached data.
+Provides high availability: Cache can be replicated across multiple nodes.
 
+
+
+                 +-------------------+
+                 |    Client         |
+                 +---------+---------+
+                           |
+                    Load Balancer
+                           |
+          +----------------+----------------+
+          |                                 |
+    App Server 1                      App Server 2
+          |                                 |
+          +--------------+------------------+
+                         |
+               Distributed Cache
+            (Redis, Memcached, Hazelcast)
+                         |
+                     Database
+
+
+
+
+                 Application Servers
+              /        |        \
+             ↓         ↓         ↓
+        +---------------------------+
+        |      Redis Cluster        |
+        |                           |
+        |  Node 1   Node 2   Node 3 |
+        |    ↓        ↓        ↓    |
+        |  Shard 1  Shard 2  Shard 3 |
+        +---------------------------+
+                     |
+                 Database
+
+
+
+Why multiple nodes?
+
+Because one cache server has limited:
+
+Memory
+CPU
+Network capacity
+
+So we distribute data across multiple nodes.
+
+For example:
+
+Node 1 → user:1, user:4, user:7
+Node 2 → user:2, user:5, user:8
+Node 3 → user:3, user:6, user:9
+
+This is usually done using consistent hashing or hash slots.
+We can have replicas as well.
 
 
 
@@ -41,16 +98,11 @@ It helps distribute the data evenly and allows the cache to scale horizontally.
 6. Eviction Policies: Caches implement eviction policies like LRU (Least Recently Used), 
 LFU (Least Frequently Used), or TTL (Time to Live) to get rid of old or less-used data and make space for new data.
 
-
 7. Coordination and Synchronization: Coordination mechanisms like distributed locks or consensus protocols ensure that cache nodes remain synchronized, 
 especially when multiple nodes try to change the same data at the same time.
 
-
-
 8. Cache Invalidation: To keep the cache data in sync with the primary data source, it needs to be invalidated or updated periodically. 
 Cache systems implement strategies like time-based expiration or event-based expiration for cache invalidation.
-
-
 
 
 
