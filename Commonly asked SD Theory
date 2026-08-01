@@ -334,59 +334,66 @@ How we resolve them depends on the consistency requirement.
 In a leaderless system like Dynamo-style databases, we can use versioning such as vector clocks or 
 timestamps to detect concurrent versions. If two versions conflict, we can either:
 
-Last Write Wins (LWW) — choose the value with the latest timestamp. Simple, but can lose updates.
-Application-level conflict resolution — return both versions to the application and let business logic decide. For example, in a shopping cart, we may merge items from both versions.
-CRDTs — use data structures designed to automatically merge concurrent updates.
+-> Last Write Wins (LWW) — choose the value with the latest timestamp. Simple, but can lose updates.
+-> Application-level conflict resolution — return both versions to the application and let business logic decide. For example, in a shopping cart, we may merge items from both versions.
+-> CRDTs — use data structures designed to automatically merge concurrent updates.
 
 After resolving the conflict, the correct value is propagated to other replicas
-
 
 
 For strong consistency systems, we can avoid many conflicting writes by routing writes through a single leader 
 and using consensus/quorum mechanisms to establish a single ordering of writes.
 
-
-
 "Consensus is the process by which distributed nodes agree on a single value or decision,
 even in the presence of node failures or network issues."
 
 
- Example: Leader Election
+The main places you'll see consensus:
 
-Initially:
+1. Leader Election
+Node A
+Node B  ──→ Consensus ──→ Leader = Node A
+Node C
 
-N1 = Leader
+Used when you need exactly one leader.
 
-N1 crashes.
+Examples:
 
-Now N2, N3, N4, N5 need to agree:
-
-Who becomes the new leader?
-
-Using a consensus algorithm like Raft:
-
-N2 → "I want to become leader"
-N3 → YES
-N4 → YES
-N5 → YES
-
-Majority agrees:
-
-3/5 or more → N2 becomes Leader
-
-Now everyone agrees:
-
-N2 = Leader
-
- 
+Database primary election
+Kafka controller/leader
+Distributed schedulers
 
 
 
+2. Failover
+Primary A ❌
+
+Replica B
+Replica C
+
+      ↓
+Consensus
+      ↓
+B = New Primary
+
+The cluster needs to agree on who becomes the new primary.
+
+This prevents split-brain, where both B and C think they are primary.
 
 
 
+3. Distributed Coordination / Metadata
 
+For example:
 
+Who owns partition 5?
+Who is the leader?
+Which nodes are currently active?
+What is the latest cluster configuration?
+
+All nodes need to agree on this metadata.
+
+Consensus can be used to maintain that agreement.
 
 
 
