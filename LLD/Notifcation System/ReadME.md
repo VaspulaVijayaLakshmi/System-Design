@@ -15,13 +15,6 @@ Personalization: Notifications may need to be personalized with user-specific in
 Opt-out and Preferences: Users should have the ability to opt out of specific notification types or unsubscribe from the notification service altogether. They should be able to manage their notification preferences, such as frequency or delivery channels.
 Design and implement the class structure that satisfies the above requirements. Consider the following aspects:
 
-Identify the classes and interfaces required for the notification system.
-Define the relationships between the classes and their responsibilities.
-Incorporate appropriate encapsulation, inheritance, and polymorphism principles.
-Ensure the classes adhere to SOLID principles and promote loose coupling and high cohesion.
-Consider extensibility and modularity to accommodate future changes or additions to the notification system.
-Your design should focus on class structure and organization while promoting code reusability and maintainability. It should provide a clear and intuitive way to handle user subscriptions, notification creation, and delivery across different channels.
-
 
 ___________________
 
@@ -30,12 +23,11 @@ API Gateway: The entry point for client requests (e.g., promotional alerts or OT
 
 Notification Service: Receives requests from the Gateway. It performs basic processing and sends messages to the message queue. It interacts with the User Preference Service to determine which channels (Email, SMS, Push) a user has opted into.
 
+
 Message Queue (Kafka/SQS): Decouples the notification service from the delivery workers. It allows for priority-based processing (e.g., OTPs in a high-priority queue vs. newsletters in a low-priority queue).
 
 Notification Workers: These microservices consume messages from the queue. Each worker is dedicated to a specific channel (e.g., SMS worker, Push worker) to allow independent scaling.
-
 Third-Party Providers: Workers call external APIs like Twilio (SMS), SendGrid (Email), or Firebase Cloud Messaging (Push).
-
 Retry & Dead Letter Queue (DLQ): If a delivery fails, the system retries with exponential backoff. Persistent failures are moved to a DLQ for manual inspection.
 
 
@@ -57,5 +49,9 @@ Core Entities:
 -> Idempotency: To prevent duplicate notifications (e.g., during a retry), each notification should have a unique requestID stored in a distributed cache like Redis.
 
 _____________
+
+
+
+
 
 
