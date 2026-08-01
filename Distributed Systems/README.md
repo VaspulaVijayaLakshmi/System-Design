@@ -57,36 +57,6 @@ Caching    Consistent    Leader    Majority  Read/Write
 
 ---
 
-                      CACHING
-                       │
-      ┌────────────────┼─────────────────┐
-      │                │                 │
-      ▼                ▼                 ▼
- Cache Patterns    Cache Management   Cache Problems
-      │                │                 │
-      ├─ Cache-Aside   ├─ TTL            ├─ Cache Stampede
-      ├─ Read-Through  ├─ Eviction       ├─ Cache Penetration
-      ├─ Write-Through ├─ Invalidation   ├─ Cache Breakdown
-      └─ Write-Behind  └─ Refresh        └─ Cache Avalanche
-                                            │
-                                            ├─ Request Coalescing
-                                            ├─ Distributed Lock
-                                            ├─ Random TTL
-                                            └─ Bloom Filter
-
-                       │
-                       ▼
-                Distributed Cache
-                       │
-                       ├─ Redis Cluster
-                       ├─ Sharding
-                       ├─ Replication
-                       ├─ Consistent Hashing
-                       └─ High Availability
-
-
----
-
 
 
 # Distributed Messaging
@@ -283,6 +253,222 @@ Keep the application usable even during failures.
 | **Cached Responses** | Serve cached data instead of failing requests when downstream services are unavailable. |
 
 
+
+
+___
+
+
+# Caching
+
+```text
+
+                           CACHING
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+   Cache Patterns       Cache Management      Cache Reliability
+        │                     │                     │
+   ├── Cache-Aside      ├── TTL              ├── Cache Stampede
+   ├── Read-Through     ├── Invalidation     ├── Request Coalescing
+   ├── Write-Through    ├── Eviction         ├── Distributed Lock
+   └── Write-Behind     └── Warming          └── Hot Keys
+                              │
+                              ▼
+                     Cache Consistency
+                              │
+                     ├── Stale Data
+                     ├── Refresh Ahead
+                     └── Versioning
+
+
+
+
+
+                              │
+                              ▼
+                     Distributed Caching
+                              │
+                     ├── Redis Cluster
+                     ├── Sharding
+                     ├── Replication
+                     ├── Consistent Hashing
+                     └── High Availability
+```
+
+---
+
+# 1. Cache Patterns
+
+These define **how the application interacts with the cache**.
+
+| Pattern | Purpose |
+|---------|---------|
+| **Cache-Aside (Lazy Loading)** | Application checks cache first, then database on a miss. |
+| **Read-Through** | Cache automatically loads missing data from the database. |
+| **Write-Through** | Every write goes to the cache and database synchronously. |
+| **Write-Behind (Write-Back)** | Write to cache first, then asynchronously persist to the database. |
+
+---
+
+# 2. Cache Management
+
+Controls **how data is stored and expires**.
+
+| Concept | Purpose |
+|---------|---------|
+| **TTL (Time-To-Live)** | Automatically expire cached entries after a configured duration. |
+| **Cache Invalidation** | Remove or update stale cache entries after underlying data changes. |
+| **Eviction Policies** | Decide which entries to remove when the cache is full (LRU, LFU, FIFO, etc.). |
+| **Cache Warming** | Preload frequently accessed data before traffic arrives to reduce cold starts. |
+
+---
+
+# 3. Cache Reliability
+
+Protects the cache during high traffic and failures.
+
+| Concept | Purpose |
+|---------|---------|
+| **Cache Stampede** | Many requests hit the database simultaneously after a cache miss or expiry. |
+| **Request Coalescing** | Ensure only one request fetches missing data while others wait for the result. |
+| **Distributed Lock** | Coordinate cache population across multiple application instances. |
+| **Hot Keys** | Prevent a single popular key from overwhelming the cache or backend. |
+
+---
+
+# 4. Cache Consistency
+
+Ensures cached data remains reasonably fresh.
+
+| Concept | Purpose |
+|---------|---------|
+| **Stale Data** | Data in the cache differs from the database due to delayed updates or expiration. |
+| **Refresh Ahead** | Refresh popular cache entries before they expire. |
+| **Versioning** | Use version numbers or timestamps to avoid serving outdated values. |
+
+---
+
+# 5. Distributed Caching
+
+Scale the cache across multiple nodes.
+
+| Concept | Purpose |
+|---------|---------|
+| **Redis Cluster** | Distribute data across multiple Redis nodes. |
+| **Sharding** | Split keys across multiple cache servers. |
+| **Replication** | Maintain replica nodes for fault tolerance. |
+| **Consistent Hashing** | Minimize key movement when nodes are added or removed. |
+| **High Availability** | Ensure cache remains available despite node failures (Sentinel, Cluster). |
+
+---
+
+# Cache Access Patterns
+
+## Cache-Aside (Lazy Loading)
+
+```text
+# Cache-Aside Write Flow (Update)
+
+```text
+Application
+      │
+      ▼
+Update Database
+      │
+      ▼
+Delete Cache Entry
+      │
+      ▼
+Return Success
+
+        Next Read
+            │
+            ▼
+        Cache Miss
+            │
+            ▼
+       Read Database
+            │
+            ▼
+     Populate Cache
+            │
+            ▼
+        Return Data
+```
+
+---
+
+## What if cache deletion fails?
+
+```text
+Application
+      │
+      ▼
+Update Database ✅
+      │
+      ▼
+Delete Cache ❌
+```
+
+Now:
+
+- Cache still contains the **old value**
+- Users may read stale data
+- Eventually, the cache entry expires because of **TTL**
+- The next cache miss reloads fresh data from the database
+
+This is why **TTL acts as a safety net**, limiting how long stale data can persist.
+
+
+
+## Why delete instead of updating the cache?
+
+If the update fails, cache has no way of knowing value updated. If we delete ,
+The next read automatically loads the latest value from the database and repopulates the cache.
+
+Benefits:
+
+- Simpler implementation
+- Avoids keeping database and cache updates perfectly synchronized
+- Works well when writes are much less frequent than reads
+        
+```
+
+---
+
+## Write-Through
+
+```text
+Application
+      │
+      ▼
+   Write Cache
+      │
+      ▼
+Write Database
+```
+
+---
+
+## Write-Behind
+
+```text
+Application
+      │
+      ▼
+   Write Cache
+      │
+      ▼
+ Return Immediately
+      │
+      ▼
+Background Worker
+      │
+      ▼
+Database
+```
+
+---
 
 
 
