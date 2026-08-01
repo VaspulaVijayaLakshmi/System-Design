@@ -1,0 +1,14 @@
+Why doesn’t Uber, Lyft & Rapido ever assign two drivers for the same ride request?
+That’s what my friend got asked in a system design interview at Google.
+The real answer? Distributed Locks.
+
+When you’re operating across multiple servers, databases, or availability zones — race conditions are real.
+
+Here’s what happens behind the scenes:
+A ride request is written to a distributed DB.
+Multiple driver-matching services (running in parallel) might try to pick it up.
+Without coordination, two drivers could be assigned at the same time.
+That’s where a distributed lock (via Redis, ZooKeeper, or etcd) comes in:
+1. First service acquires the lock → assigns the driver.
+2. Others are blocked or rejected.
+This ensures exactly-once assignment — even when everything is happening everywhere, all at once.
