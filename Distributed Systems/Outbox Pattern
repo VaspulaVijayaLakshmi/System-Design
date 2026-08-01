@@ -1,0 +1,168 @@
+Transactional Outbox Pattern, because this is a very important pattern in CQRS + Kafka.
+
+
+
+The Transactional Outbox Pattern solves the dual-write problem. 
+Instead of updating the database and publishing to Kafka as two independent operations, 
+we store the business data and the event in an Outbox table within the same database transaction. 
+A background publisher then reads the Outbox and publishes events to Kafka, with retries for failures. 
+Consumers are designed to be idempotent because the same event may be published more than once.
+
+
+
+The Problem
+
+Suppose you have:
+
+Order Service
+     |
+     +----> Database
+     |
+     +----> Kafka
+
+User places an order.
+
+You need to do two things:
+
+Save the order in DB
+Publish OrderCreated event to Kafka
+
+You might write:
+
+saveOrderToDB();
+publishEventToKafka();
+
+
+
+
+Problem: What if DB succeeds but Kafka fails?
+1. Save Order → SUCCESS ✅
+2. Publish Kafka → FAILURE ❌
+
+
+Now:
+
+Database
+Order 123 exists ✅
+
+Kafka
+OrderCreated event missing ❌
+
+Your Read DB will never know about the order.
+
+So:
+Write DB ≠ Read DB
+This is the dual-write problem.
+
+
+
+
+
+The Solution: Transactional Outbox
+
+Instead of writing directly to Kafka, we write the event to an Outbox table in the same database 
+transaction as the business data.
+
+                 Order Service
+                      |
+                      ↓
+              Database Transaction
+                 /           \
+                ↓             ↓
+          Orders Table    Outbox Table
+
+
+
+
+Transaction
+BEGIN;
+
+INSERT INTO orders
+VALUES (123, 1, 'CREATED');
+
+INSERT INTO outbox
+VALUES (
+    'event-001',
+    'OrderCreated',
+    '{"orderId":123}'
+);
+
+COMMIT;
+
+
+
+
+Now how does Kafka get the event?
+
+We have a separate process called an Outbox Publisher.
+
+             PostgreSQL
+            /          \
+           ↓            ↓
+      Orders Table   Outbox Table
+                         |
+                         ↓
+                  Outbox Publisher
+                         |
+                         ↓
+                       Kafka
+
+
+The publisher continuously checks:
+
+SELECT *
+FROM outbox
+WHERE published = false;
+
+
+
+It finds:
+
+Event ID: 001
+Type: OrderCreated
+Order ID: 123
+
+
+Publishes it:
+
+Outbox
+   ↓
+Kafka
+
+Then marks it as published:
+published = true
+
+
+
+
+What if the Outbox Publisher crashes?
+
+Suppose:
+
+1. Read event from Outbox
+2. Publish to Kafka ✅
+3. Crash 💥
+4. Mark published = true ❌
+
+When it restarts, it may publish the event again.
+
+So Kafka might receive:
+
+OrderCreated
+OrderCreated
+
+Therefore, consumers should be idempotent.
+
+For example:
+
+Event ID = 001
+
+Consumer checks:
+
+Have I already processed Event 001?
+       |
+       +---- YES → Ignore
+       |
+       +---- NO → Process
+
+Or use an upsert operation.
