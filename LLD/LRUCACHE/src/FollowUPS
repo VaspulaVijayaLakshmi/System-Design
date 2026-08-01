@@ -1,0 +1,181 @@
+How do you make this LRU Cache thread-safe?
+
+"Both get() and put() need synchronization because get() also updates the LRU ordering by modifying the doubly linked list. 
+The simplest solution is to synchronize the entire get() and put() methods, ensuring the HashMap and DLL are updated atomically.
+Using ConcurrentHashMap alone is insufficient because the cache's correctness depends on atomic updates across both the map and linked list."
+
+
+____________________________________________________________
+
+
+What happens if multiple threads call get() on the same key?
+
+"If multiple threads call get() simultaneously, with a global lock they execute sequentially. One thread acquires the lock, performs the HashMap lookup 
+and updates the DLL to move the node to the MRU position, then releases the lock. The other threads wait for the lock."
+
+
+"ReadWriteLock allows multiple concurrent readers but only one writer. 
+However, in an LRU cache, get() also modifies the DLL to update recency, 
+so it needs the write lock too. Therefore, a ReadWriteLock doesn't provide much concurrency benefit for a standard LRU cache."
+
+
+____________________________________________________________
+
+
+
+Can you use ConcurrentHashMap and make it thread-safe?
+
+ConcurrentHashMap is good but not enough.
+
+Because your LRU cache has two shared data structures:
+
+
+ConcurrentHashMap
+        +
+Doubly Linked List
+
+ConcurrentHashMap only makes operations on the Map thread-safe.
+
+
+But your operations are multi-step:
+
+get()
+  1. map.get(key)
+  2. removeNode(node)
+  3. addToHead(node)
+
+____________________________________________________________
+
+
+
+What locking strategy would you use? One global lock or fine-grained locks?
+
+For a standard LRU Cache, I'd choose a global lock
+Because every get() and put() can modify the same DLL.
+
+
+
+Why not fine-grained locking?
+You could lock individual keys, but the DLL is global.
+
+Example:
+
+Thread A → get(1) → move Node 1 to HEAD
+Thread B → get(2) → move Node 2 to HEAD
+
+Both operations modify the same HEAD pointers. So you'd still need a lock around the DLL, which makes fine-grained locking much more complicated.
+
+
+
+One advanced improvement: If extremely high concurrency is required, I'd consider sharding the 
+cache into multiple independent LRU caches, each with its own lock. This allows operations on different shards to proceed concurrently
+
+
+
+1. Sharded LRU Cache — Single Machine
+              LRU Cache
+                  |
+        ┌─────────┼─────────┐
+        ↓         ↓         ↓
+     Shard 1   Shard 2   Shard 3
+      Lock 1    Lock 2    Lock 3
+
+*************    All shards are still inside one application/server/JVM. *********
+
+The goal is to improve concurrency:
+
+Thread A → Shard 1 → Lock 1
+Thread B → Shard 2 → Lock 2
+
+        ↓
+Can execute concurrently
+
+This is still a local in-memory cache.
+
+
+We are just sharding on single machine.
+Not Distributed cache kindof...
+
+
+
+____________________________________________________________
+
+
+
+What happens if the cache is distributed across multiple servers?
+
+
+Local LRU
+Server 1
+   |
+HashMap + DLL
+
+Easy: one global lock protects both.
+
+Distributed Cache
+                Application
+                     |
+             Consistent Hashing
+             /        |        \
+            ↓         ↓         ↓
+        Server 1   Server 2   Server 3
+        Map + DLL  Map + DLL  Map + DLL
+
+Each server has its own independent LRU cache.
+Each server manages its own eviction independently.
+
+
+____________________________________________________________
+
+
+
+How would you implement an LRU cache with TTL? What happens if an entry expires but is still in the DLL?
+
+
+1. Active Expiration
+
+A background thread periodically checks for expired entries:
+
+Background Thread
+       ↓
+Check expired entries
+       ↓
+Remove from Map
+       ↓
+Remove from DLL
+
+
+
+2. Lazy Expiration
+
+Store expiration time in the node:
+
+class Node {
+    int key;
+    int val;
+    long expiryTime;
+}
+
+On get():
+
+get(key)
+   ↓
+Find node
+   ↓
+Is expired?
+   ├── Yes → Remove from Map + DLL → return -1
+   └── No  → Move to HEAD → return value
+
+On put():
+
+Existing key
+   ↓
+Update value
+Update expiryTime
+Move to HEAD
+
+This is simple and works well if expired entries aren't a problem until accessed.
+
+
+
+____________________________________________________________
