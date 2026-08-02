@@ -26,27 +26,54 @@ public class Elevator {
     }
 
 
-    //addExternalREquest
-    public void addExternalRequest(int floor){
-        if(currentFloor > floor){
-            downStops.add(floor);
-        }
-        else{
-            upStops.add(floor);
-        }
-
+    
+    // Called by ElevatorController
+    // for external UP/DOWN request
+    public void addExternalRequest(int floor) {
+        addRequest(floor);
     }
 
-    //addInternal Request
-    public void addInternalRequest(int floor){
-        if(currentFloor > floor){
-            downStops.add(floor);
-        }
-        else{
-            upStops.add(floor);
-        }
+
+    // Called when user selects destination
+    // from inside the elevator
+    public void addInternalRequest(int floor) {
+        addRequest(floor);
     }
 
+
+
+//since the elevatorSleectionSTregey have found the best eleveator that will be mving in the same direction we dont need to do it again.
+ private void addRequest(int floor) {
+
+    if (floor == currentFloor) {
+        return;
+    }
+
+    if (floor > currentFloor) {
+        addUpStop(floor);
+    } else {
+        addDownStop(floor);
+    }
+
+    startMovingIfIdle();
+}
+
+
+private void startMovingIfIdle() {
+
+    if (direction != Direction.IDLE) {
+        return;
+    }
+
+    if (!upStops.isEmpty()) {
+        direction = Direction.UP;
+    } else if (!downStops.isEmpty()) {
+        direction = Direction.DOWN;
+    }
+}
+    
+
+    
     public void move(){
         if(direction == Direction.UP){
             moveUp();
@@ -54,45 +81,44 @@ public class Elevator {
         else if(direction == Direction.DOWN){
             moveDown();
         }
-        else{
-            setDirection();
-        }
     }
 
 
-    //move Up
-    public void moveUp(){
-        if(!upStops.isEmpty()){
-            this.currentFloor = upStops.pollFirst();
-        }
-        else{
-            direction = Direction.DOWN;
-        }
-    }
+    private void moveUp() {
 
-    //move Down
-    public void moveDown(){
-        if(!downStops.isEmpty()){
-            this.currentFloor = downStops.pollFirst();
-        }
-        else{
-            direction = Direction.UP;
-        }
-
-    }
-
-    private void setDirection() {
         if (!upStops.isEmpty()) {
-            direction = Direction.UP;
+
+            currentFloor =
+                    upStops.pollFirst();
+
         } else if (!downStops.isEmpty()) {
+
             direction = Direction.DOWN;
+
         } else {
+
             direction = Direction.IDLE;
         }
     }
 
-    public boolean isIdle() {
-        return direction == Direction.IDLE;
+
+    
+     private void moveDown() {
+
+        if (!downStops.isEmpty()) {
+
+            currentFloor =
+                    downStops.pollFirst();
+
+        } else if (!upStops.isEmpty()) {
+
+            direction = Direction.UP;
+
+        } else {
+
+            direction = Direction.IDLE;
+        }
     }
+
 
 }
