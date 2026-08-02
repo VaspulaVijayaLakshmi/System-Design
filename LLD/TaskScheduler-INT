@@ -1,0 +1,199 @@
+package TaskScheduler;
+
+
+//If priority is also included
+
+//        public enum Priority{
+//            HIGH,
+//            MEDIUM,
+//            LOW
+//        }
+
+//Based on the priority, we can have
+// multiple queues, put it into dedicated priority queue,schedule the task accordingly
+
+
+import TSPrac.DefaultTaskScheduler;
+
+import java.util.Comparator;
+import java.util.PriorityQueue;
+
+class TaskScheduler {
+
+    //Tasks
+    static class Task {
+
+        private Runnable runnable;
+        private int remainingIterations;
+        private long delay;
+        private long nextExecutionTime;
+
+        //priority as well
+
+        public Task(Runnable runnable, int remainingRuns, long delay) {
+
+            this.runnable = runnable;
+            this.delay = delay;
+            this.remainingIterations = remainingRuns;
+            this.nextExecutionTime = System.currentTimeMillis() + delay;
+        }
+
+    }
+
+
+    //create workers
+    public TaskScheduler(int numWorkers) {
+
+        for (int i = 1; i <= numWorkers; i++) {
+
+            Thread worker = new Thread(new Worker(), "Worker-" + i);
+            worker.start();
+        }
+    }
+
+
+    //task Queue to hold the tasks
+    PriorityQueue<Task> taskQueue = new PriorityQueue<>(new Comparator<Task>() {
+        @Override
+        public int compare(Task t1, Task t2) {
+            return Long.compare(t1.nextExecutionTime, t2.nextExecutionTime);
+        }
+    });
+
+
+    //Worker Class to execute the tasks
+    class Worker implements Runnable {
+
+        @Override
+        public void run() {
+
+            while (true) {
+
+                Task task;
+
+                synchronized (taskQueue) {
+
+                    //wait till queue has some tsk
+                    while (taskQueue.isEmpty()) {
+
+                        try {
+                            taskQueue.wait();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return ;
+                        }
+
+                    }
+
+
+                    // Look at the earliest task
+                    Task earliestTask = taskQueue.peek();
+                    long currentTime = System.currentTimeMillis();
+                    long waitTime = earliestTask.nextExecutionTime - currentTime;
+
+
+                    //task not ready
+                    if (waitTime > 0) {
+
+                        // wait
+                        try {
+                            taskQueue.wait(waitTime);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return ;
+                        }
+
+                        continue;
+
+                    }
+
+
+                    //remove the task from queue
+                    task = taskQueue.poll();
+
+                    //check iterations
+                    //if iterations caculate next execution time
+                    //decremenet iteration and push to queue
+
+
+                    // If more executions are remaining,
+                    // schedule the next execution.
+                    if (task.remainingIterations > 1) {
+
+                        task.remainingIterations--;
+                        task.nextExecutionTime = System.currentTimeMillis() + task.delay;
+                        taskQueue.offer(task);
+                    }
+                }
+
+                //run the task outside the synchronized block to avoid blocking other workers
+                task.runnable.run();
+
+
+            }
+        }
+    }
+
+    //schedule tasks
+    public void scheduleTask(Runnable runnable, int remainingRuns, long delay) {
+
+        if (remainingRuns < 0) {
+            throw new IllegalArgumentException("Remaining runs cannot be negative");
+        }
+
+        Task task = new Task(runnable, remainingRuns, delay);
+
+        synchronized (taskQueue) {
+            taskQueue.offer(task);
+            taskQueue.notifyAll(); // Notify workers that a new task is available
+        }
+
+    }
+
+}
+
+
+
+public class TaskSchedulerDemo {
+
+
+    public static void main(String[] args) {
+
+        DefaultTaskScheduler scheduler =
+                new  DefaultTaskScheduler(3);
+
+        // Single execution
+        scheduler.schedule(
+                () -> System.out.println(
+                        Thread.currentThread().getName()
+                                + " - Single task executed at "
+                                + System.currentTimeMillis()
+                ),
+                2000,
+                1
+        );
+
+
+       // (or)
+        // Single execution
+        scheduler.schedule(
+                () -> System.out.println("Hello World"),
+                2000,
+                1
+        );
+
+
+
+        // Periodic execution
+        scheduler.schedule(
+                () -> System.out.println(
+                        Thread.currentThread().getName()
+                                + " - Periodic task executed at "
+                                + System.currentTimeMillis()
+                ),
+                1000,
+                3
+        );
+    }
+}
+
