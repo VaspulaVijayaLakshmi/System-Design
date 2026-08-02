@@ -1,0 +1,184 @@
+How to switch b/w patterns
+
+RateLimiter
+    |
+    | has-a
+    v
+RateLimitingStrategy
+    |
+    +---- TokenBucketStrategy
+    |
+    +---- SlidingWindowStrategy
+    |
+    +---- FixedWindowStrategy
+    |
+    +---- LeakyBucketStrategy
+
+Something like:
+
+public interface RateLimitingStrategy {
+    boolean allowRequest(String key, RateLimitConfig config);
+}
+
+And:
+
+public class RateLimiter {
+
+    private final RateLimitingStrategy strategy;
+
+    public RateLimiter(RateLimitingStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    public boolean allowRequest(
+            String key,
+            RateLimitConfig config) {
+
+        return strategy.allowRequest(key, config);
+    }
+}
+
+
+_______________________
+
+You have designed the rate limiter using Token Bucket. Now suppose we deploy 10 instances of the Rate Limiter behind the API Gateway.
+A user's requests can go to any of those 10 instances. How will you ensure the user's rate limit is enforced globally across all instances?
+
+
+Rate-limit state cannot live only in the local memory of each RateLimiter instance. Otherwise, a user can bypass the limit by hitting different instances.
+
+So we'd have:
+
+                  API Gateway
+                       |
+          +------------+------------+
+          |            |            |
+          v            v            v
+      RL Instance  RL Instance  RL Instance
+          |            |            |
+          +------------+------------+
+                       |
+                       v
+                     Redis
+                       |
+                       v
+                 Shared State
+
+For Token Bucket, Redis would maintain the state for each rate-limit key:
+
+user123:/api/search
+    |
+    +-- availableTokens
+    +-- lastRefillTime
+    +-- capacity
+    +-- refillRate
+
+Every RateLimiter instance operates on the same shared state.
+
+_______________________
+
+Two RateLimiter instances might receive requests for the same user at exactly the same time.
+How do you make the refill + check token + consume token operation atomic in Redis?
+
+
+
+We make redis operation lock
+
+
+hen a request comes we make the allowed requeyss synchrnised so that we refull the bucket if needed..check tojem and ise token
+
+Interviewer: That would work if all requests for a user hit the same RateLimiter instance, because synchronized only locks that JVM instance.
+
+But in our distributed setup:
+
+Request 1 → RateLimiter-1
+Request 2 → RateLimiter-2
+
+You could have:
+
+Thread 1 → synchronized on Instance 1
+Thread 2 → synchronized on Instance 2
+
+Both can access Redis concurrently. So synchronized doesn't solve the distributed atomicity problem.
+
+The correct approach is to make the entire operation atomic in Redis:
+
+Refill tokens
+    ↓
+Check available token
+    ↓
+Consume token
+    ↓
+Update state
+
+All as one atomic operation, typically using a Redis Lua script.
+
+
+
+Redis Atomic Operation
+
+1. Read bucket state
+2. Calculate elapsed time
+3. Refill tokens
+4. If tokens >= 1
+       consume 1 token
+       return ALLOWED
+   Else
+       return REJECTED
+
+Because Redis executes the Lua script atomically, two RateLimiter instances cannot interleave these operations.
+
+
+_______________________
+
+
+
+Suppose Redis itself goes down. What should happen to incoming requests? Fail open → allow requests through? Or fail closed → reject requests?
+
+
+For a general API, I'd also prefer fail-open because the Rate Limiter is a protective layer, 
+and taking down the entire application because Redis is unavailable may be worse than temporarily allowing some extra requests.
+
+
+
+But it depends on the use case:
+
+General APIs / Search → Fail open is usually reasonable.
+Expensive APIs / Strict resource protection → Fail closed may be safer.
+
+
+
+
+Let's say we have 100 RateLimiter instances and millions of users.
+We don't want to keep every user's bucket in memory.
+How would you handle Redis memory growth and clean up inactive users' rate-limit state?
+
+
+Now imagine a user sends 1 million requests per second to our API.
+Our rate limiter uses Redis, so every request results in a Redis operation.
+What scalability problem do you see, and how would you solve it?
+
+Redis Cluster + partitioning/sharding by userId is a good solution.
+
+Redis Cluster → horizontal scaling
+Sharding by userId → distribute load
+Replication → high availability
+Redis pipelining / batching where applicable → reduce network overhead
+
+
+"I'd set a TTL on each user's rate-limit state so inactive users are automatically removed. Redis LRU eviction can act as a secondary memory-protection mechanism."
+
+
+_______________________
+
+
+
+How do you propagate this configuration change to all instances without restarting them?
+
+
+"We can store the configuration centrally and cache it locally in each RateLimiter. 
+Configuration changes can be propagated through an event or periodically refreshed, so we don't need to redeploy."
+
+
+
+_______________________
