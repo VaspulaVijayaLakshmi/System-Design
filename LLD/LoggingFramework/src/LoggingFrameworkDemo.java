@@ -2,15 +2,16 @@ public class LoggingFrameworkDemo {
 
     public static void main(String[] args){
 
-        // Get logger from factory
-        Logger logger = LoggerFactory.getLogger("User Service");
+        Logger logger = Logger.getLogger();
 
-        // Logging examples
-        logger.debug("This is a DEBUG log");
-        logger.info("Application started successfully");
-        logger.error("Something went wrong!");
+        Formatter formatter = new DefaultFormatter();
 
+        Appender consoleAppender = new ConsoleAppender(formatter);
 
+        logger.addAppender(consoleAppender);
 
+        logger.info("App started");
+        logger.error("Error log");
     }
+
 }
