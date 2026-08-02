@@ -36,22 +36,19 @@ However, we should try not to lose logs unnecessarily.
 
 
 
-Application
-    |
-   Logger
-    |
-    | async
-    v
-  Queue / Buffer
-    |
-    v
-Background Worker
-    |
-    v
-Log Appender
-    |
-    v
-Backend / File / Console
-
-
+Application Threads
+       |
+       v
+     Logger
+       |
+       v
+ BlockingQueue<LogMessage>
+       |
+       v
+  Worker Thread(s)
+       |
+       v
+    Appenders
+    /       \
+Console     File
 
