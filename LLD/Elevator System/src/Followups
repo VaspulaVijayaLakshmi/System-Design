@@ -1,0 +1,179 @@
+Design an Elevator System for a building with multiple floors and multiple elevators.
+
+20 floors
+5 elevators
+Each elevator can serve all floors
+Multiple users can request elevators concurrently
+We need to handle hall requests (up/down) and floor requests (destination)
+
+
+_____________________________
+
+
+
+Hall request: User presses UP or DOWN on a floor.
+Cabin request: User selects a destination floor inside an elevator.
+Assignment: Elevator controller selects the best elevator based on distance and current direction/state.
+Goal: Minimize waiting time and avoid unnecessary movement.
+
+_____________________________
+
+Nearest elevator alone isn't always the best choice.
+
+For example:
+
+Elevator A is 2 floors away but moving DOWN
+Elevator B is 5 floors away and moving UP toward the user
+
+B may be the better choice.
+
+
+_____________________________
+
+
+
+ElevatorSelectionStrategy
+
+For each eligible elevator:
+
+Ignore elevators in MAINTENANCE / OUT_OF_SERVICE.
+If an elevator is already at the requested floor, prefer it.
+If elevator is moving toward the requested floor and its direction matches the user's request (UP/DOWN), give it high priority.
+Consider distance to the requested floor.
+Consider the elevator's current direction.
+Consider its existing stops / workload.
+If no suitable moving elevator exists, choose an IDLE elevator based on minimum distance.
+
+
+
+
+interface ElevatorSelectionStrategy {
+    Elevator selectElevator(
+        List<Elevator> elevators,
+        int requestedFloor,
+        Direction requestedDirection
+    );
+}
+
+________________________
+
+
+ElevatorController
+
+Responsible for system-level orchestration:
+
+Receives hall requests
+Selects the best elevator
+Assigns the request
+Manages all elevators
+
+
+
+Elevator
+
+Responsible for its own internal behavior:
+
+Maintain current floor
+Maintain direction/state
+Maintain destination requests
+Move toward the next destination
+Open/close doors
+
+
+
+What data structure would you use to maintain destinations for an elevator moving UP and DOWN?
+
+need two  data structures for different directions
+because the ones which are going in upward direction and the ones which are going in downward direction should be different
+
+TreeSet<Integer> upStops;
+TreeSet<Integer> downStops;
+
+
+
+For example, elevator is at floor 5 and moving UP:
+
+upStops   = [7, 10, 15]
+downStops = [2, 3]
+
+
+It will process:
+
+5 → 7 → 10 → 15 → 3 → 2
+
+
+the direction determines which set you process first.
+
+Direction.UP
+    → process upStops in ascending order
+    → when empty, switch to downStops
+
+Direction.DOWN
+    → process downStops in descending order
+    → when empty, switch to upStops
+
+
+SO thiese tree sets are  for destination scheduling.
+FOr pickijg up the elevator we will use scheduling strategy only.
+
+
+Hall Request
+    ↓
+ElevatorController
+    ↓
+ElevatorSelectionStrategy
+    ↓
+Select Elevator
+    ↓
+elevator.addStop(floor)
+    ↓
+Elevator maintains:
+    ├── upStops
+    └── downStops
+    ↓
+Elevator processes stops based on direction
+
+________________
+
+class ElevatorRequest {
+    int floor;
+    Direction direction;
+}
+
+_________________
+
+
+Now imagine 100 users press the elevator buttons at exactly the same time.
+
+Multiple application threads are calling:
+
+elevator.addStop(10);
+elevator.addStop(15);
+elevator.addStop(7);
+
+
+
+synchronize the critical operation on the specific elevator.
+
+public synchronized void addStop(int floor) {
+    if (floor > currentFloor) {
+        upStops.add(floor);
+    } else if (floor < currentFloor) {
+        downStops.add(floor);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
