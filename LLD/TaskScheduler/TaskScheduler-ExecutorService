@@ -1,0 +1,169 @@
+package TSPrac;
+
+
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+//no iterations
+//no delay
+//just execute thet ask based on the eexecution time
+interface TaskScheduler{
+
+
+    void schedule(
+            Runnable runnable,
+            int taskId,
+            long executionTime);
+
+    public void cancel(int taskId);
+
+
+
+    void shutdown();
+}
+
+class Task{
+
+    Runnable runnable;
+    int taskId;
+     long executionTime;  // give me in millseconds-epoch
+
+
+    public Task(int taskId, Runnable runnbale, long executionTime){
+
+          this.taskId = taskId;
+          this.runnable = runnbale;
+          this.executionTime = executionTime;
+    }
+
+}
+
+
+public class DefaultTaskScheduler implements TaskScheduler {
+
+    private final PriorityQueue<Task> taskQueue = new PriorityQueue<>(Comparator.comparingLong(t -> t.executionTime));
+    private final Set<Integer> cancelledTasks = new HashSet<>();
+
+    private final ExecutorService executor;
+    private final Thread schedulerThread;
+    private volatile boolean shutDown = false;
+
+    public DefaultTaskScheduler(int workers) {
+
+        executor = Executors.newFixedThreadPool(workers);
+
+        schedulerThread = new Thread(new Scheduler());
+        schedulerThread.start();
+    }
+
+
+    public class Scheduler implements Runnable {
+
+        @Override
+        public void run() {
+
+            while (!shutDown) {
+
+                Task task = null;
+
+                synchronized (taskQueue) {
+
+                    // Wait until there is at least one task
+                    while (taskQueue.isEmpty() && !shutDown) {
+                        try {
+                            taskQueue.wait();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
+                    }
+
+                    if (shutDown) {
+                        return;
+                    }
+
+                    // Get earliest task
+                    task = taskQueue.peek();
+
+                    // Check if task is cancelled
+                    if (cancelledTasks.contains(task.taskId)) {
+                        taskQueue.poll();
+                        cancelledTasks.remove(task.taskId);
+                        continue;
+                    }
+
+                    // Calculate how long to wait
+                    long waitTime =
+                            task.executionTime - System.currentTimeMillis();
+
+                    if (waitTime > 0) {
+                        try {
+                            // Wait until task is due
+                            // OR until a new task is scheduled
+                            taskQueue.wait(waitTime);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
+
+                        continue;
+                    }
+
+                    // Task is ready
+                    taskQueue.poll();
+                }
+
+                // Execute OUTSIDE synchronized block
+                executor.submit(task.runnable);
+            }
+        }
+    }
+
+    @Override
+    public void schedule(
+            Runnable runnable,
+            int taskId,
+            long executionTime) {
+
+        synchronized (taskQueue) {
+
+            taskQueue.offer(
+                    new Task(taskId, runnable, executionTime)
+            );
+
+            // Wake scheduler.
+            // Important if this task executes earlier
+            // than the current earliest task.
+            taskQueue.notifyAll();
+        }
+    }
+
+    @Override
+    public void cancel(int taskId) {
+
+        synchronized (taskQueue) {
+            cancelledTasks.add(taskId);
+
+            // Wake scheduler to re-check cancellation
+            taskQueue.notifyAll();
+        }
+    }
+
+
+   @Override
+   public void shutdown() {
+
+        shutDown = true;
+
+        synchronized (taskQueue) {
+            taskQueue.notifyAll();
+        }
+
+        executor.shutdown();
+    }
+}
+
