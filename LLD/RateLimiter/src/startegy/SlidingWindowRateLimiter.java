@@ -1,61 +1,62 @@
-package startegy;
-
-import config.RateLimitConfig;
-import model.User;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
-
-public class SlidingWindowRateLimiter implements RateLimiter {
-
-    private static final long WINDOW_SIZE = 60_000;
-
-    //store user Id -> his request TimeStamps
-    Map<String, Queue<Long>> userRequestTimestamps = new HashMap<>();
-    //1min
-
-    RateLimitConfig rateLimiterConfig = new RateLimitConfig();
+public class SlidingWindowRateLimiter {
 
 
-    @Override
-    public boolean acceptRequest(User user) {
+//window size in seconds
+ private static final long WINDOWSIZE = 60000;
+ //60,000 sec -> millsecs
 
-        String userId = user.getUserId();
-        int maxRequestsAllowed = rateLimiterConfig.getRateLimit(user.getUserType());
+  //user maps ->
+  //UserId -> Sliding Window which holds timestamps
 
-        long now = System.currentTimeMillis();
+    Map<Integer, Queue<Long>> userRateLimits = new HashMap<>();
 
-        Queue<Long> userRequests = userRequestTimestamps.getOrDefault(userId,null);
+    public boolean acceptRequests(User user){
 
-        //new user
-        if(userRequests == null){
-            userRequests = new LinkedList<>();
-            userRequests.add(System.currentTimeMillis());
+        int maxRequestsAllowed = RateLimitConfig.config.get(UserTier.FREE);
 
-            userRequestTimestamps.put(userId,userRequests);
-            return true;
-        }
+        Queue<Long> userTimestamps  = userRateLimits.get(user.userId);
 
-        else{
+        //if user is not present
+         if(userTimestamps == null){
 
-            //while slide the window
+             userTimestamps = new LinkedList<>();
 
-            while(!userRequests.isEmpty() && now - userRequests.peek() > WINDOW_SIZE){
-               //remove the request which are out of window
-                userRequests.poll();
-            }
+             //Add timestamp to user
+             userTimestamps.add(System.currentTimeMillis());
 
-            if(userRequests.size() >= maxRequestsAllowed){
-                return false;
-            }
+             //put in map
+             userRateLimits.put(user.userId, userTimestamps);
 
-             userRequests.add(System.currentTimeMillis());
-            return true;
+             return true;
 
-        }
+         }
 
+         //user is present
+         else{
+
+             while(!userTimestamps.isEmpty() && System.currentTimeMillis() - userTimestamps.peek() > WINDOWSIZE ){
+                 userTimestamps.poll();
+             }
+
+             //if queue is correct size, but we cant any reqiest
+             //we cant anymore.
+
+             if(userTimestamps.size() >= maxRequestsAllowed ){
+                 return false;
+             }
+
+             //else
+             //  add requust and return true;
+
+             userTimestamps.add(System.currentTimeMillis());
+             return true;
+         }
     }
+
+
 }
