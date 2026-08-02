@@ -1,0 +1,227 @@
+How do we handle find spots.. We can maintain 2 spots maps...
+
+but if we maintain like this -> 2 maps ,  like this we need to synchronsie the data b/2 then..
+We can hold a map or cache this..its ok if its inconsistent...because we still check isvaibale if we find the spot as well to conform then only we go aehad.
+
+
+Map<SpotId, ParkingSpot> spots;
+Map<SpotType, Integer> availableCount;
+
+creates a consistency problem. Every park() and release() must update both atomically.
+
+__________________________
+
+How would you handle concurrency?
+Suppose two cars enter at the same time, and there is only one available parking spot that both cars are eligible for.
+How do you ensure both cars don't get assigned the same spot?
+
+we do this check spot+ assign atomic
+
+The availability check and spot assignment should be an atomic operation. We can synchronize the assignSpot() operation or use a lock on the ParkingSpot.
+The thread that successfully acquires the lock checks availability and assigns the vehicle. Other threads will see that the spot is already occupied and try another spot.
+
+
+synchronized boolean assignVehicle(Vehicle vehicle) {
+    if (!available) {
+        return false;
+    }
+
+    available = false;
+    this.vehicle = vehicle;
+    return true;
+}
+
+For a distributed parking system, JVM-level synchronized is not sufficient because multiple application instances may access the same parking spot.
+
+You can say:
+
+"The source of truth for spot allocation should be in a shared datastore. We can use database-level concurrency control. 
+I would prefer optimistic locking for high concurrency, where each ParkingSpot has a version. During assignment, 
+we update the spot only if the version is unchanged. If the update affects zero rows, another request already claimed the spot, so we retry with another spot."
+
+
+
+UPDATE parking_spot
+SET status = 'OCCUPIED',
+    vehicle_id = ?,
+    version = version + 1
+WHERE spot_id = ?
+  AND status = 'AVAILABLE'
+  AND version = ?;
+
+If:
+
+rows_updated == 1 → Successfully assigned
+rows_updated == 0 → Someone else got it → Try another spot
+
+
+
+Your choice
+
+Optimistic locking makes sense here because:
+
+Spot contention is generally low.
+We don't want long-held DB locks.
+Failed allocation can simply retry another spot.
+
+
+
+Pessimitic LOcking ********Not recommended.
+
+Why it's bad?
+More requests waiting
+Higher latency
+Lower throughput
+Potential deadlocks if multiple locks are involved
+
+
+______________________________
+
+
+Distributed system — Where is the source of truth for spot availability?
+SOurce of truth will be DB only in the end.
+
+
+_____________________________
+
+
+Payment failure — What happens if payment fails during exit?
+
+During exit if payment fails...We wont retry because it may lead to double payment.
+We use idempotent Tranactions. Where we store this in Redis like store..
+"If the client reties, we know that its already been happended so we dont double charge
+
+
+For example:
+
+PaymentTransaction
+------------------
+id
+idempotency_key  UNIQUE
+ticket_id
+amount
+status           // SUCCESS, FAILED, PENDING
+provider_txn_id
+crea
+ted_at
+
+When a retry comes:
+
+Same idempotency_key
+        ↓
+Query Payment DB
+        ↓
+Already SUCCESS → Return existing transaction
+Already FAILED  → Return failed result
+Not found       → Process payment
+
+The important part is the unique constraint on idempotency_key, which helps prevent duplicate transactions.
+Redis can optionally be used as a cache for faster lookup, but the DB is the durable source of truth.
+
+
+
+
+
+_____________________________
+
+
+Failed b/w spot allocation and ticket generation
+
+If spot allocation and ticket generation are in the same service/database, you should ideally make them part of one DB transaction:
+
+BEGIN TRANSACTION
+
+1. Allocate spot
+2. Create ticket
+
+COMMIT
+
+If ticket creation fails:
+
+ROLLBACK
+    ↓
+Spot becomes AVAILABLE again
+
+So you get atomicity:
+
+Either both spot allocation + ticket creation happen, or neither happens.
+
+
+
+
+"If ticket generation fails after spot allocation, if both operations are in the same DB transaction,
+we roll back the spot allocation. If they're separate services, we release the spot through a compensating action. 
+We don't necessarily need idempotency for ticket creation because a new ticket can be generated on retry."
+
+
+_______________________________
+
+
+
+BestSpotStrategy: How would you efficiently find the best available spot without scanning every spot?
+If BestSpotStrategy means nearest spot, I wouldn't scan all 10,000 spots every time.
+I would maintain an ordered data structure of available spots:
+
+
+Floor
+  ↓
+Available spots ordered by distance from entrance
+  ↓
+TreeSet / PriorityQueue
+
+
+For example:
+PriorityQueue<ParkingSpot> availableSpots;
+
+Ordered by:
+distanceFromEntrance
+
+Then:
+
+poll() → gives nearest available spot
+When a vehicle leaves:
+release spot
+    ↓
+add spot back to PriorityQueue
+
+
+So:
+Allocation → O(log N)
+Release    → O(log N)
+
+However, if we have multiple spot types, I'd maintain separate structures:
+Map<SpotType, PriorityQueue<ParkingSpot>>
+
+
+
+
+
+_____________________
+
+
+Reservation
+
+
+User requests reservation
+        ↓
+Atomically claim spot in DB
+        ↓
+status = RESERVED
+reservationId = X
+expiresAt = T+30 min
+        ↓
+Redis SET reservation:X spotId EX 1800
+
+If user completes booking:
+
+RESERVED → OCCUPIED
+
+If user doesn't complete within 30 minutes:
+RESERVED → AVAILABLE
+
+
+________________________
+
+
+"For a reservation, I'll atomically mark the spot as RESERVED in the DB with a reservation ID and expiry time. I can maintain a Redis key with a TTL for fast expiration tracking. If the user completes the reservation, we transition RESERVED to OCCUPIED. 
+If the reservation expires, we atomically transition it back to AVAILABLE, verifying the reservation ID so an old expiry event cannot release a newer reservation."
