@@ -20,7 +20,7 @@ public class ElevatorController {
     }
 
 
-    public void handleExternalRequest(ExternalRequest request){
+    public void handleElevatorRequest(ExternalRequest request){
         Elevator bestElevator = findBestElevator(request);
         bestElevator.addExternalRequest(request.floorNumber);
     }
