@@ -1,0 +1,206 @@
+Suppose two users try to book the same seat concurrently. How does your current implementation prevent double booking?
+
+
+protection comes from occupy() being synchronized and performing check + state change atomically.
+
+public synchronized boolean occupy() {
+        if(seatStatus == SeatStatus.AVAILABLE) {
+           seatStatus=SeatStatus.RESERVED;
+            return true;
+        }
+        return false;
+    }
+
+
+
+Now suppose the application is running on multiple JVMs/servers. Will synchronized still prevent double booking?
+
+Optimistic locking with a version column is a valid approach.
+
+
+
+
+
+
+How would you implement the DB update to atomically hold the seat? What would the SQL/condition look like?
+
+UPDATE show_seat
+SET status = 'HELD',
+    version = version + 1,
+    hold_expires_at = ?
+WHERE show_id = ?
+  AND seat_id = ?
+  AND status = 'AVAILABLE'
+  AND version = ?;
+
+
+
+
+
+what happens if the user selects 3 seats and the first 2 are successfully held, but the third seat fails?
+
+you should rollback the first two seat holds so the booking doesn't partially succeed.
+
+In a DB implementation, you'd use a transaction:
+
+BEGIN TRANSACTION
+
+Hold Seat A1
+Hold Seat A2
+Hold Seat A3 → FAIL
+
+ROLLBACK
+
+A1 → AVAILABLE
+A2 → AVAILABLE
+
+
+
+
+
+
+ What if payment succeeds but your booking confirmation DB update fails? How would you handle that?
+
+
+If payment succeeds but booking confirmation fails, we need to ensure the payment isn't lost and the booking is 
+eventually processed. We can persist the payment result and use an outbox/event-driven approach to publish a PaymentSucceeded event. 
+The Booking Service consumes it and confirms the booking with retries. The consumer must be idempotent.
+
+
+
+A typical flow is:
+
+Payment Success
+      ↓
+Persist Payment Success / Publish Event
+      ↓
+Booking Service consumes event
+      ↓
+Confirm Booking
+
+
+
+
+
+What if Kafka is also unavailable immediately after payment succeeds?
+
+Payment Success
+      ↓
+DB Transaction
+      ├── Save Payment = SUCCESS
+      └── Save Outbox Event = PaymentSucceeded
+                ↓
+         Outbox Publisher
+                ↓
+              Kafka
+Use Kafka + retries/DLQ to handle temporary failures. 
+The consumer should be idempotent, so duplicate payment events don't create duplicate bookings.
+
+
+If Kafka is down, the event is already safely stored in the Outbox table. The publisher retries later.
+So the answer is: persist the data in DB first, then publish to Kafka asynchronously via the Outbox Pattern.
+
+The business update and outbox insert happen in the same DB transaction. If the transaction commits, both are persisted; if it fails, neither is.
+A background publisher then reads the outbox and publishes to Kafka, with retries.
+
+
+
+
+How would you scale this system if traffic suddenly increases significantly? Where would you add caching, and what data would you cache?
+
+: cache read-heavy, relatively static data like movies, theatres, 
+and show metadata. Don't blindly cache seat availability because it changes frequently.
+
+
+
+
+Where exactly would you place the cache, and what caching strategy would you use?
+
+So when application reaches the API, we will first check in cache itself to get the data. And if it is not there, then we will hit the messages. And the caching strategies, information like shows and all this, 
+information like shows and movies keep changing. So we can set a TTL for these kind of information to remove the stale information 
+and populate from the DB itself, common queries from the DB itself.
+
+
+
+
+
+
+
+SO eevrytime for seat avaibality we wil hit the DB?
+
+Not necessarily. For displaying available seats, you can read from Redis/cache for faster responses.
+
+But when the user actually holds/books a seat, you must perform the authoritative atomic check against the DB (or another strongly consistent store).
+
+GET seats → Redis (fast read)
+HOLD seat → DB conditional update (source of truth)
+CONFIRM → DB transaction
+
+So: read availability can be cached; booking/holding cannot rely only on cache.
+
+
+
+
+
+
+If the DB becomes the bottleneck, how would you scale it?
+
+If the database becomes a bottleneck, first I would optimize the existing database using proper indexing, query optimization, and connection pooling.
+For read-heavy traffic, I would add read replicas and route read queries to them while writes go to the primary database.
+If the data grows beyond a single database's capacity, I would consider sharding based on a suitable key, such as theaterId or region. However, sharding introduces complexity around cross-shard queries and transactions.
+I would also consider denormalization for frequently accessed read paths and use Redis caching to reduce database load.
+
+
+
+
+
+What happens if traffic suddenly spikes 10x? How would you protect the system?
+
+Rate limiting to protect against abusive traffic.
+Horizontal scaling of application servers.
+Scale Redis if the cache layer becomes a bottleneck.
+Read replicas to handle increased read traffic.
+DB optimization/sharding if the database remains the bottleneck.
+
+
+
+
+
+Your API response time suddenly increased from 200ms to 5 seconds. How would you investigate and identify the bottleneck?
+
+A strong structure is:
+
+Check metrics/dashboard → latency, RPS, CPU, memory, GC.
+Check logs/traces → identify which downstream call is slow.
+Check DB → slow queries, connection pool, locks.
+Check Redis/cache → hit ratio, latency, availability.
+Check external services → timeout/latency/errors.
+Then take action: scale, optimize, cache, circuit breaker, etc.
+
+
+
+Suppose one of your downstream services is completely down. What would you do to prevent your API from becoming slow or failing completely?
+
+
+First, I would identify whether the failure is transient or permanent. I would use timeouts so requests don't wait indefinitely.
+
+For transient failures, I can use limited retries with exponential backoff. However, I should avoid aggressive retries because they can 
+further overload the already-failing service.
+
+don't retry all failures. Retry only transient failures like timeouts/5xx, and avoid retrying non-retryable 4xx errors.
+
+
+I would use a circuit breaker. Once failures cross a threshold, the circuit opens and we fail fast instead of continuously calling the unhealthy service.
+Depending on the use case, I can also use fallbacks, such as returning cached data or a degraded response.
+Once the downstream service recovers, the circuit breaker moves to half-open and gradually allows requests again.
+
+
+
+
+
+
+
+
+
+
+
