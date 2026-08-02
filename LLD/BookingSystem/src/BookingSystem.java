@@ -3,6 +3,7 @@ import models.Seat;
 import models.Show;
 import models.User;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,7 +14,6 @@ public class BookingSystem {
     private Map<String, Booking> bookings;
     private Map<String, User> users;
     private Map<String, Show> shows;
-
 
     private static BookingSystem instance;
 
@@ -65,7 +65,7 @@ public class BookingSystem {
 
         }
 
-        throw new RuntimeException("SHow doesnt ecxist");
+        throw new RuntimeException("Show doesnt ecxist");
     }
 
 
@@ -79,15 +79,40 @@ public class BookingSystem {
 
         if(user!=null && show!=null) {
 
+
+            //this is wrong because
+
+//            Thread A: isAvailable() → true
+//            Thread B: isAvailable() → true
+//            Thread A: occupy()
+//            Thread B: occupy() → false
+
+
+//            for (Seat seat : seats) {
+//                if (!seat.isAvailable()) {
+//                    throw new RuntimeException("Seat is not available");
+//                }
+//
+//                totalPrice += seat.getPrice();
+//                seat.occupy();
+//            }
+
+
+            List<Seat> occupiedSeats = new ArrayList<>();
+            
+            // Check + occupy is atomic inside occupy()
             for (Seat seat : seats) {
-                if (!seat.isAvailable()) {
-                    throw new RuntimeException("Seat is not available");
+
+                if (!seat.occupy()) {
+                    throw new RuntimeException(
+                            "Seat " + seat.getSeatId() +
+                                    " is not available"
+                    );
                 }
 
+                occupiedSeats.add(seat);
                 totalPrice += seat.getPrice();
-                seat.occupy();
             }
-
 
             Booking booking = new Booking(userId, showId, seats);
             bookings.put(booking.getBookingId(), booking);
@@ -100,3 +125,6 @@ public class BookingSystem {
     }
 
 }
+
+
+
