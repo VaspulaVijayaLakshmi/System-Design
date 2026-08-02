@@ -1,54 +1,59 @@
-package startegy;
-
-import config.RateLimitConfig;
-import model.User;
+public class TokenBucketRateLimiter {
 
 
-public class TokenBucketRateLImiter implements RateLimiter {
+    private final int capacity;
+    private final int refillRate;
+
+    //10 requests per min
+
+    //capacity is 10 lets say
+    //we refill rate each token every 5sec.
+
+//    so in 1min -> 60/5 = 12 tokens ~-10 lets say
+
+    private long lastRefillTime;
+    private int currTokens;
 
 
-    int currTokens;
-    int maxTokens;
-    long lastFilledAt;
-
-    private final int refillTokensPerSecond = 1;
-        // Refill one token every second
-
-    RateLimitConfig rateLimiterConfig;
-
-
-    public TokenBucketRateLImiter(int maxTokens) {
-
-this.maxTokens = maxTokens;
-this.currTokens = maxTokens;
- this.lastFilledAt = System.currentTimeMillis();
+    public TokenBucketRateLimiter(int maxTokens,int refillRate){
+        this.capacity = maxTokens;
+        this.refillRate = refillRate;
+        this.lastRefillTime = (int)System.currentTimeMillis();
     }
 
 
+       public synchronized boolean allowRequest(User user){
 
-@Override
-    public boolean acceptRequest(User user) {
+            //refill if the time reached.
+            refill();
 
-        refill();
+            //check if current tokens is
+            if(currTokens >= 1){
+                currTokens -= 1;
+                return true;
+            }
 
-        if(currTokens >=1){
-            currTokens -= 1;
-            return true;
+            return false;
+
         }
 
-        return false;
+
+        private void refill(){
+
+            long currentTime = System.currentTimeMillis();
+            long elapsedTime = currentTime - lastRefillTime;
+
+            //number of
+            int tokenstoBeAdded =  ((int)refillRate *  (int)elapsedTime)/1000;
+
+            if(tokenstoBeAdded >= 0){
+                currTokens = Math.min(capacity, currTokens+tokenstoBeAdded);
+                lastRefillTime = currentTime;
+            }
+
+
+
+        }
 
     }
 
-    public void refill(){
-
-        long now = System.currentTimeMillis();
-        long elapsed = now - lastFilledAt;
-
-        int tokenToAdd = (int)elapsed * refillTokensPerSecond/1000;
-        currTokens = Math.min(currTokens + tokenToAdd, maxTokens);
-
-
-    }
-
-}
