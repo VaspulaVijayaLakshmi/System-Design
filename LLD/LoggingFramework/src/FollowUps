@@ -9,6 +9,7 @@ WARN – something unexpected but the application can continue
 ERROR – an operation failed or an error occurred
 FATAL – severe failure that may require application shutdown (less commonly used in modern frameworks)
 
+____________________________________________
 
 
 "What is the expected scale of the logging system? For example, how many logs per second do we expect,
@@ -33,6 +34,7 @@ FATAL  ✅ Logged
 Yes. We prioritize availability and throughput. It's okay if logs are processed asynchronously and become available in the backend with some delay. 
 However, we should try not to lose logs unnecessarily.
 
+____________________________________________
 
 
 
@@ -51,4 +53,19 @@ Application Threads
     Appenders
     /       \
 Console     File
+
+
+
+In this we will use bounded blocking quuee because 
+Log may be a lot and this will keep griwoing and it may lead ot memeory exhaustion.
+
+SO bounded queue.
+Blocking quuee is thread safe quuqe - Used in prod-consumer problem.
+
+SO the consuemr will not wait indefiently...
+BlockingQueue<String> queue =   new LinkedBlockingQueue<>(100);
+
+
+
+
 
