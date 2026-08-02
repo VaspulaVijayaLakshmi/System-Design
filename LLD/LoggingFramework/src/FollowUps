@@ -66,6 +66,185 @@ SO the consuemr will not wait indefiently...
 BlockingQueue<String> queue =   new LinkedBlockingQueue<>(100);
 
 
+_____________________________
+
+
+Suppose the application generates 10,000 logs/sec, but your single worker can process only 5,000 logs/sec.
+
+
+"Instead of a single worker, I'll create a pool of worker threads. 
+All workers will consume from the same BlockingQueue and process logs concurrently."
 
 
 
+________________________________
+
+Now consider that you have multiple worker threads, and two workers are processing logs concurrently.
+
+If the logs arrive in this order:
+
+Log 1
+Log 2
+Log 3
+Log 4
+
+Could they be written to the FileAppender in this order?
+
+Log 2
+Log 1
+Log 4
+Log 3
+
+Is that a problem? How would you handle log ordering if it is required?
+
+NO, log ordering is important, because we need to udnerstand the flow of the system.
+If its scattered we cant check logs.
+
+
+
+SOlution : 
+
+Partitioned queues : 
+
+All logs belonging to the same request/thread/requestId go to the same queue,
+preserving ordering within that flow.
+
+
+
+              Logger
+                 |
+        Partition by requestId
+          /       |       \
+         ↓        ↓        ↓
+      Queue 1  Queue 2  Queue 3
+         ↓        ↓        ↓
+      Worker 1 Worker 2 Worker 3
+
+
+
+Lets say : 
+
+Queue 1 → Worker 1
+Queue 2 → Worker 2
+Queue 3 → Worker 3
+
+
+When a log comes in, we calculate a partition key:
+
+int queueId = requestId.hashCode() % 3;
+
+For example:
+
+Request A → hash → Queue 1
+Request A → hash → Queue 1
+Request A → hash → Queue 1
+
+Request B → hash → Queue 2
+Request B → hash → Queue 2
+
+Request C → hash → Queue 3
+Request C → hash → Queue 3
+
+So:
+
+Request A
+  Log A1 ─┐
+  Log A2 ─┼──→ Queue 1 → Worker 1 → File
+  Log A3 ─┘
+
+Request B
+  Log B1 ─┐
+  Log B2 ─┴──→ Queue 2 → Worker 2 → File
+
+
+Also, what happens if let's say request A and request C are writing to file one only because they 
+generated the same hash. Then the ordering will change, right,
+because wrote log A1, A2, and then C1, C2, and then log A3. Then how will handle?
+
+
+If Request A and Request C hash to the same queue:
+
+Request A → Queue 1
+Request C → Queue 1
+
+Queue 1:
+A1 → A2 → C1 → C2 → A3
+
+The ordering within each request is still preserved:
+
+A1 → A2 → A3 ✅
+C1 → C2      ✅
+
+But the global ordering across requests is not:
+
+A1 → A2 → C1 → C2 → A3
+
+And that's usually fine.
+
+
+_____________________________________
+
+
+"Logging should be asynchronous and isolated from the application.
+If an appender fails, the application should continue operating.
+We can configure a failure policy based on log severity. 
+For DEBUG/INFO logs, we may drop messages under backpressure.
+
+
+Good points you covered:
+
+✅ Async processing
+✅ App failure isolation
+✅ Configurable dropping policy
+✅ Resilience
+✅ Different handling based on severity
+
+___________________________________
+
+Suppose different applications or packages need different log levels. For example, PaymentService needs DEBUG, but UserService only needs ERROR. 
+How would you support this?
+
+n Java/Spring applications, this is commonly configured at the package/class level.
+
+
+logging:
+  level:
+    com.myapp.payment: DEBUG
+    com.myapp.user: ERROR
+    root: INFO
+
+
+__________________________
+
+For example, the log file reaches 1 GB. What happens?
+
+"For the FileAppender, we can implement a rolling or rotating file appender.
+When the file reaches a configured size, such as 1 GB, we close the current file and create a new one. 
+We can also rotate based on time, such as daily. Older files can be compressed and eventually archived
+to external storage or sent to 
+a centralized logging system like Elasticsearch."
+
+__________________________
+
+What happens if log itself fails
+
+
+In our in-memory design, a BlockingQueue generally won't "fail" like Redis/Kafka, 
+but it can become full, and the application process itself can crash.
+
+
+
+If queue is full
+Application
+    ↓
+BlockingQueue [FULL]
+    ↓
+Worker
+
+
+
+We need a backpressure policy:
+
+immediately reject/drop the log
+ wait for some time
+Drop low-priority logs (DEBUG, INFO)
