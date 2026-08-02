@@ -17,7 +17,6 @@ public class Seat {
         this.seatType=seatType;
         seatStatus=SeatStatus.AVAILABLE;
         this.price=price;
-
     }
 
     public String getSeatId() {
@@ -41,6 +40,13 @@ public class Seat {
         return false;
     }
 
+    public synchronized void release() {
+
+        if (seatStatus == SeatStatus.RESERVED) {
+            seatStatus = SeatStatus.AVAILABLE;
+        }
+    }
+
     public double getPrice() {
         return price;
     }
@@ -48,3 +54,5 @@ public class Seat {
 
 
 }
+
+
