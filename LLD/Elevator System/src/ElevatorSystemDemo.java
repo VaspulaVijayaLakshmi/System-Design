@@ -1,42 +1,49 @@
 import enums.Direction;
 
-public class ElevatorSystemDemo {
+public class Main {
 
-        public static void main(String[] args) {
+    public static void main(String[] args) {
 
-            ElevatorController controller = new ElevatorController(2);
+        // Create Elevator Controller with 5 elevators
+        ElevatorController controller =
+                new ElevatorController(5);
 
-            // External request: Floor 3 wants to go UP
-            ExternalRequest req1 = new ExternalRequest(3, Direction.UP);
-            controller.handleExternalRequest(req1);
+        // User on floor 3 presses UP
+        ExternalRequest request =
+                new ExternalRequest(
+                        3,
+                        Direction.UP
+                );
 
-            // External request: Floor 7 wants to go DOWN
-            ExternalRequest req2 = new ExternalRequest(7, Direction.DOWN);
-            controller.handleExternalRequest(req2);
+        // Controller finds best elevator
+        controller.handleElevatorRequest(request);
 
-            // Simulate elevator movement
-            for (int i = 0; i < 5; i++) {
-                for (Elevator elevator : controller.elevators) {
-                    elevator.move();
-                    System.out.println("Elevator " + elevator.id +
-                            " at floor " + elevator.currentFloor +
-                            " direction " + elevator.direction);
-                }
-                System.out.println("----");
-            }
+        // Get the assigned elevator
+        Elevator elevator =
+                controller.findBestElevator(request);
 
-//            // Simulate internal request inside elevator 0
-//            Elevator elevator0 = controller.elevators.get(0);
-//            elevator0.addInternalRequest(new InternalRequest(10));
-//
-//            // Move again
-//            for (int i = 0; i < 5; i++) {
-//                elevator0.move();
-//                System.out.println("Elevator " + elevator0.id +
-//                        " at floor " + elevator0.currentFloor +
-//                        " direction " + elevator0.direction);
-//            }
-        }
+        System.out.println(
+                "Assigned Elevator: "
+                        + elevator.id
+        );
+
+        // Move elevator to requested floor
+        elevator.move();
+
+        System.out.println(
+                "Elevator current floor: "
+                        + elevator.currentFloor
+        );
+
+        // Passenger enters and selects floor 10
+        elevator.addInternalRequest(10);
+
+        // Move elevator to floor 10
+        elevator.move();
+
+        System.out.println(
+                "Elevator current floor: "
+                        + elevator.currentFloor
+        );
     }
-
-
+}
