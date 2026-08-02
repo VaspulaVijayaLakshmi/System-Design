@@ -198,7 +198,36 @@ Once the downstream service recovers, the circuit breaker moves to half-open and
 
 
 
+A race condition occurs when multiple threads access and modify shared data concurrently, and the final result depends on the timing or order of execution.
 
+In BookMyShow, suppose Seat A1 is available. Two users, Thread 1 and Thread 2, simultaneously check isAvailable() and both see AVAILABLE. Both then try to book the seat.
+If the check and update are not atomic, both could successfully book the same seat, causing double booking.
+We prevent this by making the check + state update atomic, for example using synchronized in a single JVM, or optimistic locking / conditional DB updates in a distributed system.
+
+
+
+
+Your BookMyShow API is returning 500 errors in production. Users are unable to book tickets.
+
+Metrics/dashboard → error rate, latency, CPU, memory.
+Recent deployments/config changes → rollback if the issue started after deployment.
+DB/Redis/external dependencies → availability and error rates.
+Logs with correlation/request IDs → trace a failing request end-to-end.
+
+ feature flags are a good addition. If the issue is caused by a newly released feature, you can disable it without redeploying.
+
+
+
+
+
+Your booking API is working, but users report that the same seat is showing as available and unavailable randomly. 
+How would you investigate this?
+
+
+Cache vs DB inconsistency
+Multiple application instances returning different data
+Replication lag if reading from DB replicas
+Race conditions during seat updates
 
 
 
