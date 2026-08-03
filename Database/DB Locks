@@ -23,108 +23,10 @@ DB crash possibility
 
 
 
-So real systems use multiple layers.
-
-
-________________________________
-
-Step 1 — Redis Atomic Stock Check
-
-Stock stored in Redis:
-
-stock:iphone = 100
-
-When user clicks BUY:
-DECR stock:iphone
-
-Redis operation is atomic.
-
-So:
-
-only first 100 users succeed
-others instantly rejected
-
-This prevents:
-
-overselling
-
-
-________________________________
-
-Step 2 — Queue Requests
-
-Successful users placed into queue:
-
-Kafka / RabbitMQ
-
-Why?
-
-Instead of:
-1M requests hitting DB together
-
-queue smooths traffic.
-
-________________________________
-
-Step 3 — Sequential Order Processing
-
-Order workers consume queue gradually.
-
-Example:
-
-Worker 1 processes UserA
-Worker 2 processes UserB
-
-Now DB load controlled.
-
-________________________________
-
-Step 4 — DB Update
-
-Now final inventory updated safely.
-
-Possible approaches:
-
-Optimistic Locking
-UPDATE inventory
-SET stock=99, version=6
-WHERE version=5;
-
-Good when contention manageable.
-
-
-
-Pessimistic Locking
-SELECT * FROM inventory
-WHERE item='iphone'
-FOR UPDATE;
-
-Used for strict correctness.
-
-Ensures:
-
-no simultaneous modification
-
-________________________________
-
-
-Why cant we dorectly use DB locks - pessimistoc locking for updates
-
-
-If 1M users directly wait on DB locks:
-DB becomes bottleneck
-Too many blocked transactions.
-
-________________________________
-
-So systems:
-
-filter traffic at Redis
-serialize via queues
-use DB locking only at final stage
-
-
-
+"I wouldn't allow 1 million requests to directly compete for a database lock. Pessimistic locking guarantees correctness, but under flash-sale traffic it can create massive lock contention and exhaust database resources.
+I would first use Redis as a fast atomic reservation layer. An atomic decrement ensures that only the available number of users proceed, while excess requests are rejected immediately. Successful reservations are then pushed to a durable queue like Kafka, which smooths the traffic and allows order processing to happen at a controlled rate.
+The order worker then persists the order and inventory state in the database. Depending on the consistency requirements, I could use an atomic conditional update or optimistic/pessimistic locking. I would also handle failures between Redis and the database using reservation expiry, compensation, or reconciliation.
+So Redis handles high-volume admission control, Kafka handles traffic smoothing and durability, and the database remains the source of truth for persistent order and inventory state."
 
 Final Architecture
 Users
@@ -141,14 +43,21 @@ Order Confirmed
 
 
 
-Main Idea
+"Redis can prevent overselling at the reservation layer, provided the reservation and DB reconciliation are correctly designed."
 
 
-Redis
-fast stock reservation
 
-Queue
-smooth traffic spikes
+1M requests
+    ↓
+Redis Atomic Reservation     ← absorb/reject massive traffic
+    ↓
+Kafka                        ← buffer + durable processing
+    ↓
+Workers                      ← controlled concurrency
+    ↓
+DB Atomic Update / Lock      ← final persistent consistency
 
 DB Locking
 final correctness guarantee
+
+
