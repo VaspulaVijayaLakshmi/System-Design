@@ -1,15 +1,20 @@
+# Chess Game LLD Design
+
+## Class Structure
+
+```text
 Game
 ├── Board
-│ └── Cell[8][8] 
+│   └── Cell[8][8]
 │
 ├── Player (White / Black)
 │
 ├── Piece
-│ ├── King
-│ ├── Queen
-│ ├── Rook
-│ ├── Bishop
-│ └── Knight
+│   ├── King
+│   ├── Queen
+│   ├── Rook
+│   ├── Bishop
+│   └── Knight
 │
 └── Move
 
