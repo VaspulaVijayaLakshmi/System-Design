@@ -57,7 +57,7 @@ Concurrency Control
         │       └── Uses version checking
         │
         └── MVCC
-                └── Keeps multiple row versions internally
+                └── Keeps multiple row versions internally- MVCC — Multi-Version Concurrency Control
 ```
 
 ---
