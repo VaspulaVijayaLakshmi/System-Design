@@ -1,6 +1,6 @@
 Game
 ├── Board
-│ └── Cell[8][8]
+│ └── Cell[8][8] 
 │
 ├── Player (White / Black)
 │
