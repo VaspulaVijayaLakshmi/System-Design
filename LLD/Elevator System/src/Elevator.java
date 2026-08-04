@@ -50,9 +50,9 @@ public class Elevator {
     }
 
     if (floor > currentFloor) {
-        addUpStop(floor);
+        upStops.add(floor);
     } else {
-        addDownStop(floor);
+        downStops.add(floor);
     }
 
     startMovingIfIdle();
