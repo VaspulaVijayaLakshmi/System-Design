@@ -1,0 +1,810 @@
+1. There is an upcoming launch and we discover something is broken, the other team owns it. Walk me through the process of error discovery, 
+identifying the right owner and fixing the issue before the big launch tomorrow.
+
+Alert fires: CB open / high 5xx / timeouts / latency spike
+Check dashboards: confirm real spike vs noise
+Go to logs: find request_id / trace_id → see failing service
+Isolate dependency: which backend is failing (DB / downstream service)
+Identify owner: service name → service catalog / on-call (PagerDuty)
+Escalate fast: page owning team + share logs + impact
+Mitigate: rollback / feature flag off / fallback / traffic shift
+Verify: error rate normal, CB closed, latency back
+
+
+___________________________________________________________________________________________________________________________________
+
+2. If we have to co-develop an app with help from partner team,
+what are the things you'd do to ensure faster delivery (he was looking for answer from a tech perspective and not process perspective).
+
+
+
+Clear API contracts (OpenAPI/Proto) before coding
+Mock servers / stubs so both teams can develop in parallel
+Backward-compatible APIs + versioning (avoid blocking each other)
+Shared schemas/models (or strict schema governance)
+Feature flags to merge early without breaking prod
+Event-driven integration (Kafka/pub-sub) where possible to decouple services
+Well-defined error codes + tracing (correlation IDs) for debugging fast
+
+
+___________________________________________________________________________________________________________________________________
+
+
+3.Your Redis cache has a hit rate of 92%. Under a flash sale it drops to 31% in 40 seconds and your DB starts receiving 60k QPS it 
+was never designed for. Walk through exactly what happened and how you'd prevent it
+
+What happened?
+
+Before flash sale:
+
+Clients → Service → Redis → DB
+             |
+          92% hits
+          8% DB traffic
+
+Redis was serving most requests, DB was healthy.
+
+
+
+During flash sale:
+
+Millions of users started requesting the same hot products.
+
+Example:
+
+GET product:iphone15
+GET product:iphone15
+GET product:iphone15
+...
+Cache entries were missing or expired.
+
+
+
+Possible reasons:
+
+New keys appeared that Redis never had.
+Flash sale products were not preloaded into Redis.
+TTL expired at the same time (cache avalanche).
+New product inventory/price data changed and cache was invalidated.
+
+
+
+Prevention 1: Cache Warmup (for predictable flash sales)
+
+For flash sales, we know the hot products beforehand.
+
+Before sale starts:
+
+Product Catalog
+       |
+       |
+ Cache Warmup Job
+       |
+       v
+ Redis
+
+
+                            
+Example:
+
+SET product:123 {
+ id:123,
+ price:999,
+ inventory:500
+}
+TTL: 2 hours
+
+So when sale starts:
+
+Request
+ |
+ Redis HIT
+ |
+ Response
+
+No DB load spike.
+
+
+
+
+                            
+Prevention 2: Cache Stampede Protection (for unexpected misses)
+
+Suppose:
+
+product:123 expired
+
+1000 requests come simultaneously.
+
+Without protection:
+
+Request 1 ---> DB
+Request 2 ---> DB
+Request 3 ---> DB
+...
+Request 1000 --> DB
+
+DB gets 1000 identical queries.
+
+
+                                         
+With stampede protection:
+
+Only one request rebuilds cache.
+
+Example:
+
+Request 1
+   |
+ Redis MISS
+   |
+Acquire lock
+   |
+Fetch DB
+   |
+Update Redis
+   |
+Release lock
+
+
+Request 2-1000
+   |
+ Redis MISS
+   |
+ Wait for lock
+   |
+Retry Redis
+   |
+Get cached value
+
+
+
+                                         
+Implementation:
+Use Redis distributed lock:
+
+SET lock:product:123 true NX EX 10
+NX → only one instance gets lock
+EX → auto expiry
+
+
+
+
+
+Prevention 3: Rate limit / protect DB
+
+Even with caching failures, DB should not die.
+
+Add:
+
+API rate limiting
+Queue requests
+Circuit breaker
+Bulkhead isolation
+
+
+                                         
+Example:
+
+100k requests/sec
+
+        Service
+
+        |
+        |
+   Rate limiter
+
+        |
+        |
+      DB
+
+Allow only 10k QPS                                         
+
+
+
+ 
+Prevention 4: Inventory data needs special handling                                         
+
+ For flash sale inventory:
+Don't cache the source of truth.
+
+Bad:
+
+Redis inventory = 10
+DB inventory = 10
+
+User buys
+Redis decremented
+DB later updated
+
+Can oversell.
+
+
+
+Better:
+
+Redis:
+fast availability check
+
+DB:
+final reservation with atomic update
+
+
+
+Example:
+
+UPDATE inventory
+SET available = available - 1
+WHERE product_id=123
+
+
+
+"The cache hit rate dropped because flash sale traffic introduced a huge number of cache misses. 
+Either the hot items were not warmed up, or existing keys expired causing a cache avalanche. 
+Every miss went to the database, creating a thundering herd and pushing DB QPS beyond capacity. 
+I would prevent this using cache warmup for predictable hot products, cache stampede protection using Redis locks, 
+stale-while-revalidate to serve old data while refreshing asynchronously, 
+and database protection using rate limiting and circuit breakers."
+AND available > 0;
+
+
+___________________________________________________________________________________________________________________________________
+
+4. You have a Postgres table with 2 billion rows. A query that used to run in 80ms now takes 14 seconds after a routine deploy. 
+   Explain exactly how you'd diagnose and fix this, what do you look at first and why?
+
+
+Step 1: Identify where latency increased
+
+
+Is the 14 sec latency coming from:
+
+Client
+ |
+API Gateway
+ |
+Backend Service
+ |
+Database
+ |
+Response                                     
+
+Check:
+
+Application latency metrics (p95/p99)
+DB query latency metrics
+Cache hit ratio
+Recent deploy changes
+
+If application latency increased but DB latency is normal → backend issue.
+If DB query itself changed from 80ms → 14s → investigate Postgres.
+
+
+
+                                         
+Step 2: Check indexes
+
+I would verify:
+SELECT * FROM pg_indexes;
+                                         
+
+Questions:
+
+Did deployment drop/change an index?
+Is the query filtering on indexed columns?
+Did a new column get introduced?
+Is the index still being used?
+
+Example:
+
+Query:
+
+SELECT *
+FROM orders
+WHERE customer_id=123;
+
+                                         
+Needs:
+
+CREATE INDEX idx_orders_customer
+ON orders(customer_id);
+
+Without index:
+2 billion rows scan
+
+
+
+Step 3: Check recent deployment changes
+
+Since it happened after deployment:
+
+I would compare:
+
+SQL query changes
+ORM generated queries
+Missing pagination
+New joins
+
+
+                                         
+Example:
+
+Before:
+
+SELECT *
+FROM orders
+LIMIT 100;
+
+
+                                         
+After:
+
+SELECT *
+FROM orders
+JOIN users
+JOIN payments;
+
+Now billions of rows are involved.
+
+
+
+
+Step 4: Check locks and blocking queries
+
+The query might not be slow; it might be waiting.
+
+pg -> postgres
+
+                                         
+Check:
+
+SELECT * 
+FROM pg_stat_activity;
+
+
+
+                                         
+Look for:
+
+long-running transactions
+locks
+deadlocks
+
+                                         
+Example:
+
+Query waiting 13 seconds
+because another transaction holds lock
+
+
+
+
+Step 5: Check materialized views (your point)
+
+Yes, this is a valid possibility.
+
+If application reads from:
+
+Application
+    |
+Materialized View
+    |
+Base tables
+
+
+                                         
+Then check:
+
+Was refresh completed?
+Did refresh fail?
+Is view stale?
+Did refresh create locking?
+
+                                         
+Commands:
+REFRESH MATERIALIZED VIEW view_name;
+
+
+
+Step 6: Long-term fixes for 2 billion rows
+
+Depending on access pattern:
+Partitioning
+
+                                         
+Example:
+
+Orders table:
+
+orders_2024
+orders_2025
+orders_2026
+
+                                         
+Query:
+
+WHERE created_date > '2026-01-01'
+Only scans relevant partition.
+
+
+Read replicas
+
+For heavy reads:
+
+Write DB
+   |
+Replication
+   |
+Read Replica
+Caching
+
+                                         
+For frequently accessed immutable data:
+
+Redis
+ |
+Postgres
+
+
+ ___________________________________________________________________________________________________________________________________
+
+ You're running a distributed transaction across 3 microservices: payments, inventory, and orders. 
+ Payment succeeds but inventory throws a timeout. You don't know if it committed or not. How do you resolve this without 2PC?
+
+
+
+ First explain the problem
+
+We have:
+
+Order Service
+      |
+      |
+Payment Service
+      |
+      |
+Inventory Service
+
+Flow:
+
+Create order
+Charge payment ✅
+Reserve inventory ❓ timeout
+
+Now we dont know:
+
+Did inventory fail before committing?
+Did inventory commit but response got lost?
+
+This is the distributed transaction problem.                                     
+
+
+
+
+Why not 2PC?
+
+In 2PC:
+
+Coordinator:
+
+Phase 1: Prepare
+Coordinator
+    |
+    |---- Payment: Ready?
+    |
+    |---- Inventory: Ready?
+
+Services lock resources and say YES/NO.
+
+Phase 2: Commit
+Coordinator
+    |
+    |---- Commit Payment
+    |
+    |---- Commit Inventory
+
+If anyone says NO:
+Rollback everyone
+
+
+                                         
+Problem:
+
+Blocking protocol
+Services hold locks while waiting
+Coordinator becomes bottleneck
+Bad availability in microservices
+
+
+
+                                         
+
+Solution without 2PC: Saga Pattern
+
+We split the transaction into local transactions.
+
+                                         
+Example:
+
+Step 1: Create Order
+
+Order Service:
+Order = CREATED
+
+                                         
+Step 2: Payment
+
+Payment Service:
+Charge customer
+
+Success:
+Payment = SUCCESS
+
+
+                                         
+Step 3: Inventory
+
+Inventory Service:
+Reserve item
+But timeout happens.
+                                         
+
+Now we don't immediately rollback blindly.
+Handle unknown state
+
+We first retry with an idempotency key.
+
+Example:
+
+reserveInventory(
+    orderId=123
+)
+
+
+
+Inventory stores:
+
+orderId | status
+----------------
+123     | RESERVED
+
+
+
+If we retry:
+reserveInventory(123)
+It won't reserve twice.
+If inventory actually failed
+We execute compensation.
+
+
+                                         
+Saga:
+
+Payment SUCCESS
+        |
+Inventory FAILED
+        |
+Compensate Payment
+        |
+Refund customer
+
+
+                                         
+So:
+
+Forward transaction:
+
+Pay()
+ReserveInventory()
+CreateOrder()
+
+
+                                         
+Compensation:
+
+RefundPayment()
+ReleaseInventory()
+CancelOrder()
+
+
+
+Two ways to implement Saga
+1. Orchestration
+
+Central Saga orchestrator:
+
+        Saga Coordinator
+
+             |
+    ------------------
+    |        |        |
+ Order   Payment Inventory
+
+Example:
+
+1. Create Order
+2. Call Payment
+3. Call Inventory
+
+If Inventory fails:
+
+4. Call Refund Payment
+5. Cancel Order
+
+
+
+
+                                         
+2. Choreography
+
+Services communicate through events.
+
+Example:
+
+Payment Service
+      |
+ PaymentCompleted Event
+      |
+      v
+Inventory Service
+      |
+ InventoryFailed Event
+      |
+      v
+Payment Service
+      |
+Refund
+
+Usually Kafka is used.
+
+
+Handling your exact scenario:
+
+Payment succeeded but inventory timeout. We don't know if inventory committed.
+
+Answer:
+
+Assign a unique transaction/order ID.
+Retry inventory operation using idempotency.
+Inventory service checks its transaction log:
+orderId=123
+status=RESERVED
+
+If already committed:
+return success
+
+
+If not:
+
+execute reservation
+If reservation cannot happen:
+trigger compensation:
+Refund Payment
+Cancel Order
+
+
+
+Difference b/w orchestrator in SAGA and 2PC
+
+
+2PC (Two-Phase Commit)
+
+The coordinator is part of the transaction protocol.
+
+Flow:
+
+              Coordinator
+                  |
+        ---------------------
+        |                   |
+    Payment DB          Inventory DB
+
+
+Phase 1: Prepare
+
+Coordinator -> Payment: Can you commit?
+Payment     -> Coordinator: YES
+
+Coordinator -> Inventory: Can you commit?
+Inventory   -> Coordinator: YES
+
+
+Phase 2: Commit
+
+Coordinator -> Payment: COMMIT
+Coordinator -> Inventory: COMMIT
+
+Important:
+
+Services lock resources
+Nobody commits until everyone says YES
+Coordinator guarantees all-or-nothing
+
+If Inventory fails:
+
+Coordinator
+    |
+ROLLBACK
+    |
+Payment rollback
+
+The transaction never partially completes.
+
+
+
+
+Saga Orchestrator
+
+The orchestrator is not controlling a database transaction.
+It is just coordinating independent local transactions.
+
+Example:
+
+             Saga Orchestrator
+
+                    |
+        -------------------------
+        |           |           |
+      Order      Payment    Inventory
+
+Flow:
+
+1. Create Order
+       |
+2. Charge Payment
+       |
+3. Reserve Inventory
+
+Payment already committed.
+
+
+Inventory fails:
+
+Payment = SUCCESS
+Inventory = FAILED
+
+Saga cannot rollback payment.
+
+
+
+Instead:
+
+Orchestrator
+       |
+       |
+       v
+
+Payment Service
+       |
+       |
+    Refund Payment
+
+This is a compensating transaction.
+
+
+
+??????????????????
+
+___________________________________________________________________________________________________________________________________
+
+ Your service is producing duplicate events under load. Downstream consumers are idempotent but your event IDs are generated
+using UUID v4. Under 80k events/sec you're seeing collisions. What's wrong and how do you fix the ID generation strategy?
+
+
+You deployed a change that added a single index to a high-traffic Postgres table. Write traffic dropped by 40% for
+6 minutes after deploy. No errors in logs. What happened?
+
+
+ Your gRPC service has p99 latency of 1.8 seconds but p50 is 42ms. The service has no obvious bottleneck in CPU or memory. 
+ Walk through how you'd find the exact cause, what tools, what metrics, what hypothesis do you test first?
+
+
+
+
+
+
+
+
+
+
+                                         
