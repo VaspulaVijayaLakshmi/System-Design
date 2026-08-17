@@ -470,23 +470,17 @@ Database
 
 ---
 
+## Cache Consistency Patterns
 
-                        CACHE PATTERNS
+| Pattern           | Read               | Write                                         | Pros                | Cons                            |
+| ----------------- | ------------------ | --------------------------------------------- | ------------------- | ------------------------------- |
+| **Cache Aside**   | App checks cache   | DB update + invalidate cache                  | Most common, simple | Application manages consistency |
+| **Read Through**  | Cache handles read | Usually paired with Write Through             | Cleaner application | Cache layer complexity          |
+| **Write Through** | Cache + DB sync    | Update cache and DB before returning response | Strong consistency  | Higher write latency            |
+| **Write Behind**  | Cache first        | Async DB update                               | Very fast writes    | Risk of data loss               |
 
-┌───────────────┬──────────────────────┬──────────────────────────────┬─────────────────────────┬───────────────────────────────┐
-│ Pattern       │ Read                 │ Write                        │ Pros                    │ Cons                          │
-├───────────────┼──────────────────────┼──────────────────────────────┼─────────────────────────┼───────────────────────────────┤
-│ Cache Aside   │ App checks cache     │ DB update + invalidate cache  │ Most common, simple     │ Application manages           │
-│               │                      │                              │                         │ consistency                   │
-├───────────────┼──────────────────────┼──────────────────────────────┼─────────────────────────┼───────────────────────────────┤
-│ Read Through  │ Cache handles read   │ Usually paired with           │ Cleaner application     │ Cache layer complexity        │
-│               │                      │ write-through                 │                         │                               │
-├───────────────┼──────────────────────┼──────────────────────────────┼─────────────────────────┼───────────────────────────────┤
-│ Write Through │ Cache + DB sync      │ Update cache and DB before    │ Strong consistency      │ Higher write latency           │
-│               │                      │ returning response            │                         │                               │
-├───────────────┼──────────────────────┼──────────────────────────────┼─────────────────────────┼───────────────────────────────┤
-│ Write Behind  │ Cache first          │ Async DB update               │ Very fast writes        │ Risk of data loss              │
-└───────────────┴──────────────────────┴──────────────────────────────┴─────────────────────────┴───────────────────────────────┘
+
+
 
 
 
